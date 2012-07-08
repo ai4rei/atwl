@@ -1,0 +1,10 @@
+BLURB:[2012-07-02aRagexeRE (kRO) by Ai4rei]
+OCRC:38702688
+byte_[Win98]_Subsystem_Version_to_4.0:180:5:4
+byte_[Fix]_Enable_Clientinfo.xml_(Langtype_0):18B050:0:1
+byte_[Fix]_Disable_Cash_Fonts:3D7340:15:144
+byte_[Fix]_Disable_Cash_Fonts:3D7341:133:233
+byte_[Fix]_Enable_Window_Move/Minimize:3FD81B:194:202
+byte_[Fix]_Enable_Window_Move/Minimize:3FD8F4:194:202
+byte_[Fix]_Disable_Client_Filename_Check:3FE77E:117:235
+byte_[Fix]_Disable_Hackshield:3FE844:117:235
