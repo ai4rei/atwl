@@ -1,0 +1,22 @@
+BLURB:[2012-04-10aRagexeRE (kRO) by Ai4rei]
+OCRC:59346157
+byte_[Win98]_Subsystem_Version_to_4.0:178:5:4
+byte_[Fix]_Enable_Clientinfo.xml_(Langtype_0):186B30:0:1
+byte_[Packet]_Disable_Obfuscation:1C39B0:139:51
+byte_[Packet]_Disable_Obfuscation:1C39B1:68:192
+byte_[Packet]_Disable_Obfuscation:1C39B2:36:144
+byte_[Packet]_Disable_Obfuscation:1C39B3:4:144
+byte_[Packet]_Disable_Obfuscation:1C39B4:139:51
+byte_[Packet]_Disable_Obfuscation:1C39B5:84:210
+byte_[Packet]_Disable_Obfuscation:1C39B6:36:144
+byte_[Packet]_Disable_Obfuscation:1C39B7:8:144
+byte_[Packet]_Disable_Obfuscation:1C39BB:139:144
+byte_[Packet]_Disable_Obfuscation:1C39BC:68:144
+byte_[Packet]_Disable_Obfuscation:1C39BD:36:144
+byte_[Packet]_Disable_Obfuscation:1C39BE:12:144
+byte_[Fix]_Disable_Cash_Fonts:3C8AB0:15:144
+byte_[Fix]_Disable_Cash_Fonts:3C8AB1:133:233
+byte_[Fix]_Enable_Window_Move/Minimize:3EE89B:194:202
+byte_[Fix]_Enable_Window_Move/Minimize:3EE974:194:202
+byte_[Fix]_Disable_Client_Filename_Check:3EF74E:117:235
+byte_[Fix]_Disable_Hackshield:3EF814:117:235
