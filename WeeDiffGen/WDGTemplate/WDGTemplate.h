@@ -22,6 +22,8 @@ public:
     virtual LPCTSTR GetInputValue(void);
     virtual DiffData* GeneratePatch(void);
     virtual DiffData* GetDiffData(void);
+private:
+    bool IsSane(void);
 };
 
 #endif  /* _WDGTEMPLATE_H_ */
