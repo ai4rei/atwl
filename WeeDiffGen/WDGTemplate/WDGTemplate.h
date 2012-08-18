@@ -9,6 +9,8 @@ using namespace WeeDiffGenPlugin;
 
 class WDGPlugin : public IWDGPlugin
 {
+    DiffData m_DiffData;
+
 public:
     WDGPlugin(LPVOID lpData) : IWDGPlugin(lpData)
     {

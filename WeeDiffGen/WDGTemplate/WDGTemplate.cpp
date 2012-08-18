@@ -51,12 +51,21 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 
 DiffData* WDGPlugin::GeneratePatch(void)
 {
-    return NULL;
+    this->m_DiffData.clear();
+
+    if(!this->IsSane())
+    {
+        return NULL;
+    }
+
+    //
+
+    return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
 }
 
 DiffData* WDGPlugin::GetDiffData(void)
 {
-    return NULL;
+    return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
 }
 
 /**
