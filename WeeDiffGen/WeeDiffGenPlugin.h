@@ -66,7 +66,9 @@ namespace WeeDiffGenPlugin
 	/* If you want to search only in a specific section, then set WFD_SECTION and point lpszSection
 	/* to a section.
 	/*
-	/* uStart and uFinish are self explanatory.
+	/* uStart and uFinish set the border offsets to search within, both of them being
+	/* absolute image offsets. The effective search area is (uStart;uFinish-1). If you
+	/* use WFD_SECTION, these values are ignored.
 	/*
 	/************************************************************************/
 	typedef struct _FINDDATA
