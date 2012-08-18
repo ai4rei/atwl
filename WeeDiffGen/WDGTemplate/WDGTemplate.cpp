@@ -1,14 +1,19 @@
 #include "WDGTemplate.h"
 
+#ifndef _ARRAYSIZE
+    #define _ARRAYSIZE(x) (sizeof(x)/sizeof((x)[0]))
+#endif  /* _ARRAYSIZE */
+
 static /* const */ WDGPLUGININFO l_PluginInfo =
 {
     _T("Plugin Name"),
     _T("Plugin Description"),
-    _T("Plugin Type/Category"),
-    _T("Fix|Packet|UI|Data|Add|Color|Auto"),
+    _T("[Fix|Packet|UI|Data|Add|Color|Auto]"),
+    _T(""),
     _T("Ai4rei/AN"),
     1, 1,  /* targeted patcher version */
-    { 0 }  /* guid */
+    { 0 },  /* guid */
+    _T("")
 };
 
 static WDGPlugin* l_lpSelfReference = NULL;
@@ -92,7 +97,7 @@ bool WDGPlugin::IsSane(void)
 extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID lpData, USHORT huWeeDiffMajorVersion, USHORT huWeeDiffMinorVersion)
 {
     if(l_lpSelfReference)
-    {
+    {// double initialization
         DebugBreak();
     }
     else
