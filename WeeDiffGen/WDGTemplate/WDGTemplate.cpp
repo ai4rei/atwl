@@ -94,6 +94,25 @@ bool WDGPlugin::IsSane(void)
 #undef ISSANEMAGIC
 }
 
+void WDGPlugin::SetByte(INT32 nOffset, UCHAR uValue)
+{
+    DIFFDATA Diff = { nOffset, uValue };
+
+    this->m_DiffData.push_back(Diff);
+}
+
+void WDGPlugin::SetWord(INT32 nOffset, USHORT uValue)
+{
+    this->SetByte(nOffset+0, ((UCHAR*)&uValue)[0]);
+    this->SetByte(nOffset+1, ((UCHAR*)&uValue)[1]);
+}
+
+void WDGPlugin::SetLong(INT32 nOffset, ULONG uValue)
+{
+    this->SetWord(nOffset+0, ((USHORT*)&uValue)[0]);
+    this->SetWord(nOffset+2, ((USHORT*)&uValue)[1]);
+}
+
 extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID lpData, USHORT huWeeDiffMajorVersion, USHORT huWeeDiffMinorVersion)
 {
     if(l_lpSelfReference)

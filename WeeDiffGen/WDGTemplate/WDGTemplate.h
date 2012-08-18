@@ -22,8 +22,12 @@ public:
     virtual LPCTSTR GetInputValue(void);
     virtual DiffData* GeneratePatch(void);
     virtual DiffData* GetDiffData(void);
+
 private:
     bool IsSane(void);
+    void SetByte(INT32 nOffset, UCHAR uValue);
+    void SetWord(INT32 nOffset, USHORT uValue);
+    void SetLong(INT32 nOffset, ULONG uValue);
 };
 
 #endif  /* _WDGTEMPLATE_H_ */
