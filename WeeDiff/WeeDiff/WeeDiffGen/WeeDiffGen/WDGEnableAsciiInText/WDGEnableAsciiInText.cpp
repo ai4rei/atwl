@@ -75,7 +75,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
     try
     {
-        // MISSION: Find TEST BYTE PTR DS:[R32+R32],80 followed by a
+        // MISSION: Find TEST BYTE PTR DS:[R32+R32],80h followed by
         // JNZ SHORT in CSession::IsOnlyEnglish.
 
         // NOTE: actually, this misses arrays addressed with ESP+R32
@@ -83,7 +83,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         //       use these as they require an additional prefix.
         Fd.uMask = WFD_PATTERN|WFD_WILDCARD|WFD_SECTION;
         Fd.lpData =
-                  "F604'?' 80"  // TEST    BYTE PTR DS:[R32+R32],80
+                  "F604'?' 80"  // TEST    BYTE PTR DS:[R32+R32],80h
                   "75 '?'"      // JNZ     SHORT ADDR v
                   "'?'"         // INC     R32
                   "3B'?'"       // CMP     R32,R32
