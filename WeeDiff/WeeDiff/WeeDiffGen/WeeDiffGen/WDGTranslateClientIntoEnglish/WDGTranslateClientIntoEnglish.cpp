@@ -64,7 +64,7 @@ DiffData *WDGPlugin::GeneratePatch()
 	CHAR szMsg[256];
 	m_diffdata.clear();
 
-	UINT32 uOffset = 0;
+	UINT32 uOffset = 0, uPart;
 
 	/************************************************************************/
 	/* Translate Delete Time
@@ -75,58 +75,44 @@ DiffData *WDGPlugin::GeneratePatch()
 		sFindData.lpData = "25 64 BF F9 20 25 64 C0 CF 20 25 64 BD C3 20 25 64 BA D0 20 25 64 C3 CA 00";
 		sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->Match(&sFindData);
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 1;
 
-	try
-	{
+		uOffset = m_dgc->Match(&sFindData);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'Delete: %d/%d - %d:%d:%d'";
 		sFindData.uMask = WFD_PATTERN;
 
-		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part 2 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 2;
 
-	try
-	{
+		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "25 64 B3 E2 20 25 64 BF F9 20 25 64 C0 CF 20 25 64 BD C3 20 25 64 BA D0 20 25 64 C3 CA 20";
 		sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->Match(&sFindData);
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part 3 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 3;
 
-	try
-	{
+		uOffset = m_dgc->Match(&sFindData);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'%d/%d/%d - %d:%d:%d'";
 		sFindData.uMask = WFD_PATTERN;
 
+		uPart = 4;
+
 		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
-	} 
+	}
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part 4 :: %s", lpszMsg);
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-		return NULL;
+
+		// clean up diffdata (half diff)
+		for(uPart/= 2; uPart; uPart--)
+		{
+			m_diffdata.pop_back();
+		}
 	}
 
 	/************************************************************************/
@@ -138,28 +124,22 @@ DiffData *WDGPlugin::GeneratePatch()
 		sFindData.lpData = "B8 DE BD C3 C1 F6";
 		sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->Match(&sFindData);
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Message Box :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 1;
 
-	try
-	{
+		uOffset = m_dgc->Match(&sFindData);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'Message'";
 		sFindData.uMask = WFD_PATTERN;
 
+		uPart = 2;
+
 		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
-	} 
+	}
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Message Box :: Part 2 :: %s", lpszMsg);
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Message Box :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-		return NULL;
 	}
 
 	/************************************************************************/
@@ -171,28 +151,22 @@ DiffData *WDGPlugin::GeneratePatch()
 		sFindData.lpData = "00 28 C4 B3 B8 AF C5 CD 2F C3 D1 20 BD BD B7 D4 29 00";
 		sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->Match(&sFindData);
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Character Slot Usage :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 1;
 
-	try
-	{
+		uOffset = m_dgc->Match(&sFindData);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'(Used / Total)'";
 		sFindData.uMask = WFD_PATTERN;
 
+		uPart = 2;
+
 		m_dgc->Replace(CBAddDiffData, uOffset + 1, &sFindData, true);
-	} 
+	}
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Character Slot Usage :: Part 2 :: %s", lpszMsg);
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Character Slot Usage :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-		return NULL;
 	}
 
 	/************************************************************************/
@@ -204,31 +178,25 @@ DiffData *WDGPlugin::GeneratePatch()
 		sFindData.lpData = "C4 C9 B8 AF C5 CD 20 B8 B8 B5 E9 B1 E2 00";
 		sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->Match(&sFindData);
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Make Character Window Title :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		uPart = 1;
 
-	try
-	{
+		uOffset = m_dgc->Match(&sFindData);
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'Make Character'";
 		sFindData.uMask = WFD_PATTERN;
 
+		uPart = 2;
+
 		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
-	} 
+	}
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Make Character Window Title :: Part 2 :: %s", lpszMsg);
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Make Character Window Title :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-		return NULL;
 	}
 
-	return &m_diffdata;
+	return m_diffdata.empty() ? NULL : &m_diffdata;
 }
 
 DiffData *WDGPlugin::GetDiffData()
