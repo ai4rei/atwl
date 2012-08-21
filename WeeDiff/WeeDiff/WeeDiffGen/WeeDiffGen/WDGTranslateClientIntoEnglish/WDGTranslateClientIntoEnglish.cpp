@@ -195,6 +195,39 @@ DiffData *WDGPlugin::GeneratePatch()
 		return NULL;
 	}
 
+	/************************************************************************/
+	/* Translate Make Character Window Title
+	/************************************************************************/
+	try
+	{
+		ZeroMemory(&sFindData, sizeof(sFindData));
+		sFindData.lpData = "C4 C9 B8 AF C5 CD 20 B8 B8 B5 E9 B1 E2 00";
+		sFindData.uMask = WFD_PATTERN;
+
+		uOffset = m_dgc->Match(&sFindData);
+	}
+	catch (LPCSTR lpszMsg)
+	{
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Make Character Window Title :: Part 1 :: %s", lpszMsg);
+		m_dgc->LogMsg(szMsg);
+		return NULL;
+	}
+
+	try
+	{
+		ZeroMemory(&sFindData, sizeof(sFindData));
+		sFindData.lpData = "'Make Character'";
+		sFindData.uMask = WFD_PATTERN;
+
+		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData, true);
+	} 
+	catch (LPCSTR lpszMsg)
+	{
+		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Make Character Window Title :: Part 2 :: %s", lpszMsg);
+		m_dgc->LogMsg(szMsg);
+		return NULL;
+	}
+
 	return &m_diffdata;
 }
 
