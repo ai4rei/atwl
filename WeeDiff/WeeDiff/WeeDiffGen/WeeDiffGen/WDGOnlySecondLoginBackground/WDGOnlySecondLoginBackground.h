@@ -25,11 +25,9 @@ public:
 
 protected:
 	static void __stdcall CBAddDiffData(WeeDiffGenPlugin::LPDIFFDATA lpDiffData);
-	static void __stdcall CBAddOffset(UINT32 uOffset);
 
 protected:
 	DiffData m_diffdata;
-	std::vector<UINT32> *m_offsets;
 };
 
 #endif // _WDG_ONLY_SECOND_LOGIN_BACKGROUND_H

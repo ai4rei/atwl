@@ -68,52 +68,19 @@ DiffData *WDGPlugin::GeneratePatch()
 
 	try
 	{
-		std::vector<UINT32> offsets;
-		m_offsets = &offsets;
-
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'@유저인터페이스\\T_배경%d-%d.bmp'";
+		sFindData.lpData = "C0 AF C0 FA C0 CE C5 CD C6 E4 C0 CC BD BA 5C 'T2_' B9 E8 B0 E6 '%d-%d.bmp' 00";
 		sFindData.uMask = WFD_PATTERN;
 
-		UINT32 uBG1 = m_dgc->FindStr(&sFindData, true) + 2;
+		uOffset = m_dgc->Match(&sFindData);
 
 		uPart = 2;
 
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'유저인터페이스\\T2_배경%d-%d.bmp'";
+		sFindData.lpData = "'T_' B9 E8 B0 E6 '%d-%d.bmp' 00 00";
 		sFindData.uMask = WFD_PATTERN;
 
-		UINT32 uBG2 = m_dgc->FindStr(&sFindData, true);
-
-		uPart = 3;
-
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[5];
-		sFindData.uDataSize = 5;
-
-		sFindData.lpData[0] = '\x68';
-		memcpy(sFindData.lpData + 1, (CHAR *)&uBG2, 4);
-
-		m_dgc->Matches(CBAddOffset, &sFindData);
-
-		m_offsets = NULL;
-		delete[] sFindData.lpData;
-
-		uPart = 4;
-
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[4];
-		sFindData.uDataSize = 4;
-
-		for(UINT32 i = 0; i < offsets.size(); i++)
-		{
-			uOffset = offsets[i];
-			memcpy(sFindData.lpData, (CHAR *)&uBG1, 4);
-
-			m_dgc->Replace(CBAddDiffData, uOffset + 1, &sFindData);
-		}
-
-		delete[] sFindData.lpData;		
+		m_dgc->Replace(CBAddDiffData, uOffset+15, &sFindData);
 	}
 	catch (LPCSTR lpszMsg)
 	{
@@ -153,13 +120,5 @@ void WDGPlugin::CBAddDiffData(WeeDiffGenPlugin::LPDIFFDATA lpDiffData)
 	if(g_SelfReference != NULL)
 	{
 		g_SelfReference->m_diffdata.push_back(*lpDiffData);
-	}
-}
-
-void WDGPlugin::CBAddOffset(UINT32 uOffset)
-{
-	if(g_SelfReference != NULL && g_SelfReference->m_offsets != NULL)
-	{
-		g_SelfReference->m_offsets->push_back(uOffset);
 	}
 }
