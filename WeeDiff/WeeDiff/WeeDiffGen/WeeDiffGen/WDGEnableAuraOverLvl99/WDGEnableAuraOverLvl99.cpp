@@ -69,7 +69,7 @@ DiffData *WDGPlugin::GeneratePatch()
 	try
 	{
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "83 3D AB AB AB 00 63 EB 0A 81 3D AB AB AB 00 96 00 00 00 75 13";
+		sFindData.lpData = "83 3D AB AB AB 00 63 EB 0A 81 3D AB AB AB 00 96 00 00 00 75";
 		sFindData.lpszSection = ".text";
 		sFindData.chWildCard = '\xAB';
 		sFindData.uMask = WFD_PATTERN | WFD_SECTION | WFD_WILDCARD;
