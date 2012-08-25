@@ -116,19 +116,18 @@ DiffData* WDGPlugin::GeneratePatch(void)
         this->SetByte(uPtr++, 0x00);  // NUL
 
         // find reference to the string (PUSH OFFSET)
-        Fd.uMask = WFD_SECTION;
-        Fd.lpData = new char[5];
-        Fd.uDataSize = 5;
-        Fd.lpszSection = ".text";
+        char cPushStr[5];
+        cPushStr[0] = 0x68;  // PUSH
+        ((UINT32*)(&cPushStr[1]))[0] = this->m_dgc->Raw2Rva(uOffset);  // OFFSET
 
-        Fd.lpData[0] = 0x68;  // PUSH
-        ((unsigned long*)(&Fd.lpData[1]))[0] = this->m_dgc->Raw2Rva(uOffset);  // OFFSET
+        Fd.uMask = WFD_SECTION;
+        Fd.lpData = cPushStr;
+        Fd.uDataSize = sizeof(cPushStr);
+        Fd.lpszSection = ".text";
 
         uPart = 3;
 
         uOffset = this->m_dgc->Match(&Fd);
-
-        delete[] Fd.lpData;
 
         // since we unfortunately do not have means to walk command
         // by command, hardcoded relative offsets will have to do
