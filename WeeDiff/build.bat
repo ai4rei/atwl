@@ -29,7 +29,6 @@ IF ERRORLEVEL 1 GOTO ERROR
 ECHO Building WeeDiff plugins...
 CD WeeDiff
 FOR %%i IN (WeeDiffPlain WeeDiffGen) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\%%i.dll" > NUL
-DEL *.obj
 CD "%BUILDERDIR%"
 
 :WDG
@@ -39,7 +38,6 @@ REM Original
 FOR %%i IN (WDGOnlyFirstLoginBackground WDGRemoveGravityLogo WDGSkipServiceSelect WDGEnableOfficialCustomFonts WDGEnableDNSSupport WDGDisable4LetterUserPasswordLimit WDGEnable127Hairstyles WDGAlwaysCallSelectKoreaClientInfo WDGFixCameraAnglesMedium WDGDisableMultipleWindows WDGUseRagnarokIcon WDGDisable1rag1 WDGChatAtBug WDGIncreaseZoomOut50Per WDGRestoreLoginWindow WDGReadQuestTable WDGAllowMultipleWindows WDGOnlySecondLoginBackground WDGExtendedChatRoomBox WDGEnforceOfficialLoginBackground WDGSkipLicenseScreen WDGIgnoreMissingFileErrors WDGDisableSwearFilter WDGFixCameraAnglesLess WDGReadMsgStringTable WDGDisableNagleAlgorithm WDGUseArialOnAllLangtypes WDGIncreaseHeadgearViewID WDGDisable4LetterUserIDLimit WDGDisable4LetterUserCharacterLimit WDGEnableMultipleGRFExtended WDGDisableHallucinationWavyScreen WDGIgnoreMissingPaletteErrors WDGSkipResurrectionButtons WDGEnableAuraOverLvl99 WDGRemoveGravityAds WDGIncreaseZoomOutMax WDGTranslateClientIntoEnglish WDGEnableMultipleGRF WDGEnableTitleBarMenu WDGAllowChatFlood WDGDisableFilenameCheck WDGCustomWindowTitle WDGDisableHShield WDGExtendedPMBox WDGLoadLUABeforeLUB WDGHKLMtoHKCU WDGExtendedChatBox WDGIncreaseZoomOut75Per WDGReadDataFolderFirst WDGUseNormalGuildBrackets WDGUseCustomAuraSprites WDGFixCameraAnglesFull WDGUsePlainTextDescriptions) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll" > NUL
 REM Atwl
 FOR %%i IN (WDGEnableAsciiInText WDGRemoveHourlyPlaytimeMinder) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
-DEL *.obj
 CD "%BUILDERDIR%"
 
 :TEMP
