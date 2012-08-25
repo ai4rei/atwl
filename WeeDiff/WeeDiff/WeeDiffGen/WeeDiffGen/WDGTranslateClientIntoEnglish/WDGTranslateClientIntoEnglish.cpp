@@ -109,10 +109,7 @@ DiffData *WDGPlugin::GeneratePatch()
 		m_dgc->LogMsg(szMsg);
 
 		// clean up diffdata (half diff)
-		for(uPart/= 2; uPart; uPart--)
-		{
-			m_diffdata.pop_back();
-		}
+		m_diffdata.clear();
 	}
 
 	/************************************************************************/
