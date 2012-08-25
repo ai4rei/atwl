@@ -14,7 +14,7 @@ IF EXIST Release\NUL RD Release /s /q
 MD Release
 MD Release\plugins
 MD Release\plugins\WeeDiffGen
-REM GOTO WDG
+IF "%1"=="private" GOTO WDG
 
 :BUILD
 ECHO Building WeeDiff...
@@ -34,8 +34,13 @@ CD "%BUILDERDIR%"
 :WDG
 ECHO Building WeeDiffGen plugins...
 CD WeeDiff\WeeDiffGen\WeeDiffGen
+IF "%1"=="private" GOTO WDGPRIVATE
 REM Original
 FOR %%i IN (WDGOnlyFirstLoginBackground WDGRemoveGravityLogo WDGSkipServiceSelect WDGEnableOfficialCustomFonts WDGEnableDNSSupport WDGDisable4LetterUserPasswordLimit WDGEnable127Hairstyles WDGAlwaysCallSelectKoreaClientInfo WDGFixCameraAnglesMedium WDGDisableMultipleWindows WDGUseRagnarokIcon WDGDisable1rag1 WDGChatAtBug WDGIncreaseZoomOut50Per WDGRestoreLoginWindow WDGReadQuestTable WDGAllowMultipleWindows WDGOnlySecondLoginBackground WDGExtendedChatRoomBox WDGEnforceOfficialLoginBackground WDGSkipLicenseScreen WDGIgnoreMissingFileErrors WDGDisableSwearFilter WDGFixCameraAnglesLess WDGReadMsgStringTable WDGDisableNagleAlgorithm WDGUseArialOnAllLangtypes WDGIncreaseHeadgearViewID WDGDisable4LetterUserIDLimit WDGDisable4LetterUserCharacterLimit WDGEnableMultipleGRFExtended WDGDisableHallucinationWavyScreen WDGIgnoreMissingPaletteErrors WDGSkipResurrectionButtons WDGEnableAuraOverLvl99 WDGRemoveGravityAds WDGIncreaseZoomOutMax WDGTranslateClientIntoEnglish WDGEnableMultipleGRF WDGEnableTitleBarMenu WDGAllowChatFlood WDGDisableFilenameCheck WDGCustomWindowTitle WDGDisableHShield WDGExtendedPMBox WDGLoadLUABeforeLUB WDGHKLMtoHKCU WDGExtendedChatBox WDGIncreaseZoomOut75Per WDGReadDataFolderFirst WDGUseNormalGuildBrackets WDGUseCustomAuraSprites WDGFixCameraAnglesFull WDGUsePlainTextDescriptions) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll" > NUL
+GOTO WDGPUBLIC
+:WDGPRIVATE
+FOR %%i IN (WDGTranslateClientIntoEnglish) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll" > NUL
+:WDGPUBLIC
 REM Atwl
 FOR %%i IN (WDGEnableAsciiInText WDGRemoveHourlyPlaytimeMinder WDGSharedBodyPalettes) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
 CD "%BUILDERDIR%"
