@@ -151,6 +151,9 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
             this->VoidPushOrThrow(uOffset-19);
         }
+
+        // adjust stack cleanup
+        this->SetByte(uOffset+13,0x0C);  // 14h -> 0Ch (in ADD ESP,x)
     }
     catch(const char* lpszThrown)
     {
