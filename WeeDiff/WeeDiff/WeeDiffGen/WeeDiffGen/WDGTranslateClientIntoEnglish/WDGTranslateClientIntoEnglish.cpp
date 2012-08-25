@@ -107,9 +107,6 @@ DiffData *WDGPlugin::GeneratePatch()
 	{
 		sprintf_s(szMsg, 256, "WDGTranslateClientIntoEnglish :: Translate Delete Time :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-
-		// clean up diffdata (half diff)
-		m_diffdata.clear();
 	}
 
 	/************************************************************************/
