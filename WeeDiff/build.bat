@@ -42,7 +42,7 @@ GOTO WDGPUBLIC
 FOR %%i IN (WDGEnableAuraOverLvl99 WDGOnlyFirstLoginBackground WDGOnlySecondLoginBackground WDGTranslateClientIntoEnglish) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll" > NUL
 :WDGPUBLIC
 REM Atwl
-FOR %%i IN (WDGEnableAsciiInText WDGRemoveHourlyPlaytimeMinder WDGRemoveHourlyGameGrade WDGRemoveQuakeSkillEffect WDGSharedBodyPalettes WDGSkipPacketHeaderObfuscation) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
+FOR %%i IN (WDGEnableAsciiInText WDGRemoveHourlyPlaytimeMinder WDGRemoveHourlyGameGrade WDGRemoveQuakeSkillEffect WDGSharedBodyPalettes WDGSkipPacketHeaderObfuscation WDGSharedHeadPalettes) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
 CD "%BUILDERDIR%"
 
 :TEMP
