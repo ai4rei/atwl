@@ -14,6 +14,7 @@ byte_[Packet]_Disable_Obfuscation:1CA83B:139:144
 byte_[Packet]_Disable_Obfuscation:1CA83C:68:144
 byte_[Packet]_Disable_Obfuscation:1CA83D:36:144
 byte_[Packet]_Disable_Obfuscation:1CA83E:12:144
+byte_[Fix]_Disable_Debugger_Detection:20CBA0:81:195
 byte_[Fix]_Disable_Cash_Fonts:3D7340:15:144
 byte_[Fix]_Disable_Cash_Fonts:3D7341:133:233
 byte_[Fix]_Enable_Window_Move/Minimize:3FD81B:194:202
