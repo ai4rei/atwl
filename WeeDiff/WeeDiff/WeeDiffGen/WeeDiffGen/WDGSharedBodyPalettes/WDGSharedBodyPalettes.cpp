@@ -166,6 +166,12 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         // adjust stack cleanup
         this->SetByte(uOffset+(this->IsVC9Image() && !bIsNewFormat ? 14 : 13),0x0C);  // 14h -> 0Ch (in ADD ESP,x)
+
+        // adjust stack reference
+        if(this->IsVC9Image() && bIsNewFormat)
+        {
+            this->SetByte(uOffset-1, this->m_dgc->GetBYTE(uOffset-1)-0x08);  // -2x PUSH
+        }
     }
     catch(const char* lpszThrown)
     {
