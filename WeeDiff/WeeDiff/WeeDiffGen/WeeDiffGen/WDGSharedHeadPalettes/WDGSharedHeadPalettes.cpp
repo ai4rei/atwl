@@ -63,6 +63,7 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 
 DiffData* WDGPlugin::GeneratePatch(void)
 {
+    bool bIsNewFormat = false;
     FINDDATA Fd;
     UINT32 uOffset, uPtr, uPart;
 
@@ -82,22 +83,20 @@ DiffData* WDGPlugin::GeneratePatch(void)
         // string in CSession::GetHeadPaletteName.
 
         // replace the formatted string
-        if(this->IsVC9Image())
-        {
-            Fd.uMask = WFD_PATTERN|WFD_SECTION;
-            Fd.lpData = "B8 D3 B8 AE 5C B8 D3 B8 AE 25 73 5F 25 73 5F 25 64 2E 70 61 6C 00";  // 赣府\赣府%s_%s_%d.pal
-            Fd.lpszSection = ".rdata";
-        }
-        else
-        {
-            Fd.uMask = WFD_PATTERN|WFD_SECTION;
-            Fd.lpData = "B8 D3 B8 AE 5C B8 D3 B8 AE 25 73 25 73 5F 25 64 2E 70 61 6C 00";     // 赣府\赣府%s%s_%d.pal
-            Fd.lpszSection = ".data";
-        }
+        Fd.uMask = WFD_PATTERN|WFD_SECTION;
+        Fd.lpData = "B8 D3 B8 AE 5C B8 D3 B8 AE 25 73 25 73 5F 25 64 2E 70 61 6C 00";     // 赣府\赣府%s%s_%d.pal
+        Fd.lpszSection = this->IsVC9Image() ? ".rdata" : ".data";
 
         uPart = 1;
 
-        uOffset = this->m_dgc->Match(&Fd);
+        if(!this->TryMatch(&Fd, &uOffset))
+        {
+            Fd.lpData = "B8 D3 B8 AE 5C B8 D3 B8 AE 25 73 5F 25 73 5F 25 64 2E 70 61 6C 00";  // 赣府\赣府%s_%s_%d.pal
+
+            uOffset = this->m_dgc->Match(&Fd);
+
+            bIsNewFormat = true;
+        }
 
         uPart = 2;
 
@@ -133,27 +132,40 @@ DiffData* WDGPlugin::GeneratePatch(void)
         // by command, hardcoded relative offsets will have to do
         if(this->IsVC9Image())
         {
-            uPart = 4;
+            if(bIsNewFormat)
+            {
+                uPart = 4;
 
-            this->VoidPushOrThrow(uOffset-5);
+                this->VoidPushOrThrow(uOffset-5);
 
-            uPart = 5;
+                uPart = 5;
 
-            this->VoidPushOrThrow(uOffset-6);
+                this->VoidPushOrThrow(uOffset-6);
+            }
+            else
+            {
+                uPart = 6;
+
+                this->VoidPushOrThrow(uOffset-1);
+
+                uPart = 7;
+
+                this->VoidPushOrThrow(uOffset-5);
+            }
         }
         else
         {
-            uPart = 6;
+            uPart = 8;
 
             this->VoidPushOrThrow(uOffset-1);
 
-            uPart = 7;
+            uPart = 9;
 
             this->VoidPushOrThrow(uOffset-8);
         }
 
         // adjust stack cleanup
-        this->SetByte(uOffset+13,0x0C);  // 14h -> 0Ch (in ADD ESP,x)
+        this->SetByte(uOffset+(this->IsVC9Image() && !bIsNewFormat ? 14 : 13),0x0C);  // 14h -> 0Ch (in ADD ESP,x)
     }
     catch(const char* lpszThrown)
     {
@@ -239,6 +251,23 @@ extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID
     }
 
     return l_lpSelfReference;
+}
+
+bool WDGPlugin::TryMatch(LPFINDDATA lpFd, UINT32* lpuOffset)
+{
+    try
+    {
+        lpuOffset[0] = this->m_dgc->Match(lpFd);
+    }
+    catch(const char* lpszThrown)
+    {
+        return false;
+
+        // unused
+        (void)lpszThrown;
+    }
+
+    return true;
 }
 
 void WDGPlugin::VoidPushOrThrow(UINT32 uOffset)
