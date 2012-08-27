@@ -1,0 +1,16 @@
+build.bat (primary)
+    Requires Visual C++ 2010 Command Line (any edition). Run it from
+    the directory it resides in. Any Express Edition short-commings
+    are fixed ad-hoc.
+
+WeeToolsExpress.sln (updated occasionally)
+    Requires Visual C++ 2010 (any edition). Express Editions will
+    need rigged-in afxres.h for compiling resources.
+
+WeeTools.sln (obsolete)
+    Requires Visual Studio 2010 with Visual C++. Will not open
+    with Express Edition due to solution folders.
+
+NOTE: All components must be built with the same compiler, due to
+      the way the plugin system is designed. Doing otherwise can
+      lead to crashes or unexpected behavior.
