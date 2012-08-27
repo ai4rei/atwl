@@ -1,0 +1,11 @@
+Following is a list of items in this tree or environments that won't
+be supported or updated in any way:
+
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGIgnoreMissingFileErrors
+  Reason: Hinders debugging by hiding errors that MUST be fixed.
+
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGRestoreLoginWindow
+  Reason: Obsolete.
+
+- WeeTools.sln
+  Reason: Visual Studio Express does not support solution folders.
