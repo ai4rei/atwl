@@ -1,4 +1,9 @@
 @ECHO OFF
+REM (c) 2012 Ai4rei/AN
+REM 
+REM This work is licensed under a
+REM Creative Commons BY-NC-SA 3.0 Unported License
+REM http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 :SETUP
 ECHO Setting up builder...
