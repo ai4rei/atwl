@@ -65,46 +65,84 @@ DiffData *WDGPlugin::GeneratePatch()
 
 	UINT32 uOffset = 0;
 	UINT32 uPart = 1;
+	UINT32 uBOffset = 0;
 
 	try
 	{
+		// Find RVA for ring_blue.tga
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'effect\\ring_blue.tga'";
-		sFindData.uMask = WFD_PATTERN;
-		UINT32 uOffsetA = m_dgc->FindStr(&sFindData, true);
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpszSection = ".rdata";
+		UINT32 uOffsetA = m_dgc->Raw2Rva(m_dgc->Match(&sFindData));
 
 		uPart = 2;
 
+		// Find RVA for pikapika2.bmp
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'effect\\pikapika2.bmp'";
-		sFindData.uMask = WFD_PATTERN;
-		UINT32 uOffsetB = m_dgc->FindStr(&sFindData, true);
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpszSection = ".rdata";
+		UINT32 uOffsetB = m_dgc->Raw2Rva(m_dgc->Match(&sFindData));
 
 		uPart = 3;
 
+		// Find references to these strings.
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[24];
-		sFindData.uDataSize = 24;
 		sFindData.lpszSection = ".text";
 		sFindData.chWildCard = '\xAB';
 		sFindData.uMask = WFD_SECTION | WFD_WILDCARD;
 
-		memcpy(sFindData.lpData, "\x68\x00\x00\x00\x00\x8B\xCE\xE8\xAB\xAB\xAB\xAB\xE9\xAB\xAB\xAB\xAB\x6A\x00\x68\x00\x00\x00\x00", 24);
-		memcpy(sFindData.lpData + 1, (CHAR *)&uOffsetA, 4);
-		memcpy(sFindData.lpData + 20, (CHAR *)&uOffsetB, 4);
+		try
+		{// most common pattern
+			char cMatchPx[] =
+					/* 00 */ "\x68\x00\x00\x00\x00"  // PUSH    OFFSET "effect\ring_blue.tga"
+					/* 05 */ "\x8B\xCE"              // MOV     ECX,ESI
+					/* 07 */ "\xE8\xAB\xAB\xAB\xAB"  // CALL    ADDR
+					/* 0C */ "\xE9\xAB\xAB\xAB\xAB"  // JMP     ADDR
+					/* 11 */ "\xAB"                  // PUSH    R32 (=0)
+					/* 12 */ "\x68\x00\x00\x00\x00"  // PUSH    OFFSET "effect\pikapika2.bmp"
+					/* 17 */ ;
+			sFindData.lpData = cMatchPx;
+			sFindData.uDataSize = 0x17;
 
-		uOffset = m_dgc->Match(&sFindData);
+			((UINT32*)&sFindData.lpData[0x01])[0] = uOffsetA;
+			((UINT32*)&sFindData.lpData[0x13])[0] = uOffsetB;
 
-		delete[] sFindData.lpData;
+			uOffset = m_dgc->Match(&sFindData);
+			uBOffset = 0x13;
+		}
+		catch(LPCSTR)
+		{// pattern for clients right after VC9 compiles were introduced
+			char cMatchPx[] =
+					/* 00 */ "\x68\x00\x00\x00\x00"  // PUSH    OFFSET "effect\ring_blue.tga"
+					/* 05 */ "\x8B\xCE"              // MOV     ECX,ESI
+					/* 07 */ "\xE8\xAB\xAB\xAB\xAB"  // CALL    ADDR
+					/* 0C */ "\xE9\xAB\xAB\xAB\xAB"  // JMP     ADDR
+					/* 11 */ "\x6A\x00"              // PUSH    0
+					/* 13 */ "\x68\x00\x00\x00\x00"  // PUSH    OFFSET "effect\pikapika2.bmp"
+					/* 18 */ ;
+			sFindData.lpData = cMatchPx;
+			sFindData.uDataSize = 0x18;
+
+			((UINT32*)&sFindData.lpData[0x01])[0] = uOffsetA;
+			((UINT32*)&sFindData.lpData[0x14])[0] = uOffsetB;
+
+			uOffset = m_dgc->Match(&sFindData);
+			uBOffset = 0x14;
+		}
 
 		uPart = 4;
 
+		// Find some space for the custom aura sprite names at the
+		// beginning of the executable.
 		IMAGE_NT_HEADERS sItemNTHeaders;
 		m_dgc->GetNTHeaders(&sItemNTHeaders);
 
 		UINT32 uNewOffsetA = sItemNTHeaders.OptionalHeader.ImageBase + 0x380;
 		UINT32 uNewOffsetB = sItemNTHeaders.OptionalHeader.ImageBase + 0x380 + 21;
 
+		// Update in-code offsets
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = (CHAR *)&uNewOffsetA;
 		sFindData.uDataSize = 4;
@@ -115,10 +153,11 @@ DiffData *WDGPlugin::GeneratePatch()
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = (CHAR *)&uNewOffsetB;
 		sFindData.uDataSize = 4;
-		m_dgc->Replace(CBAddDiffData, uOffset + 20, &sFindData);
+		m_dgc->Replace(CBAddDiffData, uOffset + uBOffset, &sFindData);
 
 		uPart = 6;
 
+		// Save sprite names.
 		ZeroMemory(&sFindData, sizeof(sFindData));
 		sFindData.lpData = "'effect\\aurafloat.tga' 00 'effect\\auraring.bmp' 00 90";
 		sFindData.uMask = WFD_PATTERN;
