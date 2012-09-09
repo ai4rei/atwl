@@ -7,5 +7,8 @@ be supported or updated in any way:
 - WeeDiff/WeeDiffGen/WeeDiffGen/WDGRestoreLoginWindow
   Reason: Obsolete.
 
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGAllowMultipleWindows
+  Reason: Obsolete.
+
 - WeeTools.sln
   Reason: Visual Studio Express does not support solution folders.
