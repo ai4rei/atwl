@@ -64,93 +64,68 @@ DiffData *WDGPlugin::GeneratePatch()
 	CHAR szMsg[256];
 	m_diffdata.clear();
 
-	UINT32 uOffset = 0;
+	UINT32 uOffset = 0, uPart = 0;
 
 	try
 	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'readfolder'";
-		sFindData.uMask = WFD_PATTERN;
-		UINT32 uOffsetA = m_dgc->FindStr(&sFindData, true);
+		uPart = 1;
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpData = "'readfolder' 00";
+		sFindData.lpszSection = ".rdata";
+		UINT32 uOffsetA = m_dgc->Raw2Rva(m_dgc->Match(&sFindData));
 
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'loading'";
-		sFindData.uMask = WFD_PATTERN;
-		UINT32 uOffsetB = m_dgc->FindStr(&sFindData, true);
+		uPart = 2;
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpData = "'loading' 00";
+		sFindData.lpszSection = ".rdata";
+		UINT32 uOffsetB = m_dgc->Raw2Rva(m_dgc->Match(&sFindData));
 
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[28];
-		sFindData.uDataSize = 28;
-		sFindData.lpszSection = ".text";
+		char cPushStr[] =
+				/* 00 */ "\x68\x00\x00\x00\x00"          // PUSH    "readfolder"
+				/* 05 */ "\x8B\xCD"                      // MOV     ECX,EBP
+				/* 07 */ "\xE8\xAB\xAB\xAB\xAB"          // CALL    XMLElement::FindChild
+				/* 0C */ "\x85\xC0"                      // TEST    EAX,EAX
+				/* 0E */ "\x74\xAB"                      // JE      SHORT ADDR v
+				/* 10 */ "\xC6\x05\xAB\xAB\xAB\xAB\x01"  // MOV     BYTE PTR DS:[g_readFolderFirst],1h
+				/* 17 */ "\x68\x00\x00\x00\x00"          // PUSH    "loading"
+				/* 1C */ ;
+		uPart = 3;
+		sFindData.uMask = WFD_SECTION|WFD_WILDCARD;
+		sFindData.lpData = cPushStr;
+		sFindData.uDataSize = 0x1C;
 		sFindData.chWildCard = '\xAB';
-		sFindData.uMask =  WFD_SECTION | WFD_WILDCARD;
+		sFindData.lpszSection = ".text";
 
-		memcpy(sFindData.lpData, "\x68\x00\x00\x00\x00\x8B\xAB\xE8\xAB\xAB\xAB\xAB\x85\xC0\x74\x07\xC6\x05\xAB\xAB\xAB\xAB\x01\x68\x00\x00\x00\x00", 28);
-		memcpy(sFindData.lpData + 1, (CHAR *)&uOffsetA, 4);
-		memcpy(sFindData.lpData + 24, (CHAR *)&uOffsetB, 4);
+		((UINT32*)&cPushStr[0x01])[0] = uOffsetA;
+		((UINT32*)&cPushStr[0x18])[0] = uOffsetB;
 
 		uOffset = m_dgc->Match(&sFindData);
 
-		delete[] sFindData.lpData;
-	}
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGReadDataFolderFirst :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+		// fetch g_readFolderFirst address
+		UINT32 uFolderFirstOffset = m_dgc->GetDWORD32(uOffset+0x12);
 
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "\x90\x90";
-		sFindData.uDataSize = 2;
-
-		m_dgc->Replace(CBAddDiffData, uOffset + 14, &sFindData);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGReadDataFolderFirst :: Part 2 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
-
-	try
-	{
-		UINT32 uOffsetC = m_dgc->GetDWORD32(uOffset + 18);
-
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[16];
-		sFindData.uDataSize = 16;
+		// find read-reference to g_readFolderFirst
+		char cReadRef[7] = { 0 };
+		((UINT16*)&cReadRef[0])[0] = 0x3D80;  // CMP
+		((UINT32*)&cReadRef[2])[0] = uFolderFirstOffset;
+		uPart = 4;
+		sFindData.uMask = WFD_SECTION;
+		sFindData.lpData = cReadRef;
+		sFindData.uDataSize = sizeof(cReadRef);
 		sFindData.lpszSection = ".text";
-		sFindData.chWildCard = '\xAB';
-		sFindData.uMask = WFD_SECTION | WFD_WILDCARD;
-
-		memcpy(sFindData.lpData, "\x80\x3D\x00\x00\x00\x00\x00\x57\xB9\xAB\xAB\xAB\x00\x56\x74\x23", 16);
-		memcpy(sFindData.lpData + 2, (CHAR *)&uOffsetC, 4);
 
 		uOffset = m_dgc->Match(&sFindData);
 
-		delete[] sFindData.lpData;
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGReadDataFolderFirst :: Part 3 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
+		// transform to a sequence that let's the code think, that
+		// g_readFolderFirst is set. this won't even break when the
+		// flag is set by clientinfo.xml
+		this->SetByte(uOffset+0,0x90);   // NOP
+		this->SetByte(uOffset+1,0xA1);   // MOV     EAX,DWORD PTR DS:[g_readFolderFirst]
+		this->SetByte(uOffset+6,0x40);   // INC     EAX
 	}
-
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "\x90\x90";
-		sFindData.uDataSize = 2;
-
-		m_dgc->Replace(CBAddDiffData, uOffset + 14, &sFindData);
-	} 
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, 256, "WDGReadDataFolderFirst :: Part 4 :: %s", lpszMsg);
+		sprintf_s(szMsg, 256, "WDGReadDataFolderFirst :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
 		return NULL;
 	}
@@ -166,6 +141,13 @@ DiffData *WDGPlugin::GetDiffData()
 	}
 
 	return &m_diffdata;
+}
+
+void WDGPlugin::SetByte(UINT32 uOffset, UCHAR uValue)
+{
+	DIFFDATA Diff = { uOffset, uValue };
+
+	this->m_diffdata.push_back(Diff);
 }
 
 extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin *InitPlugin(LPVOID lpData, USHORT unWeeDiffMajorVersion, USHORT unWeeDiffMinorVersion)
