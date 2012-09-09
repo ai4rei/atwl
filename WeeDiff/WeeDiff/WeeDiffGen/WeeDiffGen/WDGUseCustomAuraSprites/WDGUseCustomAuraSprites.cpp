@@ -106,8 +106,8 @@ DiffData *WDGPlugin::GeneratePatch()
 			sFindData.lpData = cMatchPx;
 			sFindData.uDataSize = 0x17;
 
-			((UINT32*)&sFindData.lpData[0x01])[0] = uOffsetA;
-			((UINT32*)&sFindData.lpData[0x13])[0] = uOffsetB;
+			((UINT32*)&cMatchPx[0x01])[0] = uOffsetA;
+			((UINT32*)&cMatchPx[0x13])[0] = uOffsetB;
 
 			uOffset = m_dgc->Match(&sFindData);
 			uBOffset = 0x13;
@@ -125,8 +125,8 @@ DiffData *WDGPlugin::GeneratePatch()
 			sFindData.lpData = cMatchPx;
 			sFindData.uDataSize = 0x18;
 
-			((UINT32*)&sFindData.lpData[0x01])[0] = uOffsetA;
-			((UINT32*)&sFindData.lpData[0x14])[0] = uOffsetB;
+			((UINT32*)&cMatchPx[0x01])[0] = uOffsetA;
+			((UINT32*)&cMatchPx[0x14])[0] = uOffsetB;
 
 			uOffset = m_dgc->Match(&sFindData);
 			uBOffset = 0x14;
