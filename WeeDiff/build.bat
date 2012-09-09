@@ -20,7 +20,7 @@ IF "%1"=="clean" GOTO TEMP
 MD Release
 MD Release\plugins
 MD Release\plugins\WeeDiffGen
-IF "%1"=="private" GOTO WDG
+IF NOT "%1"=="" GOTO WDG
 
 :BUILD
 ECHO Building WeeDiff...
@@ -40,15 +40,15 @@ CD "%BUILDERDIR%"
 :WDG
 ECHO Building WeeDiffGen plugins...
 CD WeeDiff\WeeDiffGen\WeeDiffGen
-IF "%1"=="private" GOTO WDGPRIVATE
+IF NOT "%1"=="" GOTO WDGINDIVL
 REM Original
 FOR %%i IN (WDGOnlyFirstLoginBackground WDGRemoveGravityLogo WDGSkipServiceSelect WDGEnableOfficialCustomFonts WDGEnableDNSSupport WDGDisable4LetterUserPasswordLimit WDGEnable127Hairstyles WDGAlwaysCallSelectKoreaClientInfo WDGFixCameraAnglesMedium WDGDisableMultipleWindows WDGUseRagnarokIcon WDGDisable1rag1 WDGChatAtBug WDGIncreaseZoomOut50Per WDGRestoreLoginWindow WDGReadQuestTable WDGAllowMultipleWindows WDGOnlySecondLoginBackground WDGExtendedChatRoomBox WDGEnforceOfficialLoginBackground WDGSkipLicenseScreen WDGIgnoreMissingFileErrors WDGDisableSwearFilter WDGFixCameraAnglesLess WDGReadMsgStringTable WDGDisableNagleAlgorithm WDGUseArialOnAllLangtypes WDGIncreaseHeadgearViewID WDGDisable4LetterUserIDLimit WDGDisable4LetterUserCharacterLimit WDGEnableMultipleGRFExtended WDGDisableHallucinationWavyScreen WDGIgnoreMissingPaletteErrors WDGSkipResurrectionButtons WDGEnableAuraOverLvl99 WDGRemoveGravityAds WDGIncreaseZoomOutMax WDGTranslateClientIntoEnglish WDGEnableMultipleGRF WDGEnableTitleBarMenu WDGAllowChatFlood WDGDisableFilenameCheck WDGCustomWindowTitle WDGDisableHShield WDGExtendedPMBox WDGLoadLUABeforeLUB WDGHKLMtoHKCU WDGExtendedChatBox WDGIncreaseZoomOut75Per WDGReadDataFolderFirst WDGUseNormalGuildBrackets WDGUseCustomAuraSprites WDGFixCameraAnglesFull WDGUsePlainTextDescriptions) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll" > NUL
-GOTO WDGPUBLIC
-:WDGPRIVATE
-FOR %%i IN (WDGEnableAuraOverLvl99 WDGOnlyFirstLoginBackground WDGOnlySecondLoginBackground WDGTranslateClientIntoEnglish WDGUseCustomAuraSprites) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
-:WDGPUBLIC
 REM Atwl
 FOR %%i IN (WDGEnableAsciiInText WDGRemoveHourlyPlaytimeMinder WDGRemoveHourlyGameGrade WDGRemoveQuakeSkillEffect WDGSharedBodyPalettes WDGSkipPacketHeaderObfuscation WDGSharedHeadPalettes WDGEnable64kHairstyles) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
+GOTO WDGBUILT
+:WDGINDIVL
+FOR %%i IN (%1) DO %DLLBUILDER% /OUT:"%BUILDERDIR%\Release\plugins\WeeDiffGen\%%i.dll"
+:WDGBUILT
 CD "%BUILDERDIR%"
 
 :TEMP
