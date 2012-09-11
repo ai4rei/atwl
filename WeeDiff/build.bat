@@ -13,8 +13,8 @@ CD>>~~~build.bat
 CALL ~~~build.bat
 DEL ~~~build.bat
 REM
-SET APPBUILDER=CL /nologo /c /W3 /O2x /GF /EHsc /DWIN32 /DNDEBUG /D_WINDOWS /D_UNICODE /DUNICODE %%i\*.cpp /I"%BUILDERDIR%" /I"%BUILDERDIR%\Snippets" /I"%BUILDERDIR%\WeeDiff\Common"
-SET DLLBUILDER=CL /nologo /W3 /O2x /FD /GF /EHsc /DWIN32 /DNDEBUG /D_WINDOWS /D_UNICODE /DUNICODE /I"%BUILDERDIR%\WeeDiff\Common" %%i\*.cpp /link /NOLOGO /MACHINE:IX86 /DLL /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /RELEASE kernel32.lib user32.lib gdi32.lib comdlg32.lib
+SET APPBUILDER=CL /nologo /c /W4 /O2x /GF /EHsc /DWIN32 /DNDEBUG /D_WINDOWS /D_UNICODE /DUNICODE /DSTRICT %%i\*.cpp /I"%BUILDERDIR%" /I"%BUILDERDIR%\Snippets" /I"%BUILDERDIR%\WeeDiff\Common"
+SET DLLBUILDER=CL /nologo /W4 /O2x /FD /GF /EHsc /DWIN32 /DNDEBUG /D_WINDOWS /D_UNICODE /DUNICODE /DSTRICT /I"%BUILDERDIR%\WeeDiff\Common" %%i\*.cpp /link /NOLOGO /MACHINE:IX86 /DLL /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /RELEASE kernel32.lib user32.lib gdi32.lib comdlg32.lib
 IF EXIST Release\NUL RD Release /s /q
 IF "%1"=="clean" GOTO TEMP
 MD Release
