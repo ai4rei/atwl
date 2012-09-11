@@ -40,7 +40,6 @@ private:
     bool IsSane(void);
     void SetByte(UINT32 uOffset, UCHAR uValue);
     bool TryMatch(LPFINDDATA lpFd, UINT32* lpuOffset);
-    void VoidPushOrThrow(UINT32 uOffset);
 };
 
 #endif  /* _WDGENABLE64KHAIRSTYLES_H_ */
