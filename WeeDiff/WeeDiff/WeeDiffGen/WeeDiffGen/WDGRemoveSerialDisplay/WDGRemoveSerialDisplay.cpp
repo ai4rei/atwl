@@ -59,16 +59,16 @@ LPCTSTR WDGPlugin::GetInputValue()
 
 DiffData *WDGPlugin::GeneratePatch()
 {
-	if(m_dgc->GetClientDate() <= 20101116)
-	{
-		return NULL;
-	}
-
 	WeeDiffGenPlugin::FINDDATA sFindData = {0};
 	CHAR szMsg[256];
 	m_diffdata.clear();
 
 	UINT32 uOffset = 0;
+
+	if(m_dgc->GetClientDate() <= 20101116)
+	{
+		return NULL;
+	}
 
 	try
 	{
