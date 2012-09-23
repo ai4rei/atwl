@@ -94,6 +94,55 @@ DiffData *WDGPlugin::GeneratePatch()
 		sFindData.uMask = WFD_SECTION | WFD_WILDCARD;
 
 		try
+		{// pattern for rewritten aura effects (obsoletes EF_LEVEL99*)
+			char cMatchPx[] =
+					/* 00 */ "\x68\x00\x00\x00\x00"              // PUSH    "effect\ring_blue.tga"
+					/* 05 */ "\xFF\x15\xAB\xAB\xAB\xAB"          // CALL    NEAR DWORD PTR DS:[&MSVCP90.std::basic_string<char>::basic_string<char>]
+					/* 0B */ "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB"  // MOV     [ARG.17],0      ; either a compiler glitch, or some present from the devs
+					/* 13 */ "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB"  // MOV     [ARG.17],-1     ; values vary between clients
+					/* 1B */ "\x8B\xCE"                          // MOV     ECX,ESI
+					/* 1D */ "\xE8\xAB\xAB\xAB\xAB"              // CALL    ADDR
+					/* 22 */ "\x8B\x57\xAB"                      // MOV     EAX,DWORD PTR DS:[EDI+CONST]
+					/* 25 */ "\x8B\x44\x24\x14"                  // MOV     EDX,DWORD PTR SS:[ESP+14h]
+					/* 29 */ "\x68\xFF\x00\x00\x00"              // PUSH    0FFh
+					/* 2E */ "\x6A\x64"                          // PUSH    64h
+					/* 30 */ "\x6A\x64"                          // PUSH    64h
+					/* 32 */ ;
+
+			// this one is pretty loose, since there is not much
+			// usable code to hang onto.
+			sFindData.lpData = cMatchPx;
+			sFindData.uDataSize = 0x32;
+			((UINT32*)&cMatchPx[0x01])[0] = uOffsetA;
+			uOffset = m_dgc->Match(&sFindData);
+
+			try
+			{
+				// same goes for pikapika2.bmp
+				char cPushStr[] =
+						/* 00 */ "\x68\x00\x00\x00\x00"          // PUSH    "effect\pikapika2.bmp"
+						/* 05 */ "\xFF\x15"                      // CALL    NEAR DWORD PTR DS:[&MSVCP90.std::basic_string<char>::basic_string<char>]
+						/* 07 */ ;
+
+				uPart = 7;
+
+				sFindData.uMask = WFD_SECTION;
+				sFindData.lpData = cPushStr;
+				sFindData.uDataSize = 0x07;
+				((UINT32*)&cPushStr[0x01])[0] = uOffsetB;
+				uBOffset = m_dgc->Match(&sFindData)+1-uOffset;
+			}
+			catch (LPCSTR lpszMsg)
+			{
+				sprintf_s(szMsg, 256, "WDGCustomAuraSprites :: Part %d :: %s", uPart, lpszMsg);
+				m_dgc->LogMsg(szMsg);
+				m_diffdata.clear();
+				return NULL;
+			}
+		}
+		catch(LPCSTR)
+		{
+		try
 		{// most common pattern
 			char cMatchPx[] =
 					/* 00 */ "\x68\x00\x00\x00\x00"  // PUSH    OFFSET "effect\ring_blue.tga"
@@ -130,6 +179,7 @@ DiffData *WDGPlugin::GeneratePatch()
 
 			uOffset = m_dgc->Match(&sFindData);
 			uBOffset = 0x14;
+		}
 		}
 
 		uPart = 4;
@@ -168,6 +218,7 @@ DiffData *WDGPlugin::GeneratePatch()
 	{
 		sprintf_s(szMsg, 256, "WDGCustomAuraSprites :: Part %d :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
+		m_diffdata.clear();
 		return NULL;
 	}
 
