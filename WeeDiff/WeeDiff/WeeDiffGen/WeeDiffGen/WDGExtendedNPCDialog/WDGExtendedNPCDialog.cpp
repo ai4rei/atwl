@@ -17,7 +17,7 @@
 static /* const */ WDGPLUGININFO l_PluginInfo =
 {
     _T("Extended NPC Dialog"),
-    _T("Increases the length of the NPC dialog box from 2052 to a value of choice."),
+    _T("Increases max input chars of NPC dialog boxes from 2052 to a value of choice."),
     _T("[UI]"),
     _T(""),
     _T("Ai4rei/AN"),
