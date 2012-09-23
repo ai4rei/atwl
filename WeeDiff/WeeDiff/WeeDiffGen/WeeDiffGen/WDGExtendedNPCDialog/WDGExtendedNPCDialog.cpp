@@ -17,7 +17,7 @@
 static /* const */ WDGPLUGININFO l_PluginInfo =
 {
     _T("Extended NPC Dialog"),
-    _T("Increases the length of the NPC dialog box from 2048 to a value of choice."),
+    _T("Increases the length of the NPC dialog box from 2052 to a value of choice."),
     _T("[UI]"),
     _T(""),
     _T("Ai4rei/AN"),
@@ -147,6 +147,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
             this->SetByte(uOffset++, ((UCHAR*)&uBufferSize)[2]);
             this->SetByte(uOffset++, ((UCHAR*)&uBufferSize)[3]);
 
+            // nothing more to do, stack frame adjusts itself
             return &this->m_DiffData;
         }
 
