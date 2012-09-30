@@ -63,7 +63,6 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 
 DiffData* WDGPlugin::GeneratePatch(void)
 {
-    bool bIsNewFormat = false;
     FINDDATA Fd;
     UINT32 uOffset, uBegin, uPart;
 

@@ -65,7 +65,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 {
     bool bIsNewFormat = false;
     FINDDATA Fd;
-    UINT32 uOffset, uPtr, uPart;
+    UINT32 uOffset, uPtr, uPart = 0;
 
     this->m_DiffData.clear();
 
