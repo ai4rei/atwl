@@ -78,7 +78,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         // MISSION: Find the format code, and cut the error code
         // part out.
 
-        // Find
+        // Find (0x81)
         Fd.uMask = WFD_PATTERN|WFD_SECTION;
         Fd.lpData = "'%s(%d)' 00 00";
         Fd.lpszSection = ".rdata";
@@ -89,6 +89,17 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         // Cut it out (really)
         this->SetByte(uOffset+2, 0x00);
+
+        // Find (0x6A)
+        Fd.uMask = WFD_PATTERN|WFD_SECTION;
+        Fd.lpData = "00 '(%d)' 00 00 00 00";
+        Fd.lpszSection = ".rdata";
+
+        uPart = 2;
+
+        uOffset = this->m_dgc->Match(&Fd);
+
+        this->SetByte(uOffset+1, 0x00);
     }
     catch(const char* lpszThrown)
     {
@@ -96,6 +107,9 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
         this->m_dgc->LogMsg(szErrMsg);
+
+        // clean up diffdata (half diff)
+        this->m_DiffData.clear();
     }
 
     return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
