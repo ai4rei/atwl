@@ -67,10 +67,14 @@ DiffData *WDGPlugin::GeneratePatch()
 
 	try
 	{
+		// MISSION: Find resource pointer to icongroups 114 and 119,
+		// and replace the pointer of 114 with the one from 119.
+
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "38 01 00 80 77";
+		sFindData.lpData = "72 00 00 00 '??' 00 80 77 00 00 00 '??' 00 80";
 		sFindData.lpszSection = ".rsrc";
-		sFindData.uMask = WFD_PATTERN | WFD_SECTION;
+		sFindData.chWildCard = '?';
+		sFindData.uMask = WFD_PATTERN | WFD_WILDCARD | WFD_SECTION;
 
 		uOffset = m_dgc->Match(&sFindData);
 	}
@@ -83,11 +87,13 @@ DiffData *WDGPlugin::GeneratePatch()
 
 	try
 	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "\x50";
-		sFindData.uDataSize = 1;
+		char szPatchPx[2] = { m_dgc->GetBYTE(uOffset+12), m_dgc->GetBYTE(uOffset+13) };
 
-		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData);
+		ZeroMemory(&sFindData, sizeof(sFindData));
+		sFindData.lpData = szPatchPx;
+		sFindData.uDataSize = sizeof(szPatchPx);
+
+		m_dgc->Replace(CBAddDiffData, uOffset+4, &sFindData);
 	} 
 	catch (LPCSTR lpszMsg)
 	{
