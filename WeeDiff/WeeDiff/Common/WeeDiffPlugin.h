@@ -28,17 +28,23 @@
 
 // Used in DiffPatcher's MessageBox handler.
 
-#define MB_CHECKBOX			0x10000000 // Will display a user defined checkbox at the bottom of the message.
-#define IDCHECKBOX			0x00010000 // Don't forget to mask the function output with MB_TYPEMASK!
+enum
+{
+	MB_CHECKBOX = 0x10000000,  // Will display a user defined checkbox at the bottom of the message.
+	IDCHECKBOX  = 0x00010000,  // Don't forget to mask the function output with MB_TYPEMASK!
+};
 
 // Icon Index' that are used in the MessageBox handler.
-#define MBI_OK				0
-#define MBI_WARNING			1
-#define MBI_ERROR			2
-#define MBI_IMPORTANT		3
-#define MBI_QUESTION		4
-#define MBI_INFORMATION		5
-#define MBI_MAX				6
+enum
+{
+	MBI_OK          = 0,
+	MBI_WARNING     = 1,
+	MBI_ERROR       = 2,
+	MBI_IMPORTANT   = 3,
+	MBI_QUESTION    = 4,
+	MBI_INFORMATION = 5,
+	MBI_MAX
+};
 
 namespace WeePlugin
 {

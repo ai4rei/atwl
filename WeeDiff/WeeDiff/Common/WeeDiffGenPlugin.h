@@ -26,9 +26,12 @@ namespace WeeDiffGenPlugin
 {
 
 // Masks
-#define WFD_PATTERN			0x1
-#define WFD_WILDCARD		0x2
-#define WFD_SECTION			0x4
+enum
+{
+	WFD_PATTERN  = 0x1,
+	WFD_WILDCARD = 0x2,
+	WFD_SECTION  = 0x4,
+};
 
 #pragma pack(push, 1)
 
