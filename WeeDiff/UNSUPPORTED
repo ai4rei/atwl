@@ -5,10 +5,13 @@ be supported or updated in any way:
   Reason: Hinders debugging by hiding errors that MUST be fixed.
 
 - WeeDiff/WeeDiffGen/WeeDiffGen/WDGRestoreLoginWindow
-  Reason: Obsolete.
+  Reason: Obsolete in favor of packet 0x825+command line.
 
 - WeeDiff/WeeDiffGen/WeeDiffGen/WDGAllowMultipleWindows
-  Reason: Obsolete.
+  Reason: Obsolete in newest clients, because the code was removed.
+
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGDisableHallucinationWavyScreen
+  Reason: Obsolete in newest clients, because the effect changed.
 
 - WeeTools.sln
   Reason: Visual Studio Express does not support solution folders.
