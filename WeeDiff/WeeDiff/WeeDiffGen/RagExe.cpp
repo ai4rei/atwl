@@ -343,18 +343,20 @@ UINT32 RagExe::FindStr(WeeDiffGenPlugin::LPFINDDATA lpFindData, bool bReturnRva 
 
 	WeeDiffGenPlugin::FINDDATA sFindData = {0};
 
-	sFindData.uDataSize = sHB.uSize + 2;
-	sFindData.lpData = new CHAR[sHB.uSize + 2];
+	// search for zero-terminated DWORD-aligned character sequence
+	sFindData.uDataSize = sHB.uSize + 1;
+	sFindData.uDataSize+= (4-sFindData.uDataSize)&3;
+	sFindData.lpData = new CHAR[sFindData.uDataSize];
 	sFindData.lpszSection = ".rdata";
 	sFindData.uMask = WFD_SECTION;
 
 	ZeroMemory(sFindData.lpData, sFindData.uDataSize);
-	memcpy(sFindData.lpData + 1, sHB.buffer, sHB.uSize);
+	memcpy(sFindData.lpData, sHB.buffer, sHB.uSize);
 
 	if(lpFindData->uMask & WFD_PATTERN)
 		delete[] sHB.buffer;
 
-	UINT32 uOffset = Match(&sFindData) + 1;
+	UINT32 uOffset = Match(&sFindData);
 
 	delete[] sFindData.lpData;
 
