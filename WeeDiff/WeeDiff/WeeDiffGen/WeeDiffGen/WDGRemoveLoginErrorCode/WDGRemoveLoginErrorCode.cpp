@@ -58,7 +58,7 @@ INT32 WDGPlugin::Disabled(void)
 
 LPCTSTR WDGPlugin::GetInputValue(void)
 {
-    return this->m_szBufferSize;
+    return NULL;
 }
 
 DiffData* WDGPlugin::GeneratePatch(void)

@@ -20,13 +20,9 @@ using namespace WeeDiffGenPlugin;
 class WDGPlugin : public IWDGPlugin
 {
     DiffData m_DiffData;
-    TCHAR m_szBufferSize[16];
 
 public:
-    WDGPlugin(LPVOID lpData) : IWDGPlugin(lpData)
-    {
-        this->m_szBufferSize[0] = 0;
-    }
+    WDGPlugin(LPVOID lpData) : IWDGPlugin(lpData){}
     //
     virtual void Release(void);
     virtual void Free(LPVOID lpBuf);
