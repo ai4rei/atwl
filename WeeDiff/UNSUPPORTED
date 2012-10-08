@@ -13,5 +13,8 @@ be supported or updated in any way:
 - WeeDiff/WeeDiffGen/WeeDiffGen/WDGDisableHallucinationWavyScreen
   Reason: Obsolete in newest clients, because the effect changed.
 
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGTranslateClientIntoEnglish
+  Reason: Obsolete in favor of WDGTranslateClient.
+
 - WeeTools.sln
   Reason: Visual Studio Express does not support solution folders.

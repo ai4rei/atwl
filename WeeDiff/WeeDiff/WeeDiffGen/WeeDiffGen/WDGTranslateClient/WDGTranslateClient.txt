@@ -1,0 +1,66 @@
+// WDGTranslateClient.txt
+//
+// == Format =======================================================
+//
+// Only comments recognized are lines prefixed with '//'. Indented
+// and trailing comments are not supported.
+//
+// Each translation is a set of two lines, the earlier being the
+// original text (CP949, EUC-KR is fine too; UNICODE/UTF-8 is not)
+// and the latter being the translation to place into the client.
+//
+// The length of the translation is limited to the length of the
+// original string plus 1 aligned to be multiple of 4, minus 1.
+//
+// Example:
+// - "asdf" = 4 +1 (zero termination of the string) = 5
+// - Next multiple of 4 for 5 is 8 (2x4)
+// - 8 -1 = 7 characters usable for translation string
+//
+// Lines to look for start with 'F:', lines with replacement string
+// start with 'R:'. The line syntax is the same as the one used for
+// matches within the plugins. That is, literal strings are enclosed
+// in ' everything else is interpreted as hexadecimal bytes.
+//
+// Example:
+// |   // Bytes can be separated by spaces...
+// |   F:C4 C9 B8 AF C5 CD 20 B8 B8 B5 E9 B1 E2
+// |   R:'Make Character'
+// |
+// |   // ...but do not need to.
+// |   F:28C4B3B8AFC5CD2FC3D120BDBDB7D429
+// |   R:'(Used / Total)'
+//
+// Do not use byte 00 at the end of strings, as it is appended auto-
+// magically. Do not use it within strings either, unless you have a
+// really good reason to do so.
+//
+// Partial strings are not matched, the original string is always
+// assumed to be complete. Since mismatches are still likely to
+// occur for shorter strings, place longer strings at the beginning
+// and the short ones and the end of the file.
+//
+// =================================================================
+
+// Translate Delete Time
+//
+F:2564BFF9202564C0CF202564BDC3202564BAD0202564C3CA
+R:'Delete: %d/%d - %d:%d:%d'
+
+F:2564B3E2202564BFF9202564C0CF202564BDC3202564BAD0202564C3CA20
+R:'%d/%d/%d - %d:%d:%d'
+
+// Translate Message Box
+//
+F:B8DEBDC3C1F6
+R:'Message'
+
+// Translate Character Slot Usage
+//
+F:28C4B3B8AFC5CD2FC3D120BDBDB7D429
+R:'(Used / Total)'
+
+// Translate Make Character Window Title
+//
+F:C4C9B8AFC5CD20B8B8B5E9B1E2
+R:'Make Character'
