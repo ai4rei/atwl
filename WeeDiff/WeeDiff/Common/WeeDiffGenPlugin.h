@@ -22,9 +22,6 @@
 
 #include "WeeDiffPlugin.h"
 
-namespace WeeDiffGenPlugin
-{
-
 // Masks
 enum
 {
@@ -32,6 +29,9 @@ enum
 	WFD_WILDCARD = 0x2,
 	WFD_SECTION  = 0x4,
 };
+
+namespace WeeDiffGenPlugin
+{
 
 #pragma pack(push, 1)
 
