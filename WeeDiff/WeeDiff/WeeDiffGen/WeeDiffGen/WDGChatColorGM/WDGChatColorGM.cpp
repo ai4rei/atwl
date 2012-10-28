@@ -111,7 +111,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         // Catch it by the most obviously unique color, (ab)used by
         // langtype 11.
         Fd.uMask = WFD_PATTERN|WFD_SECTION;
-        Fd.lpData = "68 FF 8D 1D 00";
+        Fd.lpData = "68 FF 8D 1D 00";  // PUSH 1D8DFFh (orange)
         Fd.lpszSection = ".text";
 
         uPart   = 1;
@@ -124,7 +124,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         uBOffset = uOffset;
 
         Fd.uMask = WFD_PATTERN;
-        Fd.lpData = "68 00 FF FF 00";
+        Fd.lpData = "68 00 FF FF 00";  // PUSH FFFF00h (cyan)
         Fd.uStart = uBOffset-0x30;
         Fd.uFinish = uBOffset+0x30;
 
@@ -136,7 +136,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         this->SetByte(uOffset++, GetBValue(this->m_crChatColor));
 
         Fd.uMask = WFD_PATTERN;
-        Fd.lpData = "68 FF FF 00 00";
+        Fd.lpData = "68 FF FF 00 00";  // PUSH 00FFFFh (yellow)
         Fd.uStart = uBOffset-0x30;
         Fd.uFinish = uBOffset+0x30;
 
