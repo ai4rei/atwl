@@ -113,8 +113,6 @@ DiffData* WDGPlugin::GeneratePatch(void)
                   "68 B4FFB400"  // PUSH    B4FFB4h  ; light green
                   "'?'"          // PUSH    R32
                   "6A 01"        // PUSH    1
-                  "B9 '????'"    // MOV     ECX,g_windowMgr
-                  "E8 '????'"    // CALL    UIWindowMgr::SendMsg
                   ;
         Fd.chWildCard = '?';
         Fd.lpszSection = ".text";
