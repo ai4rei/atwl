@@ -111,6 +111,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
     {
         char szErrMsg[1024];
 
+        // FIXME: the lpItem strings here are blank...
         wsprintfA(szErrMsg, __FILE__" :: Part %u :: Translation '%s' could not be fit into '%s' (see example for max. lengths)", uPart, lpItem->second.c_str(), lpItem->first.c_str());
         this->m_dgc->LogMsg(szErrMsg);
     }
@@ -230,12 +231,12 @@ bool CALLBACK WDGPlugin::ApplyTranslation(TLITEM* lpItem, void* lpContext)
         lpThis->SetBuffer(uOffset, (CHAR*)hbPaste.buffer, hbPaste.uSize);
         bSuccess = true;
 #ifdef ___VERBOSE
-        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation '%s'->'%s' OK.", lpItem->first.c_str(), lpItem->second.c_str());
+        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation \"%s\"->\"%s\" OK.", lpItem->first.c_str(), lpItem->second.c_str());
         lpThis->m_dgc->LogMsg(szErrMsg);
     }
     else
     {
-        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation '%s'->'%s' FAILED.", lpItem->first.c_str(), lpItem->second.c_str());
+        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation \"%s\"->\"%s\" FAILED.", lpItem->first.c_str(), lpItem->second.c_str());
         lpThis->m_dgc->LogMsg(szErrMsg);
 #endif  /* ___VERBOSE */
     }
