@@ -14,6 +14,8 @@
     #define _ARRAYSIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif  /* _ARRAYSIZE */
 
+//#define ___VERBOSE
+
 static /* const */ WDGPLUGININFO l_PluginInfo =
 {
     _T("Translate Client"),
@@ -201,6 +203,9 @@ bool WDGPlugin::TryMatch(LPFINDDATA lpFd, UINT32* lpuOffset)
 bool CALLBACK WDGPlugin::ApplyTranslation(TLITEM* lpItem, void* lpContext)
 {
     bool bSuccess = false;
+#ifdef ___VERBOSE
+    char szErrMsg[1024];
+#endif  /* ___VERBOSE */
     FINDDATA Fd = { 0 };
     UINT32 uOffset = 0;
     WeeUtility::HEXBUFFER hbMatch, hbPaste;
@@ -224,6 +229,15 @@ bool CALLBACK WDGPlugin::ApplyTranslation(TLITEM* lpItem, void* lpContext)
     {
         lpThis->SetBuffer(uOffset, (CHAR*)hbPaste.buffer, hbPaste.uSize);
         bSuccess = true;
+#ifdef ___VERBOSE
+        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation '%s'->'%s' OK.", lpItem->first.c_str(), lpItem->second.c_str());
+        lpThis->m_dgc->LogMsg(szErrMsg);
+    }
+    else
+    {
+        wsprintfA(szErrMsg, __FILE__" :: DEBUG :: Translation '%s'->'%s' FAILED.", lpItem->first.c_str(), lpItem->second.c_str());
+        lpThis->m_dgc->LogMsg(szErrMsg);
+#endif  /* ___VERBOSE */
     }
 
     delete[] hbPaste.buffer;
