@@ -47,12 +47,12 @@ public:
 	~RagExe();
 
 	UINT32 Match(WeeDiffGenPlugin::LPFINDDATA lpFindData);
-	void Matches(WeeDiffGenPlugin::fnCBAddOffset CBAddOffset, WeeDiffGenPlugin::LPFINDDATA lpFindData);
+	void Matches(WeeDiffGenPlugin::fnCBAddOffset CBAddOffset, WeeDiffGenPlugin::LPFINDDATA lpFindData);  // TODO: lpContext
 	BYTE GetBYTE(UINT32 uOffset) { return *(BYTE *)((UCHAR *)(m_cExeBuffer + uOffset)); }
 	WORD GetWORD(UINT32 uOffset) { return *(WORD *)((UCHAR *)(m_cExeBuffer + uOffset)); }
 	DWORD32 GetDWORD32(UINT32 uOffset) { return *(DWORD32 *)((UCHAR *)(m_cExeBuffer + uOffset)); }
 	INT32 Read(UINT32 uOffset, UCHAR *pBuffer, UINT32 uSize);
-	INT32 Replace(WeeDiffGenPlugin::fnCBAddDiffData CBAddDiffData, UINT32 uOffset, WeeDiffGenPlugin::LPFINDDATA lpFindData, bool bZeroTerminate = false);
+	INT32 Replace(WeeDiffGenPlugin::fnCBAddDiffData CBAddDiffData, UINT32 uOffset, WeeDiffGenPlugin::LPFINDDATA lpFindData, bool bZeroTerminate = false);  // TODO: lpContext
 	UINT32 FindStr(WeeDiffGenPlugin::LPFINDDATA lpFindData, bool bReturnRva = false);
 	PIMAGE_SECTION_HEADER GetSection(CCHAR *lpszSectionName);
 	void GetSection(CCHAR *lpszSectionName, PIMAGE_SECTION_HEADER lpImageSectionHeader);
