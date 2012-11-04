@@ -63,9 +63,8 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 
 DiffData* WDGPlugin::GeneratePatch(void)
 {
-    bool bIsNewFormat = false;
     FINDDATA Fd;
-    UINT32 uOffset, uPtr, uPart = 0;
+    UINT32 uOffset, uPart = 0;
 
     this->m_DiffData.clear();
 
@@ -74,13 +73,13 @@ DiffData* WDGPlugin::GeneratePatch(void)
         return NULL;
     }
 
-    for(;;)
-    {// multiple choice
     try
     {
         // MISSION: Find '赣府\赣府%s_%s_%d.pal', modify it to
-        // 'head_%d.pal' and remove the %s' PUSH from CALLs for this
-        // string in CSession::GetHeadPaletteName.
+        // 'head%.s%.s_%d.pal'. The %.s format ensures, that we do
+        // not have to take care of the unneeded string PUSHs in
+        // CSession::GetHeadPaletteName (thanks ivanyan on rAthena
+        // boards for pointing out).
 
         // replace the formatted string
         Fd.uMask = WFD_PATTERN|WFD_SECTION;
@@ -94,84 +93,11 @@ DiffData* WDGPlugin::GeneratePatch(void)
             Fd.lpData = "B8 D3 B8 AE 5C B8 D3 B8 AE 25 73 5F 25 73 5F 25 64 2E 70 61 6C 00";  // 赣府\赣府%s_%s_%d.pal
 
             uOffset = this->m_dgc->Match(&Fd);
-
-            bIsNewFormat = true;
         }
 
         uPart = 2;
 
-        uPtr = uOffset+5;
-        this->SetByte(uPtr++, 0x68);  // h
-        this->SetByte(uPtr++, 0x65);  // e
-        this->SetByte(uPtr++, 0x61);  // a
-        this->SetByte(uPtr++, 0x64);  // d
-        this->SetByte(uPtr++, 0x5F);  // _
-        this->SetByte(uPtr++, 0x25);  // %
-        this->SetByte(uPtr++, 0x64);  // d
-        this->SetByte(uPtr++, 0x2E);  // .
-        this->SetByte(uPtr++, 0x70);  // p
-        this->SetByte(uPtr++, 0x61);  // al
-        this->SetByte(uPtr++, 0x6C);  // l
-        this->SetByte(uPtr++, 0x00);  // NUL
-
-        // find reference to the string (PUSH OFFSET)
-        char cPushStr[5];
-        cPushStr[0] = 0x68;  // PUSH
-        ((UINT32*)(&cPushStr[1]))[0] = this->m_dgc->Raw2Rva(uOffset);  // OFFSET
-
-        Fd.uMask = WFD_SECTION;
-        Fd.lpData = cPushStr;
-        Fd.uDataSize = sizeof(cPushStr);
-        Fd.lpszSection = ".text";
-
-        uPart = 3;
-
-        uOffset = this->m_dgc->Match(&Fd);
-
-        // since we unfortunately do not have means to walk command
-        // by command, hardcoded relative offsets will have to do
-        if(this->IsVC9Image())
-        {
-            if(bIsNewFormat)
-            {
-                uPart = 4;
-
-                this->VoidPushOrThrow(uOffset-5);
-
-                uPart = 5;
-
-                this->VoidPushOrThrow(uOffset-6);
-            }
-            else
-            {
-                uPart = 6;
-
-                this->VoidPushOrThrow(uOffset-1);
-
-                uPart = 7;
-
-                this->VoidPushOrThrow(uOffset-5);
-            }
-        }
-        else
-        {
-            uPart = 8;
-
-            this->VoidPushOrThrow(uOffset-1);
-
-            uPart = 9;
-
-            this->VoidPushOrThrow(uOffset-8);
-        }
-
-        // adjust stack cleanup
-        this->SetByte(uOffset+(this->IsVC9Image() && !bIsNewFormat ? 14 : 13),0x0C);  // 14h -> 0Ch (in ADD ESP,x)
-
-        // adjust stack reference
-        if(this->IsVC9Image() && bIsNewFormat)
-        {
-            this->SetByte(uOffset-1, this->m_dgc->GetBYTE(uOffset-1)-0x08);  // -2x PUSH
-        }
+        this->SetBuffer(uOffset+5, "head%.s%.s_%d.pal", 17+1);  // + NUL
     }
     catch(const char* lpszThrown)
     {
@@ -182,8 +108,6 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         // clean up diffdata (half diff)
         this->m_DiffData.clear();
-    }
-    break;
     }
 
     return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
@@ -245,6 +169,14 @@ void WDGPlugin::SetByte(UINT32 uOffset, UCHAR uValue)
     this->m_DiffData.push_back(Diff);
 }
 
+void WDGPlugin::SetBuffer(UINT uOffset, CHAR* lpBuffer, UINT32 uSize)
+{
+    for(UINT32 uIdx = 0; uIdx<uSize; uIdx++)
+    {
+        this->SetByte(uOffset++, lpBuffer[uIdx]);
+    }
+}
+
 extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID lpData, USHORT huWeeDiffMajorVersion, USHORT huWeeDiffMinorVersion)
 {
     if(l_lpSelfReference)
@@ -274,16 +206,4 @@ bool WDGPlugin::TryMatch(LPFINDDATA lpFd, UINT32* lpuOffset)
     }
 
     return true;
-}
-
-void WDGPlugin::VoidPushOrThrow(UINT32 uOffset)
-{
-    unsigned char ucByte = this->m_dgc->GetBYTE(uOffset);
-
-    if(ucByte<0x50 || ucByte>0x57)
-    {// not a PUSH R32
-        throw "PUSH R32 not found at expected position";
-    }
-
-    this->SetByte(uOffset, 0x90);  // NOP
 }
