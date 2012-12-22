@@ -1,0 +1,28 @@
+====================================================================
+RagnarokOnline OpenSetup
+(c) 2010 Ai4rei/AN
+
+====================================================================
+
+== History =========================================================
+
+[Version 1.1.2]
++ Stable Release.
+
+[Version 1.1.1]
+* Banner became optional (compile).
+* ROExt Code pages are now sorted.
+! Fixed ROExt setting 'Remap Mouse Buttons' not getting greyed, when 'Mouse Freedom' was disabled (dependency).
+
+[Version 1.1.0]
++ Added support ROExt.
+* Setting categories are no organized with tabs (allows easier additions of features).
+
+[Version 1.0.1]
+* 'About' is now in system menu, it's button is replaced by 'Apply'.
+! Fixed display modes not being sorted.
+
+[Version 1.0.0]
++ First Public Release.
+
+====================================================================

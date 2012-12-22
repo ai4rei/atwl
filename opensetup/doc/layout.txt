@@ -1,0 +1,17 @@
+====================================================================
+RagnarokOnline OpenSetup
+(c) 2010 Ai4rei/AN
+
+====================================================================
+
+== Distribution Layout File ========================================
+
+    /
+     -> opensetup.exe   main ro setup executable
+
+    /doc/
+     -> history.txt     changelog
+     -> layout.txt      description of distributed files
+     -> license.txt     well, the software license
+
+====================================================================

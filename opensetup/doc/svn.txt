@@ -1,0 +1,446 @@
+------------------------------------------------------------------------
+r1161 | Ai4rei | 2011-11-06 15:18:08 +0100 | 2 lines
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 1.1.2.
+# This commit is due since 2010-12-25.
+------------------------------------------------------------------------
+r1160 | Ai4rei | 2011-11-06 15:16:37 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+
+* Implemented WITHOUT_BANNER.
+# This commit is due since 2010-10-23 12:15.
+------------------------------------------------------------------------
+r1159 | Ai4rei | 2011-11-06 15:15:24 +0100 | 5 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/settings.cpp
+
+* Minor cleanups.
+  * Fixed includes.
+  * Ensures consistent error reporting when saving settings fails.
+  - Removed asrdll reference.
+# This commit is due since 2010-10-28 01:43.
+------------------------------------------------------------------------
+r1158 | Ai4rei | 2011-11-06 15:11:59 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Replaced UI:CenterWindow with DS_CENTER.
+# This commit is due since 2010-07-03 13:14.
+------------------------------------------------------------------------
+r1157 | Ai4rei | 2011-11-06 15:08:26 +0100 | 2 lines
+Changed paths:
+   M /opensetup/roext.cpp
+
+* Fixed roext file references to always check in current directory.
+# This commit is due since 2010-10-28 01:42.
+------------------------------------------------------------------------
+r846 | Ai4rei | 2011-02-26 02:04:49 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 1.1.1.
+------------------------------------------------------------------------
+r845 | Ai4rei | 2011-02-26 02:04:15 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
+* Made banner optional (compile).
+------------------------------------------------------------------------
+r844 | Ai4rei | 2011-02-26 02:02:23 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+
+* Moved library reference to comctl32.lib from source to project file.
+------------------------------------------------------------------------
+r833 | Ai4rei | 2011-02-25 22:35:16 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
+* Updated the banner to act as a link.
+------------------------------------------------------------------------
+r831 | Ai4rei | 2010-06-25 00:58:04 +0100 | 2 lines
+Changed paths:
+   M /opensetup/roext.cpp
+
+* Code pages are now sorted.
+* Fixed missing this-> (although it worked, i do not like assume for this types).
+------------------------------------------------------------------------
+r830 | Ai4rei | 2010-06-25 00:56:48 +0100 | 2 lines
+Changed paths:
+   M /opensetup/settings.cpp
+
+* Fixed pointer indirection for registry batch functions.
+* Applied macros to set/get.
+------------------------------------------------------------------------
+r829 | Ai4rei | 2010-06-23 18:05:15 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.cpp
+
+* Settings registry path is now defined as defined rather than global.
+------------------------------------------------------------------------
+r828 | Ai4rei | 2010-06-23 07:25:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+
+* Fixed ROExt setting 'Remap Mouse Buttons' not getting greyed, when 'Mouse Freedom' was disabled (dependency).
+------------------------------------------------------------------------
+r827 | Ai4rei | 2010-06-23 00:30:52 +0100 | 2 lines
+Changed paths:
+   A /opensetup/doc/readme-tabicons.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/imagelist-mask.bmp
+   M /opensetup/res/imagelist.bmp
+   M /opensetup/resource.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
++ Added tab icon licensing necessities.
+* About dialog is now called from the toolbar as well.
+------------------------------------------------------------------------
+r826 | Ai4rei | 2010-06-23 00:03:23 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   A /opensetup/res/imagelist-mask.bmp
+   M /opensetup/res/imagelist.bmp
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
++ Added icons to tabs.
+------------------------------------------------------------------------
+r825 | Ai4rei | 2010-06-22 23:24:38 +0100 | 2 lines
+Changed paths:
+   D /opensetup/appicon_l.ico
+   D /opensetup/appicon_s.ico
+   D /opensetup/applogo.bmp
+   M /opensetup/opensetup.rc
+   A /opensetup/res/appicon_l.ico (from /opensetup/appicon_l.ico:824)
+   A /opensetup/res/appicon_s.ico (from /opensetup/appicon_s.ico:824)
+   A /opensetup/res/applogo.bmp (from /opensetup/applogo.bmp:824)
+   A /opensetup/res/imagelist.bmp
+   M /opensetup/resource.h
+
++ Added imagelist bitmap, currently contains tab images only.
+* Moved resources to /res.
+------------------------------------------------------------------------
+r824 | Ai4rei | 2010-06-22 21:33:35 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.dsp
+
+* Cleaned up project file a bit.
+------------------------------------------------------------------------
+r823 | Ai4rei | 2010-06-22 21:27:54 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 1.1.0.
+------------------------------------------------------------------------
+r822 | Ai4rei | 2010-06-22 21:15:38 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   A /opensetup/roext.cpp
+   A /opensetup/roext.h
+
++ Added support for ROExt.
+* Fixed wording for graphic settings.
+------------------------------------------------------------------------
+r821 | Ai4rei | 2010-06-22 20:48:55 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.exe.manifest
+
+* Fixed manifest not being adminitrator by default.
+------------------------------------------------------------------------
+r820 | Ai4rei | 2010-06-22 19:28:00 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/opensetup.rc
+   A /opensetup/tab.cpp
+   A /opensetup/tab.h
+
+* Moved tab code into it's own class.
+* Slight UI adjustments.
+------------------------------------------------------------------------
+r819 | Ai4rei | 2010-06-22 18:13:11 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
++ Implemented tabbed interface.
+------------------------------------------------------------------------
+r818 | Ai4rei | 2010-06-22 18:11:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.cpp
+
+* Applied ARRAYLEN macro.
+------------------------------------------------------------------------
+r817 | Ai4rei | 2010-06-22 15:33:25 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Splitted video and sound setting handling.
+------------------------------------------------------------------------
+r816 | Ai4rei | 2010-06-22 01:05:06 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Moved custom message box to UI.
+------------------------------------------------------------------------
+r815 | Ai4rei | 2010-06-22 00:05:39 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Moved direct x information collection into separate function.
+------------------------------------------------------------------------
+r814 | Ai4rei | 2010-06-21 23:03:22 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Further refactoring.
+------------------------------------------------------------------------
+r813 | Ai4rei | 2010-06-21 18:52:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+
+* Fixed dialog title.
+------------------------------------------------------------------------
+r812 | Ai4rei | 2010-06-21 18:51:17 +0100 | 1 line
+Changed paths:
+   M /opensetup/ui.cpp
+
+* Some whitespace.
+------------------------------------------------------------------------
+r811 | Ai4rei | 2010-06-21 18:23:29 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
++ Added hidden tab control, which will appear on demand, when further tabs are required (ex. ROExt).
+* Simplified initialization of static combo boxes.
+------------------------------------------------------------------------
+r810 | Ai4rei | 2010-06-21 17:42:51 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   A /opensetup/ui.cpp
+   A /opensetup/ui.h
+
+* Moved some functions into UI class.
+- Removed leftovers of about dialog box.
+------------------------------------------------------------------------
+r809 | Ai4rei | 2010-06-21 17:18:42 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
+* About box now uses MessageBoxIndirect rather than a dialog resource. Same effect, less work.
+------------------------------------------------------------------------
+r808 | Ai4rei | 2010-06-21 16:32:33 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+
+* Fixed identation of dialog resources.
+------------------------------------------------------------------------
+r807 | Ai4rei | 2010-06-21 00:48:32 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Moved Settings.Load and Settings.Save into LoadControls and SaveControls respectively.
+------------------------------------------------------------------------
+r806 | Ai4rei | 2010-06-21 00:44:24 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+
+* Fixed grouping of resource controls.
+------------------------------------------------------------------------
+r805 | Ai4rei | 2010-06-20 23:27:55 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Transformed cascaded-ifs in about proc to switches.
+------------------------------------------------------------------------
+r804 | Ai4rei | 2010-06-20 23:22:42 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Updated calling conventions and scope of functions.
+------------------------------------------------------------------------
+r753 | Ai4rei | 2010-05-20 13:35:47 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.cpp
+
+* HKLM vs. HKCU comment.
+------------------------------------------------------------------------
+r658 | Ai4rei | 2010-05-03 16:54:00 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 1.0.1.
+------------------------------------------------------------------------
+r657 | Ai4rei | 2010-05-03 16:51:41 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Fixed modes combo not being sorted by width/height (official setup does that).
+------------------------------------------------------------------------
+r656 | Ai4rei | 2010-05-03 13:57:18 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
+* Moved 'About' into system menu and changed the 'About' button into 'Apply'.
+* Adjusted resource ids a bit.
+------------------------------------------------------------------------
+r655 | Ai4rei | 2010-05-03 13:42:29 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
++ Optional licensing info.
+------------------------------------------------------------------------
+r653 | Ai4rei | 2010-05-02 23:52:10 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Mentioned explanation for device setup selection by direct drivers.
+------------------------------------------------------------------------
+r652 | Ai4rei | 2010-05-02 23:41:10 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Renamed RefreshSettings to SaveControls to match with LoadControls.
+------------------------------------------------------------------------
+r651 | Ai4rei | 2010-05-02 23:40:27 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+
+* Forwarded snippets update (external means).
+------------------------------------------------------------------------
+r645 | Ai4rei | 2010-05-01 02:47:59 +0100 | 1 line
+Changed paths:
+   A /opensetup/doc
+   A /opensetup/doc/history.txt
+   A /opensetup/doc/layout.txt
+   A /opensetup/doc/license.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
+* Release 1.0.0.
+------------------------------------------------------------------------
+r644 | Ai4rei | 2010-05-01 02:15:14 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Implemented transfer from controls to setting, making the application complete to far.
+------------------------------------------------------------------------
+r643 | Ai4rei | 2010-05-01 00:44:39 +0100 | 2 lines
+Changed paths:
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   A /opensetup/opensetup.h
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   A /opensetup/settings.cpp
+   A /opensetup/settings.h
+
++ Added copyright headers.
+* Abstracted settings management into separate class.
+------------------------------------------------------------------------
+r642 | Ai4rei | 2010-04-30 22:58:44 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Moved updating of device index to the window procedure.
+------------------------------------------------------------------------
+r641 | Ai4rei | 2010-04-29 23:44:08 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+   A /opensetup/dx7enum.h (from /opensetup/dx7enum.hpp:640)
+   D /opensetup/dx7enum.hpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+
+* Renamed dx7enum.hpp to dx7enum.h since this is shared component, that is used by C code as well (external means).
+------------------------------------------------------------------------
+r640 | Ai4rei | 2010-04-29 19:53:50 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
++ Added support for crash log asrdll.
+------------------------------------------------------------------------
+r639 | Ai4rei | 2010-04-29 19:47:05 +0100 | 1 line
+Changed paths:
+   M /opensetup
+
+* Updated svn:ignore to include object directories.
+------------------------------------------------------------------------
+r638 | Ai4rei | 2010-04-29 19:44:30 +0100 | 1 line
+Changed paths:
+   A /opensetup
+   A /opensetup/appicon_l.ico
+   A /opensetup/appicon_s.ico
+   A /opensetup/applogo.bmp
+   A /opensetup/dx7enum.cpp
+   A /opensetup/dx7enum.hpp
+   A /opensetup/opensetup.cpp
+   A /opensetup/opensetup.dsp
+   A /opensetup/opensetup.dsw
+   A /opensetup/opensetup.exe.manifest
+   A /opensetup/opensetup.rc
+   A /opensetup/res
+   A /opensetup/res/appicon.ico
+   A /opensetup/res/appicon.pxa
+   A /opensetup/resource.h
+
++ Added OpenSetup.
+------------------------------------------------------------------------
