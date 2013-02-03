@@ -1,7 +1,8 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
 
 // ddraw.dll
@@ -23,13 +24,13 @@ typedef HRESULT (WINAPI *DirectDrawCreateExFunc)(GUID FAR *lpGUID, LPVOID *lplpD
 typedef HRESULT (WINAPI *DirectDrawEnumerateExFunc)(LPDDENUMCALLBACKEX lpCallback, LPVOID lpContext, DWORD  dwFlags);
 
 // funcs
-DirectDrawCreateExFunc DX7E_DirectDrawCreateEx;
-DirectDrawEnumerateExFunc DX7E_DirectDrawEnumerateEx;
+static DirectDrawCreateExFunc DX7E_DirectDrawCreateEx;
+static DirectDrawEnumerateExFunc DX7E_DirectDrawEnumerateEx;
 
 #ifndef DX7E_DYNAMIC
     #pragma comment(lib, "ddraw.lib")
-    #pragma comment(lib, "dxguid.lib")
 #endif
+#pragma comment(lib, "dxguid.lib")
 
 static HRESULT CALLBACK DX7E_P_EnumDeviceCallback(char* lpDeviceDescription, char* lpDeviceName, D3DDEVICEDESC7* lpD3DDeviceDesc, void* lpContext)
 {

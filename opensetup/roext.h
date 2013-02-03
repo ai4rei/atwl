@@ -1,13 +1,14 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
 
 #ifndef _ROEXT_H_
 #define _ROEXT_H_
 
-enum ROExtSettingEntry
+typedef enum ROEXTSETTINGENTRY
 {
     ROESE_MOUSEFREEDOM,
     ROESE_REMAPMOUSEBUTTONS,
@@ -21,7 +22,8 @@ enum ROExtSettingEntry
     ROESE_WINDOWWIDTH,
     ROESE_WINDOWHEIGHT,
     ROESE_CODEPAGE,
-};
+}
+ROEXTSETTINGENTRY;
 
 class CROExtSettings
 {
@@ -39,11 +41,12 @@ private:
     int nWindowHeight;
     int nCodePage;             // Override codepage used by client, use -1 for no override.
     char szIniFile[MAX_PATH];
+
 public:
     CROExtSettings();
     ~CROExtSettings();
-    int __stdcall Get(enum ROExtSettingEntry nEntry);
-    void __stdcall Set(enum ROExtSettingEntry nEntry, int nValue);
+    int __stdcall Get(ROEXTSETTINGENTRY nEntry);
+    void __stdcall Set(ROEXTSETTINGENTRY nEntry, int nValue);
     void __stdcall Save(void);
     void __stdcall Load(void);
     void __stdcall Reset(void);
@@ -52,12 +55,17 @@ public:
 class CROExt
 {
 private:
+    typedef BOOL (WINAPI* LPFNGETCPINFOEX)(UINT, DWORD, LPCPINFOEX);
+    LPFNGETCPINFOEX GetCPInfoEx;
+
     static bool __stdcall Detect(void);
 
     class CROExtSettings Settings;
-    struct CodePageEnumInfo CodePageInfo;
+    int nCodePages[400];
+    unsigned long luCodePageCount;
     bool bIsPresent;
     HWND hWnd;
+
 public:
     CROExt();
     ~CROExt();
@@ -67,8 +75,12 @@ public:
     void __stdcall SetTab(void);
     void __stdcall GetTab(void);
 
-    int __stdcall CP2Idx(int nCodePage);
-    int __stdcall Idx2CP(int nIdx);
+    // codepage stuff
+    static int __cdecl SortCodePages(const void* lpItemA, const void* lpItemB);
+    static BOOL CALLBACK CollectCodePages(char* lpszCodePage);
+    void __stdcall GetCodePageName(int nCodePage, char* lpszBuffer, unsigned long luBufferSize);
+    unsigned long __stdcall GetIndexFromCodePage(int nCodePage);
+    int __stdcall GetCodePageFromIndex(unsigned long luIndex);
 };
 
 #endif  /* _ROEXT_H_ */

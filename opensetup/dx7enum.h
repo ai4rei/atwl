@@ -1,7 +1,8 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
 
 #ifndef _DX7ENUM_H_
@@ -10,8 +11,8 @@
 enum
 {
     MAX_DX7DRIVER = 16,
-    MAX_DX7DEVICE = 32,
-    MAX_DISPMODES = 64,
+    MAX_DX7DEVICE = 16,
+    MAX_DISPMODES = 512,
 };
 
 struct DDrawDeviceEntry
@@ -54,11 +55,11 @@ bool __stdcall DX7E_EnumDriverDevices(struct DDrawDriverDeviceInfo* lpDi);
 #define DX7E_P_QueryInterface(lpPtr,riid,ppvObj)                                          (lpPtr)->QueryInterface((riid),(ppvObj))
 #define DX7E_P_Release(lpPtr)                                                             (lpPtr)->Release()
 #else  /* __cplusplus */
-#define DX7E_P_GetCaps(lpPtr,DDDriverCaps,DDHELCaps)                                      (lpPtr)->GetCaps((lpPtr),(DDDriverCaps),(DDHELCaps))
-#define DX7E_P_EnumDisplayModes(lpPtr,dwFlags,lpDDSurfaceDesc,lpContext,lpEnumCallback)   (lpPtr)->EnumDisplayModes((lpPtr),(dwFlags),(lpDDSurfaceDesc),(lpContext),(lpEnumCallback))
-#define DX7E_P_EnumDevices(lpPtr,lpEnumDevicesCallback,lpUserArg)                         (lpPtr)->EnumDevices((lpPtr),(lpEnumDevicesCallback),(lpUserArg))
-#define DX7E_P_QueryInterface(lpPtr,riid,ppvObj)                                          (lpPtr)->QueryInterface((lpPtr),(riid),(ppvObj))
-#define DX7E_P_Release(lpPtr)                                                             (lpPtr)->Release(lpPtr)
+#define DX7E_P_GetCaps(lpPtr,DDDriverCaps,DDHELCaps)                                      (lpPtr)->lpVtbl->GetCaps((lpPtr),(DDDriverCaps),(DDHELCaps))
+#define DX7E_P_EnumDisplayModes(lpPtr,dwFlags,lpDDSurfaceDesc,lpContext,lpEnumCallback)   (lpPtr)->lpVtbl->EnumDisplayModes((lpPtr),(dwFlags),(lpDDSurfaceDesc),(lpContext),(lpEnumCallback))
+#define DX7E_P_EnumDevices(lpPtr,lpEnumDevicesCallback,lpUserArg)                         (lpPtr)->lpVtbl->EnumDevices((lpPtr),(lpEnumDevicesCallback),(lpUserArg))
+#define DX7E_P_QueryInterface(lpPtr,riid,ppvObj)                                          (lpPtr)->lpVtbl->QueryInterface((lpPtr),(riid),(ppvObj))
+#define DX7E_P_Release(lpPtr)                                                             (lpPtr)->lpVtbl->Release(lpPtr)
 #endif  /* __cplusplus */
 
 #endif  /* _DX7ENUM_H_ */

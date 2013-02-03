@@ -43,19 +43,19 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /FD /c
-# SUBTRACT CPP /YX
+# ADD CPP /nologo /W3 /vd0 /GX /Ox /Ot /Og /Oi /Gy /I "snippets" /I "lib/lua" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /FD /GF /c
+# SUBTRACT CPP /Os /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /Oicf /win32
 # SUBTRACT MTL /mktyplib203
 # ADD BASE RSC /l 0x405 /d "NDEBUG"
-# ADD RSC /l 0x417 /d "NDEBUG"
+# ADD RSC /l 0x417 /d "NDEBUG" /d "HAVE_LUA514"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib comctl32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /version:1.0 /subsystem:windows /machine:I386 /out:"opensetup.exe" /release /opt:ref /opt:icf /opt:nowin98 /tsaware
+# ADD LINK32 lua.lib kernel32.lib user32.lib gdi32.lib comctl32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib htmlhelp.lib /nologo /version:1.0 /subsystem:windows /machine:I386 /out:"opensetup.exe" /libpath:"lib/lua" /release /opt:ref /opt:icf /opt:nowin98 /tsaware
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "opensetup - Win32 Debug"
@@ -72,19 +72,19 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /Gi /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /Gi /GX /ZI /Od /I "snippets" /I "lib/lua" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /Oicf /win32
 # SUBTRACT MTL /mktyplib203
 # ADD BASE RSC /l 0x405 /d "_DEBUG"
-# ADD RSC /l 0x417 /d "_DEBUG"
+# ADD RSC /l 0x417 /d "_DEBUG" /d "HAVE_LUA514"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib comctl32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /debug /machine:I386 /out:"opensetup.exe" /pdbtype:sept
+# ADD LINK32 luad.lib kernel32.lib user32.lib gdi32.lib comctl32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib htmlhelp.lib /nologo /subsystem:windows /debug /machine:I386 /out:"opensetup.exe" /pdbtype:sept /libpath:"lib/lua"
 
 !ENDIF 
 
@@ -101,6 +101,10 @@ SOURCE=.\dx7enum.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\luaio.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\opensetup.cpp
 # End Source File
 # Begin Source File
@@ -110,6 +114,14 @@ SOURCE=.\roext.cpp
 # Begin Source File
 
 SOURCE=.\settings.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\settings_lua.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\settings_reg.cpp
 # End Source File
 # Begin Source File
 
@@ -129,7 +141,15 @@ SOURCE=.\dx7enum.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\luaio.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\opensetup.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\resource.h
 # End Source File
 # Begin Source File
 
@@ -138,6 +158,14 @@ SOURCE=.\roext.h
 # Begin Source File
 
 SOURCE=.\settings.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\settings_lua.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\settings_reg.h
 # End Source File
 # Begin Source File
 
@@ -161,6 +189,14 @@ SOURCE=.\res\appicon_s.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\engine_lua.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\engine_reg.ico
+# End Source File
+# Begin Source File
+
 SOURCE=".\res\imagelist-mask.bmp"
 # End Source File
 # Begin Source File
@@ -169,19 +205,11 @@ SOURCE=.\res\imagelist.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=".\opensetup-cu.exe.manifest"
+SOURCE=.\res\imagelist32.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=.\opensetup.exe.manifest
-# End Source File
-# Begin Source File
-
-SOURCE=.\opensetup.rc
-# End Source File
-# Begin Source File
-
-SOURCE=.\resource.h
+SOURCE=.\res\opensetup.rc
 # End Source File
 # End Group
 # Begin Group "Snippets"
@@ -189,23 +217,7 @@ SOURCE=.\resource.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\snippets\btypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\snippets\cpenum.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\snippets\cpenum.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\snippets\cstr.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\snippets\regutil.c
+SOURCE=.\snippets\regutil.cpp
 # End Source File
 # Begin Source File
 

@@ -1,14 +1,13 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
-
-#include "resource.h"
 
 #include "tab.h"
 
@@ -17,45 +16,54 @@ CTabMgr::~CTabMgr()
     this->Kill();
 }
 
-bool __stdcall CTabMgr::Init(HINSTANCE hInstance, HWND hWndParent)
+bool __stdcall CTabMgr::Init(HINSTANCE hInstance, HWND hWndParent, int nImgDimension, const char* lpszImgList32Id, const char* lpszImgListId, const char* lpszImgListMaskId, int nMaxImages)
 {
-    this->hInstance  = hInstance;
-    this->hWndParent = hWndParent;
-    this->hWnd       = CreateWindow(TOOLBARCLASSNAME, NULL, TBSTYLE_FLAT|TBSTYLE_LIST|WS_CHILD, 0, 0, 0, 0, hWndParent, NULL, hInstance, NULL);
+    this->m_hInstance  = hInstance;
+    this->m_hWndParent = hWndParent;
+    this->m_hWnd       = CreateWindow(TOOLBARCLASSNAME, NULL, TBSTYLE_FLAT|TBSTYLE_LIST|WS_CHILD, 0, 0, 0, 0, hWndParent, NULL, hInstance, NULL);
 
-    if(this->hWnd)
+    if(this->m_hWnd)
     {
-        HBITMAP hBmp, hMsk;
+        bool bSupportAlphaBitmap = true;
+        HBITMAP hBmp, hMsk = NULL;
 
-        this->hImgList = ImageList_Create(16, 16, ILC_COLOR24|ILC_MASK, 0, IMI_MAX);
-        hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_IMAGELIST), IMAGE_BITMAP, 0, 0, 0);
-        hMsk = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_IMAGELIST_MASK), IMAGE_BITMAP, 0, 0, 0);
-        ImageList_Add(this->hImgList, hBmp, hMsk);
+        if(HasBrokenTransparencyBitmapSupport() || (hBmp = (HBITMAP)LoadImage(hInstance, lpszImgList32Id, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION))==NULL)
+        {// GetLastError will return 120 (ERROR_CALL_NOT_SUPPORTED)
+            hBmp = (HBITMAP)LoadImage(hInstance, lpszImgListId, IMAGE_BITMAP, 0, 0, 0);
+            hMsk = (HBITMAP)LoadImage(hInstance, lpszImgListMaskId, IMAGE_BITMAP, 0, 0, 0);
+            bSupportAlphaBitmap = false;
+        }
+
+        this->m_hImgList = ImageList_Create(nImgDimension, nImgDimension, bSupportAlphaBitmap ? ILC_COLOR32 : ILC_COLOR24|ILC_MASK, 0, nMaxImages);
+        ImageList_Add(this->m_hImgList, hBmp, hMsk);
         DeleteObject(hMsk);
         DeleteObject(hBmp);
 
-        SendMessage(this->hWnd, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
-        SendMessage(this->hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(16, 16));
-        SendMessage(this->hWnd, TB_SETIMAGELIST, 0, (LPARAM)this->hImgList);
+        SendMessage(this->m_hWnd, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+        SendMessage(this->m_hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(nImgDimension, nImgDimension));
+        SendMessage(this->m_hWnd, TB_SETIMAGELIST, 0, (LPARAM)this->m_hImgList);
 
-        ShowWindow(this->hWnd, SW_SHOW);
+        ShowWindow(this->m_hWnd, SW_SHOW);
+
         return true;
     }
+
     return false;
 }
+
 void __stdcall CTabMgr::Kill(void)
 {
-    this->hInstance  = NULL;
-    this->hWndParent = NULL;
-    if(this->hWnd)
+    this->m_hInstance  = NULL;
+    this->m_hWndParent = NULL;
+    if(this->m_hWnd)
     {
-        DestroyWindow(this->hWnd);
-        this->hWnd = NULL;
+        DestroyWindow(this->m_hWnd);
+        this->m_hWnd = NULL;
     }
-    if(this->hImgList)
+    if(this->m_hImgList)
     {
-        ImageList_Destroy(this->hImgList);
-        this->hImgList = NULL;
+        ImageList_Destroy(this->m_hImgList);
+        this->m_hImgList = NULL;
     }
 }
 
@@ -63,7 +71,7 @@ HWND __stdcall CTabMgr::AddTab(const char* lpszCaption, int nCmd, int nImgId, bo
 {
     HWND hTab;
 
-    if((hTab = CreateDialog(this->hInstance, lpszRes, this->hWndParent, lpfnProc))!=NULL)
+    if((hTab = CreateDialog(this->m_hInstance, lpszRes, this->m_hWndParent, lpfnProc))!=NULL)
     {
         TBBUTTON Button;
 
@@ -80,10 +88,28 @@ HWND __stdcall CTabMgr::AddTab(const char* lpszCaption, int nCmd, int nImgId, bo
         }
         Button.idCommand = nCmd;
         Button.iString = (INT_PTR)lpszCaption;
-        SendMessage(this->hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
-        SendMessage(this->hWnd, TB_AUTOSIZE, 0, 0);
+        SendMessage(this->m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
+        this->m_TabList.push_back(std::pair< int, HWND >(nCmd, hTab));
+        this->OnResizeMove();
+
         return hTab;
     }
+
+    return NULL;
+}
+
+HWND __stdcall CTabMgr::GetTab(int nCmd)
+{
+    unsigned long luIdx;
+
+    for(luIdx = 0; luIdx<this->m_TabList.size(); luIdx++)
+    {
+        if(this->m_TabList[luIdx].first==nCmd)
+        {
+            return this->m_TabList[luIdx].second;
+        }
+    }
+
     return NULL;
 }
 
@@ -96,6 +122,35 @@ void __stdcall CTabMgr::AddButton(const char* lpszCaption, int nCmd, int nImgId)
     Button.fsState = TBSTATE_ENABLED;
     Button.idCommand = nCmd;
     Button.iString = (INT_PTR)lpszCaption;
-    SendMessage(this->hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
-    SendMessage(this->hWnd, TB_AUTOSIZE, 0, 0);
+    SendMessage(this->m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
+    this->OnResizeMove();
+}
+
+void __stdcall CTabMgr::OnResizeMove(void)
+{
+    SendMessage(this->m_hWnd, TB_AUTOSIZE, 0, 0);
+}
+
+void __stdcall CTabMgr::OnActivateTab(int nCmd)
+{
+    unsigned long luIdx;
+
+    for(luIdx = 0; luIdx<this->m_TabList.size(); luIdx++)
+    {
+        ShowWindow(this->m_TabList[luIdx].second, (this->m_TabList[luIdx].first==nCmd) ? SW_SHOW : SW_HIDE);
+    }
+}
+
+HWND __stdcall CTabMgr::GetWindowHandle(void)
+{
+    return this->m_hWnd;
+}
+
+bool __stdcall CTabMgr::HasBrokenTransparencyBitmapSupport(void)
+{
+    OSVERSIONINFO Osvi = { sizeof(Osvi) };
+
+    GetVersionEx(&Osvi);
+
+    return (Osvi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (Osvi.dwMajorVersion<5 || (Osvi.dwMajorVersion==5 && Osvi.dwMinorVersion<1));
 }

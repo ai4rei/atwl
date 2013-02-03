@@ -1,10 +1,78 @@
 ====================================================================
 RagnarokOnline OpenSetup
-(c) 2010 Ai4rei/AN
+(c) 2010-2013 Ai4rei/AN
+See doc/license.txt for details.
 
 ====================================================================
 
 == History =========================================================
+
+[Version 2.6.2]
+* Updated engine selector icons to be more obvious.
+* Some improvements to Japanese translation.
+! Fixed cut-off dialog text in german and korean localization (since 2.1.0/2.3.0).
+
+[Version 2.6.1]
+* Somewhat improved safety of data involved in IPC.
+! Fixed elevated transaction getting fed invalid parameters, thus failing to save any options (since 2.6.0).
+
+[Version 2.6.0]
++ Added incomplete Japanese translation (corrections highly appreciated).
+* Improved UAC experience. Administrator is no longer required except for saving changes.
+* Separated dialog resources from localizable text.
+
+[Version 2.5.1]
+! Fixed disabled fields would not re-enable on engine change (since 2.5.0).
+
+[Version 2.5.0]
+* Made tab and combobox strings available for localization through string-tables.
+* Minor adjustments to the visuals of the UI.
+* Cleaning of unnecessary things, in preparation for source release.
+* Merged both REG and LUA engines into one executable. The engine in use can be switched via icon in left bottom corner.
+! Fixed missing/broken DirectX (is that nowadays even possible?) would leave the user with a system error.
+! Fixed non-primary drivers not displaying all available D3D devices (since 1.0.0, thx Tokei on rAthena boards).
+
+[Version 2.4.0]
++ Added tooltip to indicate volume level for bgm and sound volume sliders.
+* Updated default setting values in LUA engine to reflect official defaults (TODO: use official defaults-files).
+! Fixed LUA engine not marking settings as been written by the new setup, which caused them to get ignored by new clients.
+! Fixed /bgm on/off setting not being handled properly across REG and LUA engines.
+! Fixed /camera on/off setting being saved and loaded as /cemara, thus not recognized by the client.
+! Fixed setup LUA engine not reporting registry write errors.
+! Fixed /tip not being available in LUA engine.
+
+[Version 2.3.0]
++ Added Czech and crude Korean translation.
+
+[Version 2.2.0]
++ Added Brazilian Portuguese translation by EvilPuncker.
+! Fixed missing width restriction from official setup.
+! Fixed graphics adapters with more than 64 video modes would not show all resulutions available for RO.
+! Fixed toolbar bitmap glitch on Windows 2000 and older NT platforms.
+
+[Version 2.1.0]
++ Added German translation by Xalion.
++ Added support for "Trilinar Filtering" for Lua settings engine.
+* Fixed some English dialog labels and descriptions.
+* Updated missing description for /stateinfo (thx EvilPuncker on rAthena boards).
+! Fixed 'Fullscreen' option not getting saved.
+! Fixed dialog layout not having enough spare space for i18n variation.
+# Older clients might not be able to read/update the Lua settings, because they expect them in a different location (ex. data\) when reading but write them using OptionInfo_f.lub, which writes to savedata\ at the moment.
+
+[Version 2.0.2]
+! [snippet::cpenum] Fixed not all code pages would appear in ROExt's code page setting on systems that have more than 50 of them installed (since 1.1.0).
+
+[Version 2.0.1]
++ Added controls for BGM, Sound and Exclusive Mouse settings.
++ Added quickinfo/context-sensitive help for all options but ROExt.
++ Added setting for "Trilinear Filtering" checkbox.
+
+[Version 2.0.0]
++ Added v2.0 setup.exe settings (new tab) and Lua settings engine.
++ Added setting for "Display tip of the day" checkbox.
++ Added support for tab bitmaps with alpha channel (32-bit bmp).
+* Settings unsupported by either settings engine get disabled.
+! Fixed HKLM_TO_HKCU directive was ignored when loading settings.
 
 [Version 1.1.2]
 + Stable Release.
@@ -15,8 +83,8 @@ RagnarokOnline OpenSetup
 ! Fixed ROExt setting 'Remap Mouse Buttons' not getting greyed, when 'Mouse Freedom' was disabled (dependency).
 
 [Version 1.1.0]
-+ Added support ROExt.
-* Setting categories are no organized with tabs (allows easier additions of features).
++ Added support for ROExt ( http://forum.ratemyserver.net/ro-graphic-coding-media/roext-mouse-freedom-and-some-tweaks/ ).
+* Setting categories are now organized with tabs (allows easier additions of features).
 
 [Version 1.0.1]
 * 'About' is now in system menu, it's button is replaced by 'Apply'.

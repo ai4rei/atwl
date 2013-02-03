@@ -1,16 +1,13 @@
 // -----------------------------------------------------------------
-// NOTE: this is trimmed-down version with dependencies only
+// RagnarokOnline OpenSetup
+// (c) 2010-2013 Ai4rei/AN
+// See doc/license.txt for details.
 // Must not be used with other software than RO Open Setup.
-// (c) 2009-2010 Ai4rei/AN
+//
 // -----------------------------------------------------------------
 
 #ifndef _REGUTIL_H_
 #define _REGUTIL_H_
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 struct RegUtilLoadInfo
 {
@@ -29,11 +26,7 @@ struct RegUtilSaveInfo
     unsigned long luValueType;
 };
 
-bool __stdcall RegUtilLoad(void* hKey, const struct RegUtilLoadInfo* lpLi, unsigned long luElements);
-bool __stdcall RegUtilSave(void* hKey, const struct RegUtilSaveInfo* lpSi, unsigned long luElements);
-
-#ifdef __cplusplus
-};
-#endif
+bool __stdcall RegUtilLoad(HKEY hKey, const struct RegUtilLoadInfo* lpLi, unsigned long luElements);
+bool __stdcall RegUtilSave(HKEY hKey, const struct RegUtilSaveInfo* lpSi, unsigned long luElements);
 
 #endif  /* _REGUTIL_H_ */

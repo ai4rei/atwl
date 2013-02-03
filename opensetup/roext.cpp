@@ -1,18 +1,16 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
-
-#include "snippets/btypes.h"
-#include "snippets/cpenum.h"
-#include "snippets/cstr.h"
 
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
 
+#include "opensetup.h"
 #include "resource.h"
 #include "tab.h"
 #include "ui.h"
@@ -23,6 +21,12 @@
 
 #define ROEXT_DLLFILE ".\\dinput.dll"
 #define ROEXT_INIFILE ".\\dinput.ini"
+
+// HACK: the first entry is the default-codepage recognized by ROExt
+// HACK: code page storage for code page enumerator lacking context
+// variable...
+static int l_nCodePageTemp[400] = { -1 };
+static unsigned long l_luCodePageCount = 1;
 
 CROExtSettings::CROExtSettings()
 {
@@ -46,7 +50,7 @@ CROExtSettings::~CROExtSettings()
     WritePrivateProfileString(NULL, NULL, NULL, this->szIniFile);
 }
 
-int __stdcall CROExtSettings::Get(enum ROExtSettingEntry nEntry)
+int __stdcall CROExtSettings::Get(ROEXTSETTINGENTRY nEntry)
 {
     switch(nEntry)
     {
@@ -67,7 +71,7 @@ int __stdcall CROExtSettings::Get(enum ROExtSettingEntry nEntry)
     return 0;
 }
 
-void __stdcall CROExtSettings::Set(enum ROExtSettingEntry nEntry, int nValue)
+void __stdcall CROExtSettings::Set(ROEXTSETTINGENTRY nEntry, int nValue)
 {
     switch(nEntry)
     {
@@ -114,7 +118,7 @@ void __stdcall CROExtSettings::Save(void)
 #undef SAVEENTRY
     };
 
-    for(i = 0; i<ARRAYLEN(SaveInfo); i++)
+    for(i = 0; i<__ARRAYSIZE(SaveInfo); i++)
     {
         wsprintf(szBuffer, "%d", *(SaveInfo[i].lpnValue));
         WritePrivateProfileString("ROExt", SaveInfo[i].lpszKeyName, szBuffer, this->szIniFile);
@@ -152,7 +156,7 @@ void __stdcall CROExtSettings::Load(void)
 
     if(GetFileAttributes(this->szIniFile)!=0xffffffff)
     {
-        for(i = 0; i<ARRAYLEN(LoadInfo); i++)
+        for(i = 0; i<__ARRAYSIZE(LoadInfo); i++)
         {
             if(GetPrivateProfileString("ROExt", LoadInfo[i].lpszKeyName, "", szBuffer, sizeof(szBuffer), this->szIniFile))
             {
@@ -247,8 +251,12 @@ CROExt::CROExt()
 {
     if((this->bIsPresent = CROExt::Detect())==true)
     {
-        CPE_Init();
-        CPE_EnumCodePagesEx(&this->CodePageInfo, CPE_FLAG_INSTALLEDONLY|CPE_FLAG_SORTID);
+        // initialize installed code pages
+        this->GetCPInfoEx = (LPFNGETCPINFOEX)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetCPInfoExA");
+        EnumSystemCodePages(&CROExt::CollectCodePages, CP_INSTALLED);
+        this->luCodePageCount = l_luCodePageCount;
+        CopyMemory(this->nCodePages, l_nCodePageTemp, sizeof(this->nCodePages));
+        qsort(&this->nCodePages[0], this->luCodePageCount, sizeof(this->nCodePages[0]), &CROExt::SortCodePages);
 
         this->Settings.Load();
     }
@@ -256,10 +264,6 @@ CROExt::CROExt()
 
 CROExt::~CROExt()
 {
-    if(this->bIsPresent)
-    {
-        CPE_Quit();
-    }
 }
 
 void __stdcall CROExt::Load(class CTabMgr* TabMgr)
@@ -303,7 +307,7 @@ void __stdcall CROExt::GetTab(void)
 
         if((i = SendMessage(GetDlgItem(this->hWnd, IDCOMBOBOX_CODEPAGE), CB_GETCURSEL, 0, 0))!=CB_ERR)
         {
-            this->Settings.Set(ROESE_CODEPAGE, this->Idx2CP(i));
+            this->Settings.Set(ROESE_CODEPAGE, this->GetCodePageFromIndex(i));
         }
     }
 }
@@ -325,47 +329,78 @@ void __stdcall CROExt::SetTab(void)
             { IDCHECKBOX_WINDOWONTOP,       BM_SETCHECK,  (WPARAM)this->Settings.Get(ROESE_WINDOWONTOP),            0 },
             { IDCHECKBOX_WINDOWLOCK,        BM_SETCHECK,  (WPARAM)this->Settings.Get(ROESE_WINDOWLOCK),             0 },
             // Initialize combo boxes
-            { IDCOMBOBOX_CODEPAGE,          CB_SETCURSEL, (WPARAM)this->CP2Idx(this->Settings.Get(ROESE_CODEPAGE)), 0 },
+            { IDCOMBOBOX_CODEPAGE,          CB_SETCURSEL, (WPARAM)this->GetIndexFromCodePage(this->Settings.Get(ROESE_CODEPAGE)), 0 },
         };
 
         // feed the lists
         hChild = GetDlgItem(this->hWnd, IDCOMBOBOX_CODEPAGE);
-        SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)"(default)");
-        for(i = 0; i<this->CodePageInfo.luEntries; i++)
+        for(i = 0; i<this->luCodePageCount; i++)
         {
-            SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)this->CodePageInfo.Entries[i].szCodePageName);
+            char szFriendlyName[260];
+
+            this->GetCodePageName(this->nCodePages[i], szFriendlyName, __ARRAYSIZE(szFriendlyName));
+            SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)szFriendlyName);
         }
 
         // process simple initializers
-        UI::BatchMessage(this->hWnd, lpBatchList, ARRAYLEN(lpBatchList));
+        UI::BatchMessage(this->hWnd, lpBatchList, __ARRAYSIZE(lpBatchList));
 
         // dependencies
         EnableWindow(GetDlgItem(this->hWnd, IDCHECKBOX_REMAPMOUSEBUTTONS), (BOOL)(IsDlgButtonChecked(this->hWnd, IDCHECKBOX_MOUSEFREEDOM)==BST_CHECKED));
     }
 }
 
-int __stdcall CROExt::CP2Idx(int nCodePage)
+int __cdecl CROExt::SortCodePages(const void* lpItemA, const void* lpItemB)
 {
-    int i;
+    return ((const int*)lpItemA)[0]-((const int*)lpItemB)[0];
+}
 
-    if(nCodePage!=-1)
+BOOL CALLBACK CROExt::CollectCodePages(char* lpszCodePage)
+{
+    if(l_luCodePageCount>=__ARRAYSIZE(l_nCodePageTemp))
     {
-        for(i = 1; i<=(int)this->CodePageInfo.luEntries; i++)
+        return FALSE;
+    }
+
+    l_nCodePageTemp[l_luCodePageCount++] = (int)strtoul(lpszCodePage, NULL, 10);
+    return TRUE;
+}
+
+void __stdcall CROExt::GetCodePageName(int nCodePage, char* lpszBuffer, unsigned long luBufferSize)
+{
+    CPINFOEX Info;
+
+    if(nCodePage==-1)
+    {// no actual code page
+        lstrcpynA(lpszBuffer, "(default)", luBufferSize);
+    }
+    else if(this->GetCPInfoEx && this->GetCPInfoEx(nCodePage, 0, &Info))
+    {// code page information available
+        lstrcpynA(lpszBuffer, Info.CodePageName, luBufferSize);
+    }
+    else
+    {// alien code pages or Windows 95, last resort
+        wsprintfA(lpszBuffer, "%d  (Unknown)", nCodePage);
+    }
+}
+
+unsigned long __stdcall CROExt::GetIndexFromCodePage(int nCodePage)
+{
+    unsigned long i;
+
+    for(i = 0; i<this->luCodePageCount; i++)
+    {
+        if(this->nCodePages[i]==nCodePage)
         {
-            if((int)this->CodePageInfo.Entries[i-1].luCodePage==nCodePage)
-            {
-                return i;
-            }
+            return i;
         }
     }
+
+    // assume default for unsupported code pages
     return 0;
 }
 
-int __stdcall CROExt::Idx2CP(int nIdx)
+int __stdcall CROExt::GetCodePageFromIndex(unsigned long luIndex)
 {
-    if(0<nIdx && nIdx<=(int)this->CodePageInfo.luEntries)
-    {
-        return this->CodePageInfo.Entries[nIdx-1].luCodePage;
-    }
-    return -1;
+    return this->nCodePages[luIndex];
 }

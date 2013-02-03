@@ -1,0 +1,25 @@
+====================================================================
+RagnarokOnline OpenSetup
+(c) 2010-2013 Ai4rei/AN
+See doc/license.txt for details.
+
+====================================================================
+
+== Building from Source Instructions ===============================
+
+- Make sure you have some version of Microsoft Visual C++ installed.
+  MSVC++ 6.0 is most recommended.
+- Download lua-5.1.4 and build static libraries for the following
+  configurations:
+  - release (lua.lib)
+  - debug (luad.lib)
+  Both source and libraries should be put into lib/lua.
+- Open opensetup.dsw in the MSVC++ IDE and build a configuration of
+  your choice.
+- If you do not use MSVC++ 6.0, make sure that the conversion
+  process does not make the projects compile as Unicode.
+- Do not make x64 builds of OpenSetup; the RO client is a 32-bit
+  application and is redirected to a different registry location
+  than 64-bit applications write to.
+
+====================================================================

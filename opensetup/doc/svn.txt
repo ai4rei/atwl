@@ -1,4 +1,1133 @@
 ------------------------------------------------------------------------
+r1474 | Ai4rei | 2013-02-03 17:35:07 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings_lua.cpp
+
+* Random beautifying for source release.
+------------------------------------------------------------------------
+r1423 | Ai4rei | 2012-12-25 21:37:47 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Whitespace.
+------------------------------------------------------------------------
+r1422 | Ai4rei | 2012-12-25 21:30:56 +0100 | 1 line
+Changed paths:
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+
+- Removed unnecessary functions from regutil.
+------------------------------------------------------------------------
+r1420 | Ai4rei | 2012-12-25 11:28:05 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.dsp
+
+* Follow up to r1417.
+------------------------------------------------------------------------
+r1418 | Ai4rei | 2012-12-25 11:23:25 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
++ Added manifest description.
+------------------------------------------------------------------------
+r1417 | Ai4rei | 2012-12-25 11:21:10 +0100 | 1 line
+Changed paths:
+   D /opensetup/res/opensetup.exe.manifest
+   M /opensetup/res/opensetup.rc
+
+* Inlined manifest for less hassle when releasing.
+------------------------------------------------------------------------
+r1416 | Ai4rei | 2012-12-25 11:20:27 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/jp.rc
+
+* More work on japanese.
+------------------------------------------------------------------------
+r1415 | Ai4rei | 2012-12-25 11:20:18 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/opensetup.rc
+
+* Moved restrict-mouse setting in next line as korean had cut off VooDoo3 as well.
+------------------------------------------------------------------------
+r1414 | Ai4rei | 2012-12-24 20:03:08 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.h
+
+* Explanation for mouse-exclusive.
+------------------------------------------------------------------------
+r1413 | Ai4rei | 2012-12-24 19:57:26 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/opensetup.rc
+
+* Adjusted layout to make german translation fit.
+------------------------------------------------------------------------
+r1412 | Ai4rei | 2012-12-24 19:39:53 +0100 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/EvilPuncker (pt-BR).txt
+   M /opensetup/dev/translations/Xalion (de-DE).txt
+   M /opensetup/doc/build.txt
+   M /opensetup/doc/history.txt
+   M /opensetup/doc/layout.txt
+   M /opensetup/doc/license.txt
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+   M /opensetup/luaio.cpp
+   M /opensetup/luaio.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Y2K13.
+------------------------------------------------------------------------
+r1411 | Ai4rei | 2012-12-24 19:35:16 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/build.txt
+   M /opensetup/doc/history.txt
+   M /opensetup/doc/layout.txt
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+   M /opensetup/luaio.cpp
+   M /opensetup/luaio.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* License stuff.
+------------------------------------------------------------------------
+r1397 | Ai4rei | 2012-12-22 13:20:11 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/engine_lua.ico
+   M /opensetup/res/engine_reg.ico
+
+* Updated engine icons to be more idiot-friendly.
+------------------------------------------------------------------------
+r1396 | Ai4rei | 2012-12-22 13:19:50 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+
+* Settings engine identifier is now defined by the engine itself rather than externally.
+------------------------------------------------------------------------
+r1388 | Ai4rei | 2012-12-16 17:44:42 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/res/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.6.1.
+------------------------------------------------------------------------
+r1387 | Ai4rei | 2012-12-16 17:41:13 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.h
+   M /opensetup/settings.cpp
+
++ Added shared spinlock instead of crash to prevent SaveToIPC to mess with LoadFromIPC.
+------------------------------------------------------------------------
+r1386 | Ai4rei | 2012-12-16 17:39:34 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+! Fixed elevated ipc not working.
+------------------------------------------------------------------------
+r1385 | Ai4rei | 2012-12-12 02:07:32 +0100 | 1 line
+Changed paths:
+   A /opensetup/dev/memleak.h
+
++ Added crt memleak detection FI header.
+------------------------------------------------------------------------
+r1384 | Ai4rei | 2012-12-12 02:07:06 +0100 | 1 line
+Changed paths:
+   D /opensetup/dev/dinput.dll
+   A /opensetup/dev/roext
+   A /opensetup/dev/roext/dinput.dll (from /opensetup/dev/dinput.dll:1383)
+   A /opensetup/dev/roext/dinput.ini
+   A /opensetup/dev/roext/dinput.txt
+
+* Moved ROExt files into separate folder and added unversioned supl. stuff.
+------------------------------------------------------------------------
+r1383 | Ai4rei | 2012-12-12 01:49:04 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/roext.h
+   M /opensetup/tab.cpp
+
+* General-purpose cleaning and stuff.
+------------------------------------------------------------------------
+r1382 | Ai4rei | 2012-12-12 01:24:00 +0100 | 1 line
+Changed paths:
+   D /opensetup/hhlite.cpp
+   D /opensetup/hhlite.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Moved HHLite into UI.
+------------------------------------------------------------------------
+r1381 | Ai4rei | 2012-12-12 01:15:03 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+- Removed directx debugging code.
+------------------------------------------------------------------------
+r1380 | Ai4rei | 2012-12-12 01:11:26 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.6.0.
+------------------------------------------------------------------------
+r1379 | Ai4rei | 2012-12-09 14:18:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+
+* Improved font stealing code to keep the font size in dialog's scale.
+------------------------------------------------------------------------
+r1378 | Ai4rei | 2012-12-09 13:31:36 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   A /opensetup/res/i18n/jp.rc
+   M /opensetup/res/opensetup.rc
+
++ Added incomplete Japanese.
+------------------------------------------------------------------------
+r1377 | Ai4rei | 2012-12-09 11:57:52 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Worked around the multibyte-charset font issue by copying font from tab bar (which uses default system font by itself).
+------------------------------------------------------------------------
+r1376 | Ai4rei | 2012-12-09 09:38:55 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Separated localizable text from dialog resources (save for korean), to make UI changes easier.
+------------------------------------------------------------------------
+r1375 | Ai4rei | 2012-12-09 07:48:58 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
+* Moved renewal setup registration from CSettingsLua::Load to CSettingsLua::Save, as Load is always supposed to fail in UAC environment.
+------------------------------------------------------------------------
+r1374 | Ai4rei | 2012-12-08 23:12:11 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.exe.manifest
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Updated saving so that admin requirement invokes elevation only when needed.
+------------------------------------------------------------------------
+r1373 | Ai4rei | 2012-12-08 20:31:57 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
++ Added define DX7DEBUG for dx7 debugging code.
+------------------------------------------------------------------------
+r1372 | Ai4rei | 2012-12-08 20:24:01 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Fixed wrong name for GetVersionEx.
+------------------------------------------------------------------------
+r1371 | Ai4rei | 2012-12-08 19:54:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Account for non-NT systems.
+------------------------------------------------------------------------
+r1370 | Ai4rei | 2012-12-08 19:38:03 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
++ Added CSettings::IsAdminRequired to determine whether CSettings::Save needs admin rights or not.
++ Added support for displaying UAC shields on buttons that ask for admin actions. Does not invoke in-place elevation, yet, though.
+------------------------------------------------------------------------
+r1369 | Ai4rei | 2012-12-02 10:18:22 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.5.1.
+------------------------------------------------------------------------
+r1368 | Ai4rei | 2012-12-01 23:31:27 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+! Fixed disabled fields would not re-enable on engine change.
+------------------------------------------------------------------------
+r1367 | Ai4rei | 2012-12-01 23:31:16 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.5.0.
+------------------------------------------------------------------------
+r1366 | Ai4rei | 2012-12-01 23:03:35 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   A /opensetup/res/engine_lua.ico
+   A /opensetup/res/engine_reg.ico
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+
++ Added support for switching settings engines at runtime.
+------------------------------------------------------------------------
+r1365 | Ai4rei | 2012-12-01 20:57:44 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+! Fixed non-primary drivers not displaying all available D3D devices (thx Tokei on rAthena boards).
+------------------------------------------------------------------------
+r1364 | Ai4rei | 2012-12-01 20:18:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/build-nightly.bat
+   M /opensetup/build.bat
+
+* Updated build scripts to reflect engine merge.
+------------------------------------------------------------------------
+r1363 | Ai4rei | 2012-12-01 16:00:14 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+
+* Updated resources to reflect engine merge.
+------------------------------------------------------------------------
+r1362 | Ai4rei | 2012-12-01 15:28:12 +0100 | 1 line
+Changed paths:
+   M /opensetup
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   A /opensetup/opensetup.dsp (from /opensetup/opensetup_lua.dsp:1355)
+   M /opensetup/opensetup.dsw
+   D /opensetup/opensetup_lua.dsp
+   D /opensetup/opensetup_reg.dsp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   A /opensetup/settings_lua.h (from /opensetup/settings.h:1361)
+   M /opensetup/settings_reg.cpp
+   A /opensetup/settings_reg.h (from /opensetup/settings.h:1361)
+
+* Merged both, REG and LUA, engines into one project. LUA is default for now, runtime switch will follow.
+------------------------------------------------------------------------
+r1361 | Ai4rei | 2012-12-01 15:04:55 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Fixed incorrect naming convention on settings entry enum.
+------------------------------------------------------------------------
+r1360 | Ai4rei | 2012-12-01 14:52:24 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
+* Eliminated tab window variables. The tab manager now hosts the handles and gives them out as necessary.
+------------------------------------------------------------------------
+r1359 | Ai4rei | 2012-12-01 14:24:40 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* More human error messages at startup.
+------------------------------------------------------------------------
+r1357 | Ai4rei | 2012-12-01 11:23:58 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Fixed prefixes for local variables (g_DI->l_DI, luPrimaryDevices->l_luPrimaryDevices).
+------------------------------------------------------------------------
+r1356 | Ai4rei | 2012-12-01 11:17:13 +0100 | 1 line
+Changed paths:
+   M /opensetup/roext.cpp
+
+* Whitespace.
+------------------------------------------------------------------------
+r1341 | Ai4rei | 2012-11-24 09:28:16 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/pt_br.rc
+
++ Added explanation for 'exclusive mouse' setting.
+------------------------------------------------------------------------
+r1335 | Ai4rei | 2012-11-13 17:37:49 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/pt_br.rc
+
+* Updated tab/combobox bits. [EvilPuncker]
+------------------------------------------------------------------------
+r1334 | Ai4rei | 2012-11-11 20:59:37 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+   A /opensetup/snippets
+   A /opensetup/snippets/regutil.cpp
+   A /opensetup/snippets/regutil.h
+
++ Added regutil snippet.
+------------------------------------------------------------------------
+r1333 | Ai4rei | 2012-11-11 20:46:46 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+
+- Dropped dependency on cpenum snippet.
+------------------------------------------------------------------------
+r1332 | Ai4rei | 2012-11-11 19:22:30 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/kr.rc
+
+* Updated tabs/comboboxes with translation provided by Heero Yuy on the rAthena boards.
+------------------------------------------------------------------------
+r1331 | Ai4rei | 2012-11-11 18:39:00 +0100 | 1 line
+Changed paths:
+   M /opensetup/hhlite.cpp
+   M /opensetup/luaio.cpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/roext.cpp
+   M /opensetup/settings.cpp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+   M /opensetup/ui.cpp
+
+- Dropped dependency on btypes and removed more cstr leftovers.
+------------------------------------------------------------------------
+r1330 | Ai4rei | 2012-11-11 17:37:01 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.h
+
+- Removed unused constant.
+------------------------------------------------------------------------
+r1329 | Ai4rei | 2012-11-11 17:31:41 +0100 | 1 line
+Changed paths:
+   D /opensetup/opensetup.exe.manifest
+   D /opensetup/opensetup.rc
+   D /opensetup/opensetup_cz.rc
+   D /opensetup/opensetup_de.rc
+   D /opensetup/opensetup_en_us.rc
+   D /opensetup/opensetup_kr.rc
+   M /opensetup/opensetup_lua.dsp
+   D /opensetup/opensetup_pt_br.rc
+   M /opensetup/opensetup_reg.dsp
+   A /opensetup/res/i18n
+   A /opensetup/res/i18n/cz.rc (from /opensetup/opensetup_cz.rc:1328)
+   A /opensetup/res/i18n/de.rc (from /opensetup/opensetup_de.rc:1328)
+   A /opensetup/res/i18n/en_us.rc (from /opensetup/opensetup_en_us.rc:1328)
+   A /opensetup/res/i18n/kr.rc (from /opensetup/opensetup_kr.rc:1328)
+   A /opensetup/res/i18n/pt_br.rc (from /opensetup/opensetup_pt_br.rc:1328)
+   A /opensetup/res/opensetup.exe.manifest (from /opensetup/opensetup.exe.manifest:1328)
+   A /opensetup/res/opensetup.rc (from /opensetup/opensetup.rc:1328)
+
+* Moved resources and localized resources to respective folders.
+------------------------------------------------------------------------
+r1328 | Ai4rei | 2012-11-11 17:10:17 +0100 | 1 line
+Changed paths:
+   M /opensetup/luaio.cpp
+   M /opensetup/luaio.h
+   M /opensetup/opensetup_lua.dsp
+
+- Removed dependency on memory snippet.
+------------------------------------------------------------------------
+r1327 | Ai4rei | 2012-11-11 13:42:17 +0100 | 1 line
+Changed paths:
+   M /opensetup/luaio.cpp
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+   M /opensetup/roext.cpp
+
+* Leftover cleaning.
+------------------------------------------------------------------------
+r1326 | Ai4rei | 2012-11-11 12:40:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_kr.rc
+   M /opensetup/opensetup_pt_br.rc
+
+* Partial updates to korean and brazilian portugese.
+------------------------------------------------------------------------
+r1325 | Ai4rei | 2012-11-11 11:30:55 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_cz.rc
+   M /opensetup/opensetup_de.rc
+
+* Updated czech and german translation.
+------------------------------------------------------------------------
+r1324 | Ai4rei | 2012-11-11 10:42:35 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup_en_us.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Moved all localizable interface strings from source to stringtables.
+------------------------------------------------------------------------
+r1323 | Ai4rei | 2012-10-06 15:26:45 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/appicon.ico
+   M /opensetup/res/appicon_l.ico
+
+* Updated icon with 64x64 version made with xBR.
+------------------------------------------------------------------------
+r1307 | Ai4rei | 2012-09-22 12:53:25 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup_cz.rc
+   M /opensetup/opensetup_de.rc
+   M /opensetup/opensetup_en_us.rc
+   M /opensetup/opensetup_kr.rc
+   M /opensetup/opensetup_pt_br.rc
+
+- Removed ticks from music and sound volume sliders.
+------------------------------------------------------------------------
+r1288 | Ai4rei | 2012-08-07 19:43:23 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+
+* Made ddraw function pointers static.
+------------------------------------------------------------------------
+r1287 | Ai4rei | 2012-07-29 20:56:31 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_cz.rc
+   M /opensetup/opensetup_de.rc
+   M /opensetup/opensetup_en_us.rc
+   M /opensetup/opensetup_kr.rc
+   M /opensetup/opensetup_pt_br.rc
+
+* Fixed button spacing.
+------------------------------------------------------------------------
+r1277 | Ai4rei | 2012-07-22 13:46:57 +0100 | 1 line
+Changed paths:
+   M /opensetup/luaio.cpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/roext.cpp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Replaced all occurences cstr::ARRAYLEN with btypes::__ARRAYSIZE.
+------------------------------------------------------------------------
+r1276 | Ai4rei | 2012-07-22 13:45:51 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+
+* Configured DX7Enum to load direct x dependencies dynamically, so that the user is not left with error message from system, when direct x is not installed (or ddraw.dll is missing).
+------------------------------------------------------------------------
+r1275 | Ai4rei | 2012-07-22 13:44:18 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+
+* Fixed missing library for dynamic dx7enum.
+------------------------------------------------------------------------
+r1274 | Ai4rei | 2012-07-17 17:41:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+   A /opensetup/settings.cpp (from /opensetup/settings_reg.cpp:1273)
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Moved shared CSettings::Get and CSettings::Set methods to separate file.
+------------------------------------------------------------------------
+r1273 | Ai4rei | 2012-07-14 21:02:32 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.4.0.
+------------------------------------------------------------------------
+r1272 | Ai4rei | 2012-07-14 21:01:47 +0100 | 1 line
+Changed paths:
+   A /opensetup/build-nightly.bat
+   A /opensetup/build.bat
+
++ Added release batch files.
+------------------------------------------------------------------------
+r1271 | Ai4rei | 2012-07-14 21:01:04 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup_cz.rc
+   M /opensetup/opensetup_de.rc
+   M /opensetup/opensetup_en_us.rc
+   M /opensetup/opensetup_kr.rc
+   M /opensetup/opensetup_pt_br.rc
+
++ Added tooltip to indicate volume level for bgm and sound volume sliders.
+------------------------------------------------------------------------
+r1270 | Ai4rei | 2012-07-14 20:59:02 +0100 | 1 line
+Changed paths:
+   M /opensetup/dev/savedata/OptionInfo.lua
+   M /opensetup/settings_lua.cpp
+
+* Updated default setting values in LUA engine to reflect official defaults (TODO: use official defaults-files).
+------------------------------------------------------------------------
+r1269 | Ai4rei | 2012-07-14 20:57:57 +0100 | 2 lines
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+! Fixed LUA engine not marking settings as been written by the new setup, which caused them to get ignored by new clients.
+! Fixed setup LUA engine not reporting registry write errors.
+------------------------------------------------------------------------
+r1268 | Ai4rei | 2012-07-14 20:56:27 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
+! Fixed /tip not being available in LUA engine.
+------------------------------------------------------------------------
+r1267 | Ai4rei | 2012-07-14 20:56:06 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
+! Fixed /camera on/off setting being saved and loaded as /cemara, thus not recognized by the client.
+------------------------------------------------------------------------
+r1266 | Ai4rei | 2012-07-14 20:55:35 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+! Fixed /bgm on/off setting not being handled properly across REG and LUA engines.
+------------------------------------------------------------------------
+r1265 | Ai4rei | 2012-07-14 20:49:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.3.0 (late commit).
+------------------------------------------------------------------------
+r1264 | Ai4rei | 2012-07-14 20:49:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+   A /opensetup/opensetup_cz.rc (from /opensetup/opensetup_en_us.rc:1255)
+   A /opensetup/opensetup_kr.rc (from /opensetup/opensetup_en_us.rc:1255)
+
++ Added Czech and crude Korean translation.
+------------------------------------------------------------------------
+r1263 | Ai4rei | 2012-07-14 20:45:01 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.2.0 (late commit).
+------------------------------------------------------------------------
+r1262 | Ai4rei | 2012-07-14 20:44:39 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.h
+
+! Fixed graphics adapters with more than 64 video modes would not show all resulutions available for RO.
+------------------------------------------------------------------------
+r1261 | Ai4rei | 2012-07-14 20:43:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
++ Added DirectX debugging code, used to resolve issue with modes not being listed.
+------------------------------------------------------------------------
+r1260 | Ai4rei | 2012-07-14 20:42:32 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Fixed handle to tab "About" not being initialized.
+* Minor inline function adjustments.
+------------------------------------------------------------------------
+r1259 | Ai4rei | 2012-07-14 20:39:34 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+! Fixed missing width restriction from official setup.
+------------------------------------------------------------------------
+r1258 | Ai4rei | 2012-07-14 20:39:09 +0100 | 1 line
+Changed paths:
+   A /opensetup/dev/translations/EvilPuncker (pt-BR).txt
+   M /opensetup/opensetup.rc
+   A /opensetup/opensetup_pt_br.rc (from /opensetup/opensetup_en_us.rc:1255)
+   M /opensetup/resource.h
+
++ Added Brazilian Portuguese translation by EvilPuncker.
+------------------------------------------------------------------------
+r1257 | Ai4rei | 2012-07-14 20:38:07 +0100 | 1 line
+Changed paths:
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
+! Fixed toolbar bitmap glitch on Windows 2000 and older NT platforms.
+------------------------------------------------------------------------
+r1256 | Ai4rei | 2012-07-14 20:30:32 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.1.0 (late commit).
+------------------------------------------------------------------------
+r1255 | Ai4rei | 2012-07-14 20:29:38 +0100 | 4 lines
+Changed paths:
+   A /opensetup/dev/translations
+   A /opensetup/dev/translations/Xalion (de-DE).txt
+   M /opensetup/opensetup.rc
+   A /opensetup/opensetup_de.rc (from /opensetup/opensetup.rc:1252)
+   A /opensetup/opensetup_en_us.rc (from /opensetup/opensetup.rc:1252)
+
++ Added German translation by Xalion.
+* Fixed some English dialog labels and descriptions.
+* Updated missing description for /stateinfo (thx EvilPuncker).
+! Fixed dialog layout not having enough spare space for i18n variation.
+------------------------------------------------------------------------
+r1254 | Ai4rei | 2012-07-14 20:28:47 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
++ Added support for "Trilinar Filtering" for Lua settings engine.
+------------------------------------------------------------------------
+r1253 | Ai4rei | 2012-07-14 20:28:34 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+! Fixed 'Fullscreen' option not getting saved.
+------------------------------------------------------------------------
+r1252 | Ai4rei | 2012-03-31 21:21:01 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.0.2.
+------------------------------------------------------------------------
+r1234 | Ai4rei | 2012-02-11 19:23:41 +0100 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.0.1.
+------------------------------------------------------------------------
+r1233 | Ai4rei | 2012-02-11 12:32:05 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
++ Added a tab for "about" instead of a button+messagebox.
+------------------------------------------------------------------------
+r1232 | Ai4rei | 2012-02-11 12:31:29 +0100 | 1 line
+Changed paths:
+   M /opensetup/hhlite.cpp
+
+* Increased the popup y-coord offset and removed the x-coord offset.
+------------------------------------------------------------------------
+r1231 | Ai4rei | 2012-02-06 18:14:37 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+
++ Added quickinfo for Trilinear Filter.
+------------------------------------------------------------------------
+r1230 | Ai4rei | 2012-02-06 18:09:54 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_reg.cpp
+
+* Fixed BGM On/Off setting handling being completely messed up in REG.
+------------------------------------------------------------------------
+r1229 | Ai4rei | 2012-02-05 16:42:58 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
++ Added setting for "Trilinear Filtering" checkbox.
+------------------------------------------------------------------------
+r1228 | Ai4rei | 2012-02-05 16:18:33 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   A /opensetup/hhlite.cpp
+   A /opensetup/hhlite.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+   M /opensetup/resource.h
+
++ Added support for context-sensitive help.
+------------------------------------------------------------------------
+r1227 | Ai4rei | 2012-02-05 16:15:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
++ Added UI::GetSizeRatio to allow calculation of surface coverage of one control in an another.
+------------------------------------------------------------------------
+r1226 | Ai4rei | 2012-02-05 12:33:20 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Fixed BGM/Sound ON/OFF settings not getting loaded.
+* Fixed BGM/Sound Volume settings not getting saved.
+------------------------------------------------------------------------
+r1225 | Ai4rei | 2012-01-28 20:46:29 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
++ Added UI for BGM/Sound Volume and Exclusive Mouse.
+------------------------------------------------------------------------
+r1224 | Ai4rei | 2012-01-28 19:19:09 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.exe.manifest
+   M /opensetup/resource.h
+
+* Release 2.0.0.
+------------------------------------------------------------------------
+r1223 | Ai4rei | 2012-01-28 18:50:13 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
+* Disabled /tip setting for LUA.
+------------------------------------------------------------------------
+r1222 | Ai4rei | 2012-01-28 18:46:16 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+
++ Added UI for general settings (v2.0 setup) and linked it to the settings store.
+------------------------------------------------------------------------
+r1221 | Ai4rei | 2012-01-28 18:02:06 +0100 | 1 line
+Changed paths:
+   M /opensetup
+
+* More svn:ignore maintenance.
+------------------------------------------------------------------------
+r1220 | Ai4rei | 2012-01-28 17:59:32 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings_lua.cpp
+
+* Settings that are not supported by an engine are now disabled.
+* Marked 3 LUA settings are not supported, as they cannot be changed in official setup, thus probably do not have any effect at all.
+------------------------------------------------------------------------
+r1219 | Ai4rei | 2012-01-28 17:42:58 +0100 | 5 lines
+Changed paths:
+   M /opensetup/luaio.cpp
+   M /opensetup/luaio.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
++ Implemented LUA saving and loading.
+  + Added CLuaIO::GetTableInteger, as setup options are managed in tables rather than variables.
+  + Added CLuaIO::DefineTable as loading OptionInfo alone causes 'indexing a nil variable' error.
+  * Reordered SAVEENTRY items to match the official OptionInfo output.
+* Fixed /fog and /lightmap being ON by default in LUA.
+------------------------------------------------------------------------
+r1218 | Ai4rei | 2012-01-28 15:58:46 +0100 | 1 line
+Changed paths:
+   A /opensetup/luaio.cpp
+   A /opensetup/luaio.h
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/settings_lua.cpp
+
++ Added C++ lua wrapper to deal with lua scripts/variables.
+------------------------------------------------------------------------
+r1217 | Ai4rei | 2012-01-28 15:57:49 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/opensetup_reg.dsp
+
+* Updated resource category in project files.
+* Fixed Lua information not displaying in file description.
+------------------------------------------------------------------------
+r1216 | Ai4rei | 2012-01-28 13:51:08 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
++ Added CSettings::IsAvail to enable the interface to query and probably disable incompatible options.
+------------------------------------------------------------------------
+r1215 | Ai4rei | 2012-01-28 13:38:22 +0100 | 3 lines
+Changed paths:
+   M /opensetup/opensetup_lua.dsp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Synchronized REG and LUA (REG part).
+* Updated LUA project to be able to find the Lua library.
+* Whitespace.
+------------------------------------------------------------------------
+r1214 | Ai4rei | 2012-01-28 11:20:40 +0100 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Small change to the Lua copyright notice.
+------------------------------------------------------------------------
+r1213 | Ai4rei | 2012-01-28 11:18:36 +0100 | 1 line
+Changed paths:
+   A /opensetup/doc/license-lua.txt
+
++ Added Lua license file as requested by the their license.
+------------------------------------------------------------------------
+r1212 | Ai4rei | 2012-01-28 11:15:03 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings.h
+   M /opensetup/settings_reg.cpp
+
++ Added support for v2.0 settings in REG engine.
+------------------------------------------------------------------------
+r1211 | Ai4rei | 2012-01-28 11:14:18 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.rc
+
+* Made file description indicate, whether or not the build is Lua-based.
+------------------------------------------------------------------------
+r1210 | Ai4rei | 2012-01-28 11:08:00 +0100 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/res/imagelist-mask.bmp
+   M /opensetup/res/imagelist.bmp
+   A /opensetup/res/imagelist.gal
+   A /opensetup/res/imagelist32.bmp
+   M /opensetup/resource.h
+
++ Added "general settings" tab.
++ Added 32-bit version of the tab bitmaps.
+------------------------------------------------------------------------
+r1209 | Ai4rei | 2012-01-28 11:05:44 +0100 | 1 line
+Changed paths:
+   M /opensetup/tab.cpp
+
+* Missed comment.
+------------------------------------------------------------------------
+r1208 | Ai4rei | 2012-01-28 05:50:03 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
+* Incorporated tab manager changes from GRAVE (support for 32bit bitmaps with alpha).
+------------------------------------------------------------------------
+r1205 | Ai4rei | 2012-01-22 13:04:52 +0100 | 1 line
+Changed paths:
+   M /opensetup/dev/savedata/OptionInfo.lua
+
+* Updated reference lua option save file to contain factory defaults.
+------------------------------------------------------------------------
+r1204 | Ai4rei | 2012-01-22 12:29:16 +0100 | 1 line
+Changed paths:
+   A /opensetup/doc/build.txt
+
++ Added short build instructions.
+------------------------------------------------------------------------
+r1203 | Ai4rei | 2012-01-22 10:17:05 +0100 | 1 line
+Changed paths:
+   M /opensetup
+   D /opensetup/opensetup.dsp
+   M /opensetup/opensetup.dsw
+   A /opensetup/opensetup_lua.dsp (from /opensetup/opensetup.dsp:1200)
+   A /opensetup/opensetup_reg.dsp (from /opensetup/opensetup.dsp:1200)
+   M /opensetup/resource.h
+   D /opensetup/settings.cpp
+   A /opensetup/settings_lua.cpp (from /opensetup/settings.cpp:1202)
+   A /opensetup/settings_reg.cpp (from /opensetup/settings.cpp:1202)
+
+* Splitted project into REG and LUA engine-driven versions.
+------------------------------------------------------------------------
+r1202 | Ai4rei | 2012-01-22 09:53:11 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/doc/layout.txt
+   M /opensetup/doc/license.txt
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Y2K12.
+------------------------------------------------------------------------
+r1201 | Ai4rei | 2012-01-22 08:22:02 +0100 | 1 line
+Changed paths:
+   A /opensetup/dev/dinput.dll
+
++ Added ROExt testing DLL.
+------------------------------------------------------------------------
+r1200 | Ai4rei | 2012-01-22 08:18:45 +0100 | 1 line
+Changed paths:
+   A /opensetup/lib/lua (from /opensetup/lib/lua-5.1.4:1199)
+   D /opensetup/lib/lua-5.1.4
+
+* Renamed lua library folder to make upgrades easier.
+------------------------------------------------------------------------
+r1199 | Ai4rei | 2012-01-22 08:16:20 +0100 | 1 line
+Changed paths:
+   A /opensetup/lib
+   A /opensetup/lib/lua-5.1.4 (from /rsu/dev/lua-5.1.4:1198)
+
++ Added optimized lua-5.1.4 lib from rsu.
+------------------------------------------------------------------------
+r1198 | Ai4rei | 2012-01-22 08:10:43 +0100 | 1 line
+Changed paths:
+   A /opensetup/dev
+   A /opensetup/dev/savedata
+   A /opensetup/dev/savedata/OptionInfo.lua
+
++ Added reference lua option save file.
+------------------------------------------------------------------------
+r1164 | Ai4rei | 2011-11-06 15:33:14 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/roext.cpp
+   M /opensetup/settings.cpp
+
+* Updated snippets includes to be location-independent.
+------------------------------------------------------------------------
+r1163 | Ai4rei | 2011-11-06 15:28:23 +0100 | 1 line
+Changed paths:
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+
+* Merged fixes from snippets to dx7enum.
+------------------------------------------------------------------------
+r1162 | Ai4rei | 2011-11-06 15:27:58 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/doc/layout.txt
+   M /opensetup/doc/license.txt
+   M /opensetup/dx7enum.cpp
+   M /opensetup/dx7enum.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+   M /opensetup/roext.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+
+* Y2K11 update.
+------------------------------------------------------------------------
 r1161 | Ai4rei | 2011-11-06 15:18:08 +0100 | 2 lines
 Changed paths:
    M /opensetup/doc/history.txt

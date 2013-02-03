@@ -1,12 +1,17 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010 Ai4rei/AN
+// (c) 2010-2013 Ai4rei/AN
 // See doc/license.txt for details.
+//
 // -----------------------------------------------------------------
 
+#include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <commctrl.h>
+#include <htmlhelp.h>
 
+#include "opensetup.h"
 #include "resource.h"
 #include "ui.h"
 
@@ -25,10 +30,49 @@ void __stdcall UI::FillComboBox(HWND hWnd, int nId, const char** lppszList, unsi
     unsigned long i;
     HWND hWndItem = GetDlgItem(hWnd, nId);
 
+    // reset previously assigned strings
+    SendMessage(hWndItem, CB_RESETCONTENT, 0, 0);
+
     for(i = 0; i<luItems; i++)
     {
         SendMessage(hWndItem, CB_ADDSTRING, 0, (LPARAM)lppszList[i]);
     }
+}
+
+void __stdcall UI::FillComboBoxMUI(HWND hWnd, int nId, const unsigned int* lpuList, unsigned long luItems)
+{
+    char szBuffer[1024];
+    unsigned long i;
+    HWND hWndItem = GetDlgItem(hWnd, nId);
+
+    // reset previously assigned strings
+    SendMessage(hWndItem, CB_RESETCONTENT, 0, 0);
+
+    for(i = 0; i<luItems; i++)
+    {
+        LoadStringA(GetModuleHandle(NULL), lpuList[i], szBuffer, __ARRAYSIZE(szBuffer));
+        SendMessage(hWndItem, CB_ADDSTRING, 0, (LPARAM)szBuffer);
+    }
+}
+
+BOOL CALLBACK UI::LoadMUIForEach(HWND hWnd, LPARAM lParam)
+{
+    char szText[2048];
+
+    if(GetWindowTextA(hWnd, szText, __ARRAYSIZE(szText)) && szText[0]=='#')
+    {
+        if(LoadStringA((HINSTANCE)lParam, strtoul(szText+1, NULL, 10), szText, __ARRAYSIZE(szText)))
+        {
+            SetWindowTextA(hWnd, szText);
+        }
+    }
+
+    return TRUE;
+}
+
+void __stdcall UI::LoadMUI(HWND hWnd)
+{
+    EnumChildWindows(hWnd, &UI::LoadMUIForEach, (LPARAM)GetModuleHandle(NULL));
 }
 
 int __stdcall UI::MessageBoxEx(HWND hWnd, const char* lpszText, const char* lpszCaption, unsigned long luStyle)
@@ -47,4 +91,92 @@ int __stdcall UI::MessageBoxEx(HWND hWnd, const char* lpszText, const char* lpsz
     Mbp.dwLanguageId       = 0;
 
     return MessageBoxIndirect(&Mbp);
+}
+
+unsigned long __stdcall UI::GetSizeRatio(HWND hWndA, HWND hWndB)
+{// A: 100%, B: Part
+    unsigned long luSA, luSB;
+    RECT rcA, rcB;
+
+    GetWindowRect(hWndA, &rcA);
+    GetWindowRect(hWndB, &rcB);
+
+    luSA = (rcA.right-rcA.left)*(rcA.bottom-rcA.top);
+    luSB = (rcB.right-rcB.left)*(rcB.bottom-rcB.top);
+
+    return (100*luSB)/luSA;
+}
+
+void __stdcall UI::SetButtonShield(HWND hWnd, bool bEnable)
+{
+#ifndef BCM_SETSHIELD
+    #ifndef BCM_FIRST
+        #define BCM_FIRST 0x1600
+    #endif  /* BCM_FIRST */
+    #define BCM_SETSHIELD (BCM_FIRST+0x000C)
+#endif  /* BCM_SETSHIELD */
+    SendMessage(hWnd, BCM_SETSHIELD, 0, (LPARAM)bEnable);
+}
+
+BOOL CALLBACK UI::SetFontForEach(HWND hWnd, LPARAM lParam)
+{
+    SendMessage(hWnd, WM_SETFONT, (WPARAM)lParam, MAKELPARAM(FALSE, 0));
+
+    return TRUE;
+}
+
+void __stdcall UI::SetFont(HWND hWnd, HFONT hFont)
+{
+    EnumChildWindows(hWnd, &UI::SetFontForEach, (LPARAM)hFont);
+    InvalidateRect(hWnd, NULL, TRUE);  // reflect change
+}
+
+void __stdcall UI::HHLite(HWND hWnd, LPHELPINFO lpHi)
+{
+    HH_POPUP Popup;
+
+    if(lpHi->cbSize<sizeof(HELPINFO))
+    {// less data than we expect
+        return;
+    }
+
+    if(lpHi->iContextType!=HELPINFO_WINDOW)
+    {// do not care about menu help (there should not be any, either)
+        return;
+    }
+
+    if(lpHi->iCtrlId==0xffff)
+    {// ignore labels
+        return;
+    }
+
+    if(!IsWindowEnabled((HWND)lpHi->hItemHandle))
+    {// do not display help for something disabled
+        return;
+    }
+
+    if(hWnd!=GetParent((HWND)lpHi->hItemHandle))
+    {// does not have the current parent as immediate ancestor
+        return;
+    }
+
+    if(UI::GetSizeRatio(hWnd, (HWND)lpHi->hItemHandle)>=75)
+    {// too large, to be intended target
+        return;
+    }
+
+    Popup.cbStruct = sizeof(Popup);
+    Popup.hinst = GetModuleHandle(NULL);
+    Popup.idString = lpHi->iCtrlId;
+    Popup.pszText = NULL;
+    Popup.pt.x = lpHi->MousePos.x;     // has no effect
+    Popup.pt.y = lpHi->MousePos.y+16;  // NOTE: offset coords so that the window does not cover the control completely
+    Popup.clrForeground = -1;
+    Popup.clrBackground = -1;
+    Popup.rcMargins.left =
+    Popup.rcMargins.top =
+    Popup.rcMargins.right =
+    Popup.rcMargins.bottom = -1;
+    Popup.pszFont = "Tahoma, 8";
+    HtmlHelp((HWND)lpHi->hItemHandle, NULL, HH_DISPLAY_TEXT_POPUP, (DWORD)&Popup);
 }
