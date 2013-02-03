@@ -174,6 +174,42 @@ DiffData* WDGPlugin::GeneratePatch(void)
         /*14B*/ "\xCC"                                       // INT3
         /*14C*/ "\x00\x00\x48\x43"                           // DD      43480000                      ; 200.0f
         /*150*/ ;
+
+        // obtain space in the .diff section
+        uBOffset = this->m_dgc->GetNextFreeOffset(0x150);
+
+        // absolute fixups
+
+        // relative fixups
+
+        // paste assembly
+        for(UINT32 i = 0; i<sizeof(szRainCode); i++)
+        {
+            this->SetByte(uOffset++, szRainCode[i]);
+        }
+
+        // switch table index
+        Fd.uMask = WFD_PATTERN|WFD_WILDCARD|WFD_SECTION;
+        Fd.lpData =
+            /*00*/"3D EB010000"      // CMP     EAX,1EBh
+            /*05*/"7C 0E"            // JL      SHORT ADDR v
+            /*07*/"8B16"             // MOV     EDX,DWORD PTR DS:[ESI]
+            /*09*/"8B42 38"          // MOV     EAX,DWORD PTR DS:[EDX+38h]
+            /*0C*/"8BCE"             // MOV     ECX,ESI
+            /*0E*/"FFD0"             // CALL    EAX
+            /*10*/"E9 '??'0000"      // JMP     ADDR v
+            /*15*/"3D '??'0000"      // CMP     EAX,3FCh
+            /*1A*/"0F87 '??'0000"    // JA      ADDR v
+            /*20*/"FF2485 '????'"    // JMP     DWORD PTR DS:[EAX*4+ADDR]     ; ADDR = Switch table
+            /*27*/;
+        Fd.chWildCard = '?';
+        Fd.lpszSection = ".text";
+
+        uPart = 0;
+        uOffset = this->m_dgc->Match(&Fd);
+        uOffset = this->m_dgc->GetDWORD32(uOffset+0x23)+4*0xA1;  // switch table entry offset (EF_RAIN)
+
+        this->SetLong(uOffset, uBOffset);
     }
     catch(const char* lpszThrown)
     {
@@ -240,6 +276,16 @@ void WDGPlugin::SetByte(UINT32 uOffset, UCHAR uValue)
     DIFFDATA Diff = { uOffset, uValue };
 
     this->m_DiffData.push_back(Diff);
+}
+
+void WDGPlugin::SetLong(UINT32 uOffset, UINT32 uValue)
+{
+    UCHAR* lpucValue = (UCHAR*)&uValue;
+
+    for(UINT32 i = 0; i < 4; i++)
+    {
+        this->SetByte(uOffset+i, lpucValue[i]);
+    }
 }
 
 extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID lpData, USHORT huWeeDiffMajorVersion, USHORT huWeeDiffMinorVersion)

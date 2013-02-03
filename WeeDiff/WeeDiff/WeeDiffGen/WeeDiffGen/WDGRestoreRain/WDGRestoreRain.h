@@ -39,6 +39,7 @@ private:
     bool IsVC9Image(void);
     bool IsSane(void);
     void SetByte(UINT32 uOffset, UCHAR uValue);
+    void SetLong(UINT32 uOffset, UINT32 uValue);
 };
 
 #endif  /* _WDGRESTORERAIN_H_ */
