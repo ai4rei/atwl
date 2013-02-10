@@ -160,7 +160,7 @@ public:
 	virtual void GetNTHeaders(PIMAGE_NT_HEADERS lpImageNTHeaders) = 0;
 
 	// The diff generator always creates a section named ".diff" with a raw size of 1024 bytes and virtual size
-	// of 4096 size. This function returns a pointer to the unused space. Intern it saves the last used offset
+	// of 4096 size. This function returns a pointer to the unused space. Internally it saves the last used offset
 	// to prevent collisions.
 	virtual UINT32 GetNextFreeOffset(UINT32 uSize) = 0;
 
