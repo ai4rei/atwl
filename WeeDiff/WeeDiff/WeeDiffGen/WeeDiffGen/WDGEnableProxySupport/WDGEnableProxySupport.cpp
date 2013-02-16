@@ -208,7 +208,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
             // JMP in
             uPart = 8;
-            this->SetByte(uBOffset+0, 0xE9);  // JMP
+            this->SetByte(uBOffset+0, 0xE8);  // CALL
             this->SetLong(uBOffset+1, (this->m_dgc->Raw2Rva(uOffset)+4)-(this->m_dgc->Raw2Rva(uBOffset)+5));
 
             // Dump
