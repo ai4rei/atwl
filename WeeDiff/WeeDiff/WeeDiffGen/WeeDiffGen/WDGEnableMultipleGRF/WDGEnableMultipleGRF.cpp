@@ -69,20 +69,27 @@ DiffData *WDGPlugin::GeneratePatch()
 
 	try
 	{
-		/************************************************************************/
-		/* Find rdata.grf and prevent it from being loaded.
-		/************************************************************************/
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'rdata.grf'";
-		sFindData.uMask = WFD_PATTERN;
+		try
+		{
+			/************************************************************************/
+			/* Find rdata.grf and prevent it from being loaded.
+			/************************************************************************/
+			ZeroMemory(&sFindData, sizeof(sFindData));
+			sFindData.lpData = "'rdata.grf'";
+			sFindData.uMask = WFD_PATTERN;
 
-		uOffset = m_dgc->FindStr(&sFindData);
+			uOffset = m_dgc->FindStr(&sFindData);
 
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-		sFindData.uDataSize = 9;
+			ZeroMemory(&sFindData, sizeof(sFindData));
+			sFindData.lpData = "\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+			sFindData.uDataSize = 9;
 
-		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData);
+			m_dgc->Replace(CBAddDiffData, uOffset, &sFindData);
+		}
+		catch(LPCSTR)
+		{// if that fails, care less. Assume it's not a sakray client.
+			;
+		}
 
 		uPart = 2;
 
