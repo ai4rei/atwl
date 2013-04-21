@@ -17,7 +17,10 @@ be supported or updated in any way:
   Reason: Obsolete in favor of WDGTranslateClient.
 
 - WeeDiff/WeeDiffGen/WeeDiffGen/WDGUseArialOnAllLangtypes
-  Reason: Obsolete in favor of WDGUseCustomFont
+  Reason: Obsolete in favor of WDGUseCustomFont.
+
+- WeeDiff/WeeDiffGen/WeeDiffGen/WDGEnableMultipleGRF
+  Reason: Subset of WDGEnableMultipleGRFExtended, has even same GUID.
 
 - WeeTools.sln
   Reason: Visual Studio Express does not support solution folders.
