@@ -1,202 +1,276 @@
-#include <stdlib.h>
-#include <crtdbg.h>
-
-#ifdef _DEBUG
-	#ifndef DBG_NEW
-		#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
-		#define new DBG_NEW
-	#endif // DEBUG_NEW
-#endif  // _DEBUG
+// -----------------------------------------------------------------
+// WDGDisableHShield
+// (c) 2013 Ai4rei/AN
+//
+// This work is licensed under a
+// Creative Commons BY-NC-SA 3.0 Unported License
+// http://creativecommons.org/licenses/by-nc-sa/3.0/
+//
+// -----------------------------------------------------------------
 
 #include "WDGDisableHShield.h"
 
-WDGPlugin *g_SelfReference = NULL;
+#ifndef _ARRAYSIZE
+    #define _ARRAYSIZE(x) (sizeof(x)/sizeof((x)[0]))
+#endif  /* _ARRAYSIZE */
 
-void WDGPlugin::Release()
+static /* const */ WDGPLUGININFO l_PluginInfo =
 {
-	m_diffdata.clear();
-	g_SelfReference = NULL;
-	delete this;
+    _T("Disable HShield"),
+    _T("Prevents AhnLabs HackShield from beeing loaded during client start up."),
+    _T("[Fix]"),
+    _T(""),
+    _T("Ai4rei/AN"),
+    1,
+    0,
+    { 0x29367b42, 0xb3c4, 0x494c, { 0x9a, 0xb1, 0x54, 0x52, 0x0f, 0xaa, 0x0c, 0xc1 } },  /* guid */
+    _T("Recommended"),
+};
+
+static WDGPlugin* l_lpSelfReference = NULL;
+
+void WDGPlugin::Release(void)
+{
+    this->m_DiffData.clear();
+    l_lpSelfReference = NULL;
+    delete this;
 }
 
-void WDGPlugin::Free(LPVOID memory)
+void WDGPlugin::Free(LPVOID lpBuf)
 {
-	delete memory;
-	memory = NULL;
+    delete lpBuf;
 }
 
-LPWDGPLUGININFO WDGPlugin::GetPluginInfo()
+LPWDGPLUGININFO WDGPlugin::GetPluginInfo(void)
 {
-	static WDGPLUGININFO wpi = 
-	{
-		TEXT("Disable HShield"),
-		TEXT("Prevents AhnLabs HackShield from beeing loaded during client start up."),
-		TEXT("[Fix]"),
-		TEXT(""),
-		TEXT("Shinryo"),
-		1,
-		0,
-		{ 0x29367b42, 0xb3c4, 0x494c, { 0x9a, 0xb1, 0x54, 0x52, 0xf, 0xaa, 0xc, 0xc1 } },
-		TEXT("Recommended")
-	};
-
-	return &wpi;
+    return &l_PluginInfo;
 }
 
-INT32 WDGPlugin::Enabled()
+INT32 WDGPlugin::Enabled(void)
 {
-	return 0;
+    return 0;
 }
 
-INT32 WDGPlugin::Disabled()
+INT32 WDGPlugin::Disabled(void)
 {
-	return 0;
+    return 0;
 }
 
-LPCTSTR WDGPlugin::GetInputValue()
+LPCTSTR WDGPlugin::GetInputValue(void)
 {
-	return NULL;
+    return NULL;
 }
 
-DiffData *WDGPlugin::GeneratePatch()
+DiffData* WDGPlugin::GeneratePatch(void)
 {
-	WeeDiffGenPlugin::FINDDATA sFindData = {0};
-	CHAR szMsg[256];
-	m_diffdata.clear();
+    bool bSuccess = false;
+    FINDDATA Fd;
+    UINT32 uOffset, uBOffset, uPart = 0;
 
-	UINT32 uOffset = 0;
+    this->m_DiffData.clear();
 
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "51 83 3D AB AB AB 00 00 74 04 33 C0 59 C3";
-		sFindData.chWildCard = '\xAB';
-		sFindData.lpszSection = ".text";
-		sFindData.uMask = WFD_PATTERN | WFD_WILDCARD | WFD_SECTION;
+    if(!this->IsSane())
+    {
+        return NULL;
+    }
 
-		uOffset = m_dgc->Match(&sFindData);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGDisableHShield :: Part 1 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+    try
+    {
+        // MISSION: Neuter HackShield-related functions. If we could
+        // use 'find referenced call', then things would be easy...
 
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "31 C0 40 90 90 90 90 90 90 90 90";
-		sFindData.uMask = WFD_PATTERN;
+        // find server string
+        Fd.uMask = WFD_PATTERN|WFD_SECTION;
+        Fd.lpData = "'webclinic.ahnlab.com'";
+        Fd.lpszSection = this->IsVC9Image() ? ".rdata" : ".data";
 
-		m_dgc->Replace(CBAddDiffData, uOffset + 1, &sFindData);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGDisableHShield :: Part 2 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+        uPart = 1;
+        uOffset = this->m_dgc->Match(&Fd);
 
-	IMAGE_SECTION_HEADER sImageSectioHeader = {0};
+        // PUSH LONG CONST
+        char cMatchStr1[5] = { 0x68 };
+        ((UINT32*)&cMatchStr1[1])[0] = this->m_dgc->Raw2Rva(uOffset);
+    
+        // find reference
+        Fd.uMask = WFD_SECTION;
+        Fd.lpData = cMatchStr1;
+        Fd.uDataSize = sizeof(cMatchStr1);
+        Fd.lpszSection = ".text";
 
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'aossdk.dll'";
-		sFindData.uMask = WFD_PATTERN;
+        uPart = 2;
+        uOffset = this->m_dgc->Match(&Fd);
 
-		uOffset = m_dgc->FindStr(&sFindData, false);
-		m_dgc->GetSection(".rdata", &sImageSectioHeader);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGDisableHShield :: Part 3 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+        // trace back to nearest JE pointing at us,
+        // followed by a XOR EAX,EAX
+        uPart = 3;
+        for(uBOffset = uOffset-4; uOffset-uBOffset<0x80+2; uBOffset--)
+        {
+            bSuccess = this->m_dgc->GetBYTE(uBOffset+0)==0x74                   // JE ...
+                    && this->m_dgc->GetBYTE(uBOffset+1)==uOffset-uBOffset-2     // ... SHORT OFFSET v
+                    && this->m_dgc->GetBYTE(uBOffset+2)==0x33                   // XOR ...
+                    && this->m_dgc->GetBYTE(uBOffset+3)==0xC0                   // ... EAX,EAX
+                    ;
 
-	uOffset += (sImageSectioHeader.VirtualAddress - sImageSectioHeader.PointerToRawData);
+            if(bSuccess)
+            {
+                break;
+            }
+        }
+        if(!bSuccess)
+        {// not found
+            throw "Function signature changed.";
+        }
+        uOffset = uBOffset;
 
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = new CHAR[17];
-		sFindData.uDataSize = 17;
-		sFindData.chWildCard = '\xAB';
-		sFindData.lpszSection = ".rdata";
-		sFindData.uMask = WFD_WILDCARD | WFD_SECTION;
+        // replace with a success value
+        this->SetByte(uOffset++,0x33);  // XOR     EAX,EAX
+        this->SetByte(uOffset++,0xC0);
+        this->SetByte(uOffset++,0x40);  // INC     EAX
+        this->SetByte(uOffset++,0x90);  // NOP
 
-		memcpy(sFindData.lpData, "\x00\xAB\xAB\xAB\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 17);
-		memcpy(sFindData.lpData + 13, (CHAR *)&uOffset, 4);
+        // go for double-layered setup (VC9 only)
+        if(this->IsVC9Image())
+        {
+            // find an error
+            Fd.uMask = WFD_PATTERN|WFD_SECTION;
+            Fd.lpData = "00 'ERROR'";  // assumption to prevent NIGHTMARE_TERROR from getting cought
+            Fd.lpszSection = ".rdata";
 
-		uOffset = m_dgc->Match(&sFindData);
+            uPart = 4;
+            uOffset = this->m_dgc->Match(&Fd)+1;
 
-		delete[] sFindData.lpData;
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGDisableHShield :: Part 4 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
+            // PUSH LONG CONST; PUSH EAX
+            char cMatchStr2[6] = { 0x68, 0x00, 0x00, 0x00, 0x00, 0x50 };
+            ((UINT32*)&cMatchStr2[1])[0] = this->m_dgc->Raw2Rva(uOffset);
 
-	try
-	{
-		CHAR buffer[19];
-		CHAR bufferClear[19] = {0};
+            // find reference
+            Fd.uMask = WFD_SECTION;
+            Fd.lpData = cMatchStr2;
+            Fd.uDataSize = sizeof(cMatchStr2);
+            Fd.lpszSection = ".text";
 
-		m_dgc->Read(uOffset + 13 + 13 * 16, (UCHAR *)buffer, 19);
+            uPart = 5;
+            uOffset = this->m_dgc->Match(&Fd)+sizeof(cMatchStr2);
 
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = bufferClear;
-		sFindData.uDataSize = 19;
+            // trace down for a CMP BYTE PTR DS:[CONST],0; JNZ
+            uPart = 6;
+            for(uBOffset = uOffset; uBOffset-uOffset<0x80; uBOffset++)
+            {
+                bSuccess = this->m_dgc->GetBYTE(uBOffset+0)==0x80
+                        && this->m_dgc->GetBYTE(uBOffset+1)==0x3D
+                        && this->m_dgc->GetBYTE(uBOffset+6)==0x00
+                        && this->m_dgc->GetBYTE(uBOffset+7)==0x75
+                        ;
 
-		m_dgc->Replace(CBAddDiffData, uOffset + 13 + 13 * 16, &sFindData);
+                if(bSuccess)
+                {
+                    break;
+                }
+            }
+            if(!bSuccess)
+            {// not found
+                throw "Function signature changed.";
+            }
 
-		sFindData.lpData = buffer;
-		sFindData.uDataSize = 19;
+            // make it always jump
+            this->SetByte(uBOffset+7,0xEB);
+        }
+    }
+    catch(const char* lpszThrown)
+    {
+        char szErrMsg[1024];
 
-		m_dgc->Replace(CBAddDiffData, uOffset + 1, &sFindData);
+        wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
+        this->m_dgc->LogMsg(szErrMsg);
+        this->m_DiffData.clear();  // clear partial diff
+    }
 
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, 256, "WDGDisableHShield :: Part 4 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
-
-	return &m_diffdata;
+    return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
 }
 
-DiffData *WDGPlugin::GetDiffData()
+DiffData* WDGPlugin::GetDiffData(void)
 {
-	if(m_diffdata.size() <= 0)
-	{
-		return NULL;
-	}
-
-	return &m_diffdata;
+    return this->m_DiffData.empty() ? NULL : &this->m_DiffData;
 }
 
-extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin *InitPlugin(LPVOID lpData, USHORT unWeeDiffMajorVersion, USHORT unWeeDiffMinorVersion)
+bool WDGPlugin::IsVC9Image(void)
 {
-	// Enable functions to track down memory leaks.
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    try
+    {
+        this->m_dgc->FindFunction("_encode_pointer");  // msvcr90.dll
+    }
+    catch(const char* lpszThrown)
+    {
+        return false;
 
-	if(g_SelfReference == NULL)
-	{
-		g_SelfReference = new WDGPlugin(lpData);
-	}
+        // unused
+        (void)lpszThrown;
+    }
 
-	return g_SelfReference;
+    return true;
 }
 
-void WDGPlugin::CBAddDiffData(WeeDiffGenPlugin::LPDIFFDATA lpDiffData)
+bool WDGPlugin::IsSane(void)
+{// ensure that it actually is a valid RO client
+#define ISSANEMAGIC "gravity"
+    FINDDATA Fd;
+
+    Fd.uMask       = WFD_SECTION;
+    Fd.lpData      = ISSANEMAGIC;
+    Fd.uDataSize   = sizeof(ISSANEMAGIC);
+    Fd.lpszSection = this->IsVC9Image() ? ".rdata" : ".data";
+
+    try
+    {
+        this->m_dgc->Match(&Fd);
+    }
+    catch(const char* lpszThrown)
+    {
+        this->m_dgc->LogMsg(__FILE__" :: Image is not sane.");
+        return false;
+
+        // unused
+        (void)lpszThrown;
+    }
+
+    return true;
+#undef ISSANEMAGIC
+}
+
+void WDGPlugin::SetByte(UINT32 uOffset, UCHAR uValue)
 {
-	if(g_SelfReference != NULL)
-	{
-		g_SelfReference->m_diffdata.push_back(*lpDiffData);
-	}
+    DIFFDATA Diff = { uOffset, uValue };
+
+    this->m_DiffData.push_back(Diff);
+}
+
+extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin* InitPlugin(LPVOID lpData, USHORT huWeeDiffMajorVersion, USHORT huWeeDiffMinorVersion)
+{
+    if(l_lpSelfReference)
+    {// double initialization
+        DebugBreak();
+    }
+    else
+    {
+        l_lpSelfReference = new WDGPlugin(lpData);
+    }
+
+    return l_lpSelfReference;
+}
+
+bool WDGPlugin::TryMatch(LPFINDDATA lpFd, UINT32* lpuOffset)
+{
+    try
+    {
+        lpuOffset[0] = this->m_dgc->Match(lpFd);
+    }
+    catch(const char* lpszThrown)
+    {
+        return false;
+
+        // unused
+        (void)lpszThrown;
+    }
+
+    return true;
 }
