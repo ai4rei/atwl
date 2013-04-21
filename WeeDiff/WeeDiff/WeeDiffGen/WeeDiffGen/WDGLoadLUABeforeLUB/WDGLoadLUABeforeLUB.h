@@ -24,7 +24,7 @@ public:
 	virtual DiffData *GetDiffData();
 
 protected:
-	static void __stdcall CBAddDiffData(WeeDiffGenPlugin::LPDIFFDATA lpDiffData);
+	void SetByte(UINT32 uOffset, UCHAR uValue);
 
 protected:
 	DiffData m_diffdata;

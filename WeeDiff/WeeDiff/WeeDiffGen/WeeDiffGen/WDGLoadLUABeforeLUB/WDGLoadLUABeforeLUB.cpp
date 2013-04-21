@@ -64,35 +64,33 @@ DiffData* WDGPlugin::GeneratePatch()
 	CHAR szMsg[256];
 	m_diffdata.clear();
 
-	UINT32 uOffset = 0;
+	UINT32 uOffset = 0, uPart = 1;
 
 	try
 	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'.lua' 00 00 00 00 '.lub'";
-		sFindData.uMask = WFD_PATTERN;
+		sFindData.lpData = "00 '.lua' 00";
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpszSection = ".rdata";
 
-		uOffset = m_dgc->Match(&sFindData);
+		uOffset = m_dgc->Match(&sFindData)+4;
+
+		this->SetByte(uOffset,'b');
+
+		uPart = 2;
+
+		sFindData.lpData = "00 '.lub' 00";
+		sFindData.uMask = WFD_PATTERN|WFD_SECTION;
+		sFindData.lpszSection = ".rdata";
+
+		uOffset = m_dgc->Match(&sFindData)+4;
+
+		this->SetByte(uOffset,'a');
 	} 
 	catch (LPCSTR lpszMsg)
 	{
-		sprintf_s(szMsg, _ARRAYSIZE(szMsg), "WDGLoadLUABeforeLUB :: Part 1 :: %s", lpszMsg);
+		sprintf_s(szMsg, _ARRAYSIZE(szMsg), "WDGLoadLUABeforeLUB :: Part %u :: %s", uPart, lpszMsg);
 		m_dgc->LogMsg(szMsg);
-		return NULL;
-	}
-
-	try
-	{
-		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "'.lub' 00 00 00 00 '.lua'";
-		sFindData.uMask = WFD_PATTERN;
-
-		m_dgc->Replace(CBAddDiffData, uOffset, &sFindData);
-	} 
-	catch (LPCSTR lpszMsg)
-	{
-		sprintf_s(szMsg, _ARRAYSIZE(szMsg), "WDGLoadLUABeforeLUB :: Part 2 :: %s", lpszMsg);
-		m_dgc->LogMsg(szMsg);
+		m_diffdata.clear();
 		return NULL;
 	}
 
@@ -122,10 +120,9 @@ extern "C" __declspec(dllexport) WeeDiffGenPlugin::IWDGPlugin *InitPlugin(LPVOID
 	return g_SelfReference;
 }
 
-void WDGPlugin::CBAddDiffData(WeeDiffGenPlugin::LPDIFFDATA lpDiffData)
+void WDGPlugin::SetByte(UINT32 uOffset, UCHAR uValue)
 {
-	if(g_SelfReference != NULL)
-	{
-		g_SelfReference->m_diffdata.push_back(*lpDiffData);
-	}
+	DIFFDATA Diff = { uOffset, uValue };
+
+	m_diffdata.push_back(Diff);
 }
