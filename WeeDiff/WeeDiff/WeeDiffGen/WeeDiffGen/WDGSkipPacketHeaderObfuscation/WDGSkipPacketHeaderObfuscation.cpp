@@ -64,7 +64,7 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 DiffData* WDGPlugin::GeneratePatch(void)
 {
     FINDDATA Fd;
-    UINT32 uOffset, uPart;
+    UINT32 uOffset, uPart = 0;
 
     this->m_DiffData.clear();
 
@@ -112,7 +112,15 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         if(this->m_dgc->GetBYTE(uOffset-5)!=0xE8)  // CALL ADDR
         {
-            throw "Expected CALL ADDR, found something else.";
+            // 'CASH_CATEGORY' insert for non-sakray clients,
+            // attempt to find in reach
+            Fd.uMask = WFD_PATTERN|WFD_WILDCARD;
+            Fd.lpData = "68 '????' 68 '????' 68 '????' E8";  // 3x PUSH DWORD, CALL ADDR
+            Fd.chWildCard = '?';
+            Fd.uStart = uOffset-0x100;
+            Fd.uFinish = uOffset;
+
+            uOffset = this->m_dgc->Match(&Fd)+15+5;
         }
         uOffset+= this->m_dgc->GetDWORD32(uOffset-4);
 
@@ -154,7 +162,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
     {
         char szErrMsg[1024];
 
-        wsprintfA(szErrMsg, __FILE__" :: %s", lpszThrown);
+        wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
         this->m_dgc->LogMsg(szErrMsg);
     }
 
