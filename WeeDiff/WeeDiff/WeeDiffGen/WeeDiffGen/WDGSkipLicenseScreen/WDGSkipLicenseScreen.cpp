@@ -33,7 +33,7 @@ LPWDGPLUGININFO WDGPlugin::GetPluginInfo()
 		TEXT("Jumps directly to the login interface without displaying the license screen."),
 		TEXT("[UI]"),
 		TEXT(""),
-		TEXT("Shinryo"),
+		TEXT("Shinryo/MS"),
 		1,
 		0,
 		{ 0x9c668ef, 0x81f2, 0x4290, { 0x98, 0x61, 0x75, 0xe9, 0x30, 0x6b, 0x58, 0x66 } }
@@ -84,8 +84,19 @@ DiffData *WDGPlugin::GeneratePatch()
 			sFindData.lpData = "FF 24 85 AB AB AB 00 AB AB AB AB AB 00 8D B3 AB AB 00 00 68 AB AB AB 00";
 			sFindData.chWildCard = '\xAB';
 			sFindData.uMask = WFD_PATTERN | WFD_WILDCARD;
-
-			uOffset = m_dgc->Match(&sFindData);
+			
+			try
+			{
+				uOffset = m_dgc->Match(&sFindData);
+			}
+			catch (LPCSTR) //RagExe Special -- MStream
+			{
+				ZeroMemory(&sFindData, sizeof(sFindData));
+				sFindData.lpData = "FF 24 85 AB AB AB 00 8D B3 AB AB 00 00 8B AB 39 2D AB AB AB 00";
+				sFindData.chWildCard = '\xAB';
+				sFindData.uMask = WFD_PATTERN | WFD_WILDCARD;
+				uOffset = m_dgc->Match(&sFindData);
+			}
 		}	
 	} 
 	catch (LPCSTR lpszMsg)
