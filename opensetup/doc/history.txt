@@ -7,6 +7,10 @@ See doc/license.txt for details.
 
 == History =========================================================
 
+[Version 2.6.5]
+! Fixed accidential end-less loop in the initialization.
+* Removed Windows 8 from the list of 'supportedOS' as that prevents the compatibility flags from applying (thanks to the caches, it did not become apparent during release testing...).
+
 [Version 2.6.4]
 * Marked application as Windows Vista/7/8 aware.
 ! Fixed 16-bit color modes not appearing on Windows 8 (automagically applies compatibility flags, further reading: <http://msdn.microsoft.com/en-us/library/windows/desktop/dd162611(v=vs.85).aspx>).

@@ -205,8 +205,8 @@
 #define DLG_FONT_NAME "Tahoma"
 #define DLG_FONT_SIZE 8
 
-#define APP_VERSION "2.6.4.204"
-#define APP_VERSIONINFO_VERSION 2,6,4,204
+#define APP_VERSION "2.6.5.207"
+#define APP_VERSIONINFO_VERSION 2,6,5,207
 #define WITHOUT_BANNER
 
 // About
