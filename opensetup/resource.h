@@ -181,23 +181,44 @@
 #define TEXT_DLG_CODEPAGE               8253
 #define TEXT_DLG_ROEXT_DETECT_NOTE      8254
 #define TEXT_DLG_ABOUT_OPENSETUP        8255
+#define TEXT_DLG_LIST_CP_DEFAULT        8256
+#define TEXT_DLG_LIST_CP_UNKNOWN        8257
+
+// Error Messages
+#define TEXT_ERROR__TITLE               9000
+#define TEXT_ERROR__TITLE_LUA           9001
+#define TEXT_ERROR__SYSTEM_ERROR        9002
+#define TEXT_ERROR_INIT_MUTEX           9003
+#define TEXT_ERROR_INIT_COMCTL32        9004
+#define TEXT_ERROR_INIT_DIRECTX7        9005
+#define TEXT_ERROR_HKEY_CREATE          9006
+#define TEXT_ERROR_HKEY_WRITE           9007
+#define TEXT_ERROR_HKEY_OPT_CREATE      9008
+#define TEXT_ERROR_HKEY_OPT_WRITE       9009
+#define TEXT_ERROR_FILE_WRITE           9010
+#define TEXT_ERROR_FILE_OPEN_READONLY   9011
+#define TEXT_ERROR_FILE_OPEN            9012
+#define TEXT_ERROR_DIRECTORY_CREATE     9013
+#define TEXT_ERROR_ROEXT_WRITE          9014
 
 // Font
 #define DLG_FONT_NAME "Tahoma"
 #define DLG_FONT_SIZE 8
 
-#define APP_VERSION "2.6.2.180"
-#define APP_VERSIONINFO_VERSION 2,6,2,180
+#define APP_VERSION "2.6.4.204"
+#define APP_VERSIONINFO_VERSION 2,6,4,204
 #define WITHOUT_BANNER
 
 // About
 #define APP_TITLE "RagnarokOnline OpenSetup, Version "APP_VERSION"\r\n(C) 2010-2013 Ai4rei/AN"
-#define APP_CORPSE "RagnarokOnline, Ragnarok-related graphics and materials are copyright (C) 2002-2013 Gravity Co., Ltd. & Lee Myoungjin.\r\n\r\n"\
-    "Tab icons are taken from the \"LED Icon Set\" v1.0 - http:/\x2fled24.de/iconset/\r\n\r\n"\
-    "Uses scripting language Lua 5.1.4 - Copyright (C) 1994-2008 Lua.org, PUC-Rio.\r\n\r\n"\
-    "Some help texts are based on the \"msgstringtable.txt\" and \"tipOfTheDay.txt\" of the official European Ragnarok Online (euRO) client.\r\n\r\n"\
-    "This software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. "\
-    "The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, or to anyone or anything else, that may result from its use, or misuse. Basically, you use it at YOUR OWN RISK.\r\n\r\n"\
+#define APP_CORPSE \
+    "-=- Disclaimer -=-\r\n\r\n"\
+    "This software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.\r\n\r\n"\
+    "-=- Credits -=-\r\n\r\n"\
+    "RagnarokOnline, Ragnarok-related graphics and materials are Copyright (C) 2002-2013 Gravity Co., Ltd. & Lee Myoungjin.\r\n\r\n"\
+    "Tab icons are taken from the \"LED Icon Set\" v1.0\r\nhttp:/\x2fled24.de/iconset/\r\n\r\n"\
+    "Uses scripting language Lua 5.1.4\r\nCopyright (C) 1994-2008 Lua.org, PUC-Rio.\r\n\r\n"\
+    "Some texts are based on the msgstringtable.txt and tipOfTheDay.txt from the official European Ragnarok Online (euRO) Client.\r\n\r\n"\
     "Designed and (still being) developed on\r\nMicrosoft Windows 98 Second Edition.\r\n\r\n"\
     "TFdWIFFSVyBEUSBEVlZEVlZMUSwgTFdWIEQgUUxRTUQ7IFFSVyBZRFBTTFVILVJRSCwgV0tSWEpLLg=="
 

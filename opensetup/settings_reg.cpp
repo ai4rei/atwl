@@ -11,6 +11,8 @@
 #include <regutil.h>
 
 #include "opensetup.h"
+#include "error.h"
+#include "resource.h"
 #include "settings.h"
 #include "settings_reg.h"
 
@@ -29,7 +31,7 @@ void __stdcall CSettingsReg::Save(void)
 {
     HKEY hKey;
     LONG lResult;
-    struct RegUtilSaveInfo SaveInfo[] =
+    REGUTILSAVEINFO SaveInfo[] =
     {
 #define SAVEENTRY(name,type) { #name, &this->m_Entries.##name, sizeof(this->m_Entries.##name), (type) }
         SAVEENTRY(ISFULLSCREENMODE, REG_DWORD ),
@@ -56,7 +58,7 @@ void __stdcall CSettingsReg::Save(void)
         SAVEENTRY(TRILINEARFILTER,  REG_DWORD ),
 #undef SAVEENTRY
     };
-    struct RegUtilSaveInfo SaveOptionInfo[] =
+    REGUTILSAVEINFO SaveOptionInfo[] =
     {
 #define SAVEENTRY(name,type,optname) { optname, &this->m_Entries.##name, sizeof(this->m_Entries.##name), (type) }
         SAVEENTRY(STREAMVOLUME,     REG_DWORD, "streamVolume"           ),
@@ -90,13 +92,13 @@ void __stdcall CSettingsReg::Save(void)
 
     if(lResult!=ERROR_SUCCESS)
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
         return;
     }
 
     if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo)))
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_WRITE);
     }
 
     RegFlushKey(hKey);
@@ -106,13 +108,13 @@ void __stdcall CSettingsReg::Save(void)
 
     if(lResult!=ERROR_SUCCESS)
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_OPT_CREATE);
         return;
     }
 
     if(!RegUtilSave(hKey, SaveOptionInfo, __ARRAYSIZE(SaveOptionInfo)))
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_OPT_WRITE);
     }
 
     RegFlushKey(hKey);
@@ -123,7 +125,7 @@ void __stdcall CSettingsReg::Load(void)
 {
     unsigned long luDeviceNameLen, luGUIDDeviceLen, luGUIDDriverLen, luProviderNameLen;
     HKEY hKey;
-    struct RegUtilLoadInfo LoadInfo[] =
+    REGUTILLOADINFO LoadInfo[] =
     {
 #define LOADENTRY(name,type,retlen) { #name, &this->m_Entries.##name, sizeof(this->m_Entries.##name), retlen, (type) }
         LOADENTRY(ISFULLSCREENMODE, REG_DWORD,  NULL              ),
@@ -150,7 +152,7 @@ void __stdcall CSettingsReg::Load(void)
         LOADENTRY(TRILINEARFILTER,  REG_DWORD,  NULL              ),
 #undef LOADENTRY
     };
-    struct RegUtilLoadInfo LoadOptionInfo[] =
+    REGUTILLOADINFO LoadOptionInfo[] =
     {
 #define LOADENTRY(name,type,optname) { optname, &this->m_Entries.##name, sizeof(this->m_Entries.##name), NULL, (type) }
         LOADENTRY(STREAMVOLUME,     REG_DWORD, "streamVolume"           ),

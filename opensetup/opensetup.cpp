@@ -12,7 +12,10 @@
 #include <d3d.h>
 #include <ddraw.h>
 
+#include <regutil.h>
+
 #include "dx7enum.h"
+#include "error.h"
 #include "resource.h"
 #include "roext.h"
 #include "settings.h"
@@ -746,12 +749,95 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         return EXIT_SUCCESS;
     }
 
+    // Handle Windows8's sick PCA, which creates compatibility
+    // entries for pretty much every app, thus breaks, rather
+    // than fixing them.
+    // This can be removed when Gravity decides to run RO in 32-bit
+    // color modes.
+    for(;;)
+    {
+        CHAR szFileName[MAX_PATH], szCompatFlags[1024];
+        DWORD dwDisposition, dwLength = 0;
+        HKEY hKey;
+        LONG lResult;
+        OSVERSIONINFO Osvi = { sizeof(Osvi) };
+
+        if(!GetVersionExA(&Osvi))
+        {// should not happen
+            break;
+        }
+
+        if(!WIN32_VER_CHECK(&Osvi, VER_PLATFORM_WIN32_NT, 6, 2))
+        {// it's a "feature"
+            break;
+        }
+
+        GetModuleFileNameA(NULL, szFileName, __ARRAYSIZE(szFileName));
+
+        lResult = RegCreateKeyExA(
+            HKEY_CURRENT_USER,                                                          // handle this per user
+            "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers",  // PCA compatibility flags
+            0,                                                                          // reserved
+            NULL,                                                                       // no key class
+            REG_OPTION_NON_VOLATILE,                                                    // persist to disk
+            KEY_READ|KEY_WRITE,                                                         // read & write
+            NULL,                                                                       // default security (inherit)
+            &hKey,                                                                      // destination key handle
+            &dwDisposition                                                              // 'created' or 'opened' disposition
+        );
+
+        if(lResult!=ERROR_SUCCESS)
+        {// restricted access?
+            break;
+        }
+
+        for(;;)
+        {
+            if(dwDisposition==REG_OPENED_EXISTING_KEY)
+            {// key already existed
+                REGUTILLOADINFO Li[] =
+                {
+                    { szFileName, szCompatFlags, __ARRAYSIZE(szCompatFlags), &dwLength, REG_SZ },
+                };
+
+                if(RegUtilLoad(hKey, Li, __ARRAYSIZE(Li)))
+                {
+                    if(szCompatFlags[0])
+                    {// there are flags
+                        if(!lstrcmpiA(szCompatFlags, "~ 16BITCOLOR"))
+                        {// there are the flags we intend to set
+                            break;
+                        }
+                    }
+                }
+            }
+
+            REGUTILSAVEINFO Si[] =
+            {
+                { szFileName, "~ 16BITCOLOR", 12+1, REG_SZ },
+            };
+            RegUtilSave(hKey, Si, __ARRAYSIZE(Si));
+            break;
+        }
+        RegCloseKey(hKey);
+
+        // restart
+        SHELLEXECUTEINFO Sei = { sizeof(Sei), 0, NULL, "open", szFileName, "", ".", SW_SHOWDEFAULT };
+
+        if(ShellExecuteExA(&Sei) && Sei.hProcess)
+        {
+            CloseHandle(Sei.hProcess);
+        }
+
+        return EXIT_SUCCESS;
+    }
+
     HANDLE hMutex = CreateMutex(NULL, FALSE, "Global\\OpenSetupSIMutex");
 
     // prevent multiple instances from running
     if(!hMutex)
     {
-        MessageBox(NULL, "Failed to initialize mutex.", "Error", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_INIT_MUTEX);
         return EXIT_FAILURE;
     }
     else if(WaitForSingleObject(hMutex, 0)==WAIT_TIMEOUT)
@@ -765,15 +851,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     // init common controls
     if(!InitCommonControlsEx(&Icce))
     {
-        MessageBox(NULL, "Failed to initialize common controls.", "Error", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_INIT_COMCTL32);
         return EXIT_FAILURE;
     }
 
     // init direct x information
     if(!DX7E_P_GetInfo())
     {
-        MessageBox(NULL, "Failed to retrieve DirectX information. Make sure DirectX 7 or newer is installed.", "Error", MB_OK|MB_ICONSTOP);
-        return EXIT_FAILURE;
+        CError::ErrorMessage(NULL, TEXT_ERROR_INIT_DIRECTX7);
     }
 
     // show 'em the dialog

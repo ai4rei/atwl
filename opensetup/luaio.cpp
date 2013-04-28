@@ -10,7 +10,9 @@
 #include <windows.h>
 
 #include "opensetup.h"
+#include "error.h"
 #include "luaio.h"
+#include "resource.h"
 
 typedef struct LUAREADERINFO_
 {
@@ -71,7 +73,7 @@ void __stdcall CLuaIO::Error(void)
     {
         if(lua_isstring(this->L, -1) && (lpszErrMsg = lua_tostring(this->L, -1))!=NULL)
         {
-            MessageBox(NULL, lpszErrMsg, "Lua Error", MB_OK|MB_ICONSTOP);
+            CError::ErrorMessageFromStringEx(NULL, TEXT_ERROR__TITLE, "%s", lpszErrMsg);
         }
 
         // pop the error message from stack (from lua_pcall)

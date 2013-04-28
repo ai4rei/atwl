@@ -12,7 +12,9 @@
 #include <regutil.h>
 
 #include "opensetup.h"
+#include "error.h"
 #include "luaio.h"
+#include "resource.h"
 #include "settings.h"
 #include "settings_lua.h"
 
@@ -27,12 +29,13 @@
 #define SETTINGS_CAT_OPTIONLIST "OptionInfoList"
 #define SETTINGS_CAT_COMMANDLIST "CmdOnOffList"
 
-struct LuaOptionInfoInt
+typedef struct LUAOPTIONINFOINT
 {
     const char* lpszCategory;
     const char* lpszName;
     unsigned long* lpluValue;  // there is no non-number saving in LUA right now
-};
+}
+LUAOPTIONINFOINT;
 
 #ifndef HKLM_TO_HKCU
     #define HKEY_GRAVITY HKEY_LOCAL_MACHINE
@@ -43,7 +46,7 @@ struct LuaOptionInfoInt
 void __stdcall CSettingsLua::Save(void)
 {
     HKEY hKey;
-    struct RegUtilSaveInfo SaveInfo[] =
+    REGUTILSAVEINFO SaveInfo[] =
     {
 #define SAVEENTRY(name,type) { #name, &this->m_Entries.##name, sizeof(this->m_Entries.##name), (type) }
         SAVEENTRY(SOUNDMODE,        REG_DWORD ),
@@ -57,7 +60,7 @@ void __stdcall CSettingsLua::Save(void)
         SAVEENTRY(SHOWTIPSATSTARTUP,REG_DWORD ),
 #undef SAVEENTRY
     };
-    struct LuaOptionInfoInt LuaSaveInfo[] =
+    LUAOPTIONINFOINT LuaSaveInfo[] =
     {
 #define SAVEENTRY(name,cat,optname) { cat, optname, &this->m_Entries.##name }
         SAVEENTRY(TRILINEARFILTER,      SETTINGS_CAT_OPTIONLIST, "Trilinear"       ),
@@ -117,13 +120,13 @@ void __stdcall CSettingsLua::Save(void)
 
     if(RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL)!=ERROR_SUCCESS)
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
         return;
     }
 
     if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo)))
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_WRITE);
     }
 
     RegFlushKey(hKey);
@@ -138,24 +141,40 @@ void __stdcall CSettingsLua::Save(void)
 
     this->m_Entries.BGMISPAUSED = !this->m_Entries.BGMISPAUSED;  // the meaning in LUA is reversed
 
-    if((CreateDirectory(SETTINGS_LUAPATH, NULL) || GetLastError()==ERROR_ALREADY_EXISTS) && (hFile = fopen(SETTINGS_LUAFULL, "ab"))!=NULL)
+    if(CreateDirectory(SETTINGS_LUAPATH, NULL) || (GetLastError()==ERROR_ALREADY_EXISTS && (GetFileAttributes(SETTINGS_LUAPATH)&FILE_ATTRIBUTE_DIRECTORY /* make sure it's a directory */)))
     {
-        unsigned long i;
-
-        for(i = 0; i<__ARRAYSIZE(LuaSaveInfo); i++)
+        if((hFile = fopen(SETTINGS_LUAFULL, "ab"))!=NULL)
         {
-            if(fprintf(hFile, SETTINGS_SETMASK, LuaSaveInfo[i].lpszCategory, LuaSaveInfo[i].lpszName, LuaSaveInfo[i].lpluValue[0])<1)
+            unsigned long i;
+    
+            for(i = 0; i<__ARRAYSIZE(LuaSaveInfo); i++)
             {
-                MessageBox(NULL, "Failed to save settings. Disk full?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
-                break;
+                if(fprintf(hFile, SETTINGS_SETMASK, LuaSaveInfo[i].lpszCategory, LuaSaveInfo[i].lpszName, LuaSaveInfo[i].lpluValue[0])<1)
+                {
+                    CError::ErrorMessage(NULL, TEXT_ERROR_FILE_WRITE);
+                    break;
+                }
+            }
+    
+            fclose(hFile);
+        }
+        else
+        {
+            DWORD dwAttr = GetFileAttributes(SETTINGS_LUAFULL);
+
+            if(dwAttr!=INVALID_FILE_ATTRIBUTES && (dwAttr&FILE_ATTRIBUTE_READONLY))
+            {// 7 of 9 failures probably account for this
+                CError::ErrorMessage(NULL, TEXT_ERROR_FILE_OPEN_READONLY);
+            }
+            else
+            {
+                CError::ErrorMessage(NULL, TEXT_ERROR_FILE_OPEN);
             }
         }
-
-        fclose(hFile);
     }
     else
     {
-        MessageBox(NULL, "Failed to save settings. Not enough privileges?", "Error - OpenSetup", MB_OK|MB_ICONSTOP);
+        CError::ErrorMessage(NULL, TEXT_ERROR_DIRECTORY_CREATE);
     }
 
     this->m_Entries.BGMISPAUSED = !this->m_Entries.BGMISPAUSED;  // restore
@@ -165,7 +184,7 @@ void __stdcall CSettingsLua::Load(void)
 {
     unsigned long luDeviceNameLen, luGUIDDeviceLen, luGUIDDriverLen, luProviderNameLen;
     HKEY hKey;
-    struct RegUtilLoadInfo LoadInfo[] =
+    REGUTILLOADINFO LoadInfo[] =
     {
 #define LOADENTRY(name,type,retlen) { #name, &this->m_Entries.##name, sizeof(this->m_Entries.##name), retlen, (type) }
         LOADENTRY(SOUNDMODE,        REG_DWORD,  NULL              ),
@@ -179,7 +198,7 @@ void __stdcall CSettingsLua::Load(void)
         LOADENTRY(SHOWTIPSATSTARTUP,REG_DWORD,  NULL              ),
 #undef LOADENTRY
     };
-    struct LuaOptionInfoInt LuaLoadInfo[] =
+    LUAOPTIONINFOINT LuaLoadInfo[] =
     {
 #define LOADENTRY(name,cat,optname) { cat, optname, &this->m_Entries.##name }
         LOADENTRY(ISFULLSCREENMODE,     SETTINGS_CAT_OPTIONLIST, "ISFULLSCREENMODE"),

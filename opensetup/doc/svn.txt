@@ -1,4 +1,215 @@
 ------------------------------------------------------------------------
+r1508 | Ai4rei | 2013-04-28 12:47:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.6.4.
+------------------------------------------------------------------------
+r1507 | Ai4rei | 2013-04-28 12:46:10 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/layout.txt
+   A /opensetup/doc/license-tabicons.txt (from /opensetup/doc/readme-tabicons.txt:1501)
+   D /opensetup/doc/readme-tabicons.txt
+
+* Updated document layout.
+------------------------------------------------------------------------
+r1506 | Ai4rei | 2013-04-28 12:44:11 +0100 | 3 lines
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/res/opensetup.rc
+
++ Added support for Windows 8's lack of 16-bit colors (http://msdn.microsoft.com/en-us/library/windows/desktop/dd162611(v=vs.85).aspx).
+  * Sets compatibility flags automatically.
+* Marked application as Windows Vista/7/8 aware.
+------------------------------------------------------------------------
+r1505 | Ai4rei | 2013-04-28 08:49:05 +0100 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+
+* Updated regutil's struct names to match current naming convention.
+------------------------------------------------------------------------
+r1501 | Ai4rei | 2013-04-13 22:13:28 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/resource.h
+
+* Release 2.6.3.
+------------------------------------------------------------------------
+r1500 | Ai4rei | 2013-04-13 22:05:21 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/resource.h
+   M /opensetup/roext.cpp
+
++ Localized text and errors for ROExt.
+------------------------------------------------------------------------
+r1499 | Ai4rei | 2013-04-13 20:51:59 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+
+* Localized errors (as far as possible).
+------------------------------------------------------------------------
+r1498 | Ai4rei | 2013-04-13 19:12:33 +0100 | 1 line
+Changed paths:
+   M /opensetup/error.cpp
+   M /opensetup/error.h
+   M /opensetup/luaio.cpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/resource.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Updated CError to support localization.
+------------------------------------------------------------------------
+r1497 | Ai4rei | 2013-04-13 17:55:57 +0100 | 1 line
+Changed paths:
+   M /opensetup/error.cpp
+   M /opensetup/error.h
+   M /opensetup/luaio.cpp
+   M /opensetup/opensetup.cpp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Improvements to the CError class.
+------------------------------------------------------------------------
+r1496 | Ai4rei | 2013-04-06 18:45:44 +0100 | 1 line
+Changed paths:
+   M /opensetup/roext.cpp
+
+* Minor code style in ROExt.
+------------------------------------------------------------------------
+r1495 | Ai4rei | 2013-04-06 18:41:22 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   A /opensetup/error.cpp
+   A /opensetup/error.h
+   M /opensetup/opensetup.dsp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Improved save error messages.
+------------------------------------------------------------------------
+r1494 | Ai4rei | 2013-04-06 11:53:36 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/doc/license.txt
+   M /opensetup/resource.h
+
+* Updated disclaimer and credits.
+------------------------------------------------------------------------
+r1493 | Ai4rei | 2013-04-06 11:53:04 +0100 | 2 lines
+Changed paths:
+   A /opensetup/dev/translations/Namine210 (es-CL).txt
+   M /opensetup/doc/history.txt
+   A /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/opensetup.rc
+
++ Added Latin American Spanish translation by Namine210.
+* Moved ROExt notices to bottom.
+------------------------------------------------------------------------
+r1492 | Ai4rei | 2013-04-05 22:06:04 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Widened UI to accomodate Russian strings.
+------------------------------------------------------------------------
+r1491 | Ai4rei | 2013-04-05 22:05:20 +0100 | 2 lines
+Changed paths:
+   A /opensetup/dev/translations/Jarek (ru-RU).txt
+   M /opensetup/res/i18n/en_us.rc
+   A /opensetup/res/i18n/ru.rc
+   M /opensetup/res/opensetup.rc
+
++ Added Russian translation by Jarek at rAthena boards.
+! Incorporated fixed by Jarek to English translation.
+------------------------------------------------------------------------
+r1487 | Ai4rei | 2013-02-22 17:52:46 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/appicon.ico
+   M /opensetup/res/appicon_l.ico
+
+* Updated large version of icon.
+------------------------------------------------------------------------
+r1486 | Ai4rei | 2013-02-21 22:00:03 +0100 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.6.2.
+------------------------------------------------------------------------
+r1485 | Ai4rei | 2013-02-18 20:58:05 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* No more abort when DirectX fails as there are other settings that might be of interest.
+------------------------------------------------------------------------
+r1484 | Ai4rei | 2013-02-18 20:14:15 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+
+
+------------------------------------------------------------------------
+r1483 | Ai4rei | 2013-02-18 20:10:41 +0100 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Follow up to r1476.
+------------------------------------------------------------------------
+r1478 | Ai4rei | 2013-02-04 19:51:11 +0100 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   D /opensetup/res/imagelist.bmp
+   A /opensetup/res/imagelist04.bmp
+   A /opensetup/res/imagelist24.bmp (from /opensetup/res/imagelist.bmp:1476)
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
++ Added support for 4-bit tab icons.
+------------------------------------------------------------------------
+r1477 | Ai4rei | 2013-02-04 19:21:38 +0100 | 1 line
+Changed paths:
+   M /opensetup/tab.cpp
+
+* Eliminated bSupportAlphaBitmap.
+------------------------------------------------------------------------
+r1476 | Ai4rei | 2013-02-04 19:14:20 +0100 | 1 line
+Changed paths:
+   M /opensetup/doc/readme-tabicons.txt
+   M /opensetup/res/imagelist-mask.bmp
+   M /opensetup/res/imagelist.bmp
+   M /opensetup/res/imagelist.gal
+   M /opensetup/res/imagelist32.bmp
+
+* Replaced led-icon set with fugue-icon set.
+------------------------------------------------------------------------
+r1475 | Ai4rei | 2013-02-04 19:12:50 +0100 | 1 line
+Changed paths:
+   M /opensetup/res/engine_lua.ico
+   M /opensetup/res/engine_reg.ico
+
++ Added 8-bit versions of engine selector icons.
+------------------------------------------------------------------------
 r1474 | Ai4rei | 2013-02-03 17:35:07 +0100 | 1 line
 Changed paths:
    M /opensetup/opensetup.cpp

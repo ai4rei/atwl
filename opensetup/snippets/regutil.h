@@ -9,24 +9,28 @@
 #ifndef _REGUTIL_H_
 #define _REGUTIL_H_
 
-struct RegUtilLoadInfo
+typedef struct REGUTILLOADINFO
 {
     const char* lpszValueName;
     void* lpValue;
     unsigned long luValueSize;
     unsigned long* lpluValueLength;
     unsigned long luExpectedValueType;
-};
+}
+REGUTILLOADINFO,* LPREGUTILLOADINFO;
+typedef const struct REGUTILLOADINFO* LPCREGUTILLOADINFO;
 
-struct RegUtilSaveInfo
+typedef struct REGUTILSAVEINFO
 {
     const char* lpszValueName;
     void* lpValue;
     unsigned long luValueLength;
     unsigned long luValueType;
-};
+}
+REGUTILSAVEINFO,* LPREGUTILSAVEINFO;
+typedef const struct REGUTILSAVEINFO* LPCREGUTILSAVEINFO;
 
-bool __stdcall RegUtilLoad(HKEY hKey, const struct RegUtilLoadInfo* lpLi, unsigned long luElements);
-bool __stdcall RegUtilSave(HKEY hKey, const struct RegUtilSaveInfo* lpSi, unsigned long luElements);
+bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements);
+bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements);
 
 #endif  /* _REGUTIL_H_ */

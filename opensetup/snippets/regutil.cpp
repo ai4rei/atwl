@@ -15,7 +15,7 @@
     #error ERROR_SUCCESS is not zero.
 #endif
 
-bool __stdcall RegUtilLoad(HKEY hKey, const struct RegUtilLoadInfo* lpLi, unsigned long luElements)
+bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements)
 {
     unsigned long i, r = 0, luLen, luType;
 
@@ -45,7 +45,7 @@ bool __stdcall RegUtilLoad(HKEY hKey, const struct RegUtilLoadInfo* lpLi, unsign
     return true;
 }
 
-bool __stdcall RegUtilSave(HKEY hKey, const struct RegUtilSaveInfo* lpSi, unsigned long luElements)
+bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements)
 {
     unsigned long i, r = 0;
 

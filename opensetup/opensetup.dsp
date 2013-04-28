@@ -101,6 +101,10 @@ SOURCE=.\dx7enum.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\error.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\luaio.cpp
 # End Source File
 # Begin Source File
@@ -138,6 +142,10 @@ SOURCE=.\ui.cpp
 # Begin Source File
 
 SOURCE=.\dx7enum.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\error.h
 # End Source File
 # Begin Source File
 
@@ -186,14 +194,6 @@ SOURCE=.\res\appicon_l.ico
 # Begin Source File
 
 SOURCE=.\res\appicon_s.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\engine_lua.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\engine_reg.ico
 # End Source File
 # Begin Source File
 

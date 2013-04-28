@@ -7,10 +7,25 @@ See doc/license.txt for details.
 
 == History =========================================================
 
+[Version 2.6.4]
+* Marked application as Windows Vista/7/8 aware.
+! Fixed 16-bit color modes not appearing on Windows 8 (automagically applies compatibility flags, further reading: <http://msdn.microsoft.com/en-us/library/windows/desktop/dd162611(v=vs.85).aspx>).
+
+[Version 2.6.3]
++ Added Russian translation by Jarek.
++ Added Latin American Spanish translation by Namine210.
+* Minor adjustments to the visuals of the UI.
+* Updated disclaimer and credits.
+* Improved save error messages and localization.
+! Applied fixes to English translation suggested by Jarek (since 2.0.1).
+
 [Version 2.6.2]
-* Updated engine selector icons to be more obvious.
++ Added tab and engine selector icons in 4-bit/8-bit depth (for bitdepth less than 16-bit).
+* Replaced led-icons set with fugue-icons.
 * Some improvements to Japanese translation.
-! Fixed cut-off dialog text in german and korean localization (since 2.1.0/2.3.0).
+* Updated engine selector icons to be more obvious.
+* Updated explanation for exclusive mouse setting.
+! Fixed cut-off dialog text in German and Korean localization (since 2.1.0/2.3.0).
 
 [Version 2.6.1]
 * Somewhat improved safety of data involved in IPC.

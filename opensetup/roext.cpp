@@ -11,6 +11,7 @@
 #include <commctrl.h>
 
 #include "opensetup.h"
+#include "error.h"
 #include "resource.h"
 #include "tab.h"
 #include "ui.h"
@@ -120,9 +121,17 @@ void __stdcall CROExtSettings::Save(void)
 
     for(i = 0; i<__ARRAYSIZE(SaveInfo); i++)
     {
-        wsprintf(szBuffer, "%d", *(SaveInfo[i].lpnValue));
-        WritePrivateProfileString("ROExt", SaveInfo[i].lpszKeyName, szBuffer, this->szIniFile);
+        wsprintf(szBuffer, "%d", SaveInfo[i].lpnValue[0]);
+
+        if(!WritePrivateProfileString("ROExt", SaveInfo[i].lpszKeyName, szBuffer, this->szIniFile))
+        {
+            CError::ErrorMessage(NULL, TEXT_ERROR_ROEXT_WRITE);
+            break;
+        }
     }
+
+    // flush
+    WritePrivateProfileString(NULL, NULL, NULL, this->szIniFile);
 }
 
 void __stdcall CROExtSettings::Load(void)
@@ -160,7 +169,7 @@ void __stdcall CROExtSettings::Load(void)
         {
             if(GetPrivateProfileString("ROExt", LoadInfo[i].lpszKeyName, "", szBuffer, sizeof(szBuffer), this->szIniFile))
             {
-                *(LoadInfo[i].lpnValue) = atoi(szBuffer);
+                LoadInfo[i].lpnValue[0] = atoi(szBuffer);
             }
         }
     }
@@ -372,7 +381,7 @@ void __stdcall CROExt::GetCodePageName(int nCodePage, char* lpszBuffer, unsigned
 
     if(nCodePage==-1)
     {// no actual code page
-        lstrcpynA(lpszBuffer, "(default)", luBufferSize);
+        LoadStringA(GetModuleHandle(NULL), TEXT_DLG_LIST_CP_DEFAULT, lpszBuffer, luBufferSize);
     }
     else if(this->GetCPInfoEx && this->GetCPInfoEx(nCodePage, 0, &Info))
     {// code page information available
@@ -380,7 +389,10 @@ void __stdcall CROExt::GetCodePageName(int nCodePage, char* lpszBuffer, unsigned
     }
     else
     {// alien code pages or Windows 95, last resort
-        wsprintfA(lpszBuffer, "%d  (Unknown)", nCodePage);
+        char szFormat[256];
+
+        LoadStringA(GetModuleHandle(NULL), TEXT_DLG_LIST_CP_UNKNOWN, szFormat, __ARRAYSIZE(szFormat));
+        wsprintfA(lpszBuffer, szFormat, nCodePage);
     }
 }
 

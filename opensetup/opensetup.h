@@ -8,7 +8,16 @@
 #ifndef _OPENSETUP_H_
 #define _OPENSETUP_H_
 
+#ifndef vsnprintf
+    #define vsnprintf _vsnprintf
+#endif  /* vsnprintf */
+#ifndef snprintf
+    #define snprintf _snprintf
+#endif  /* snprintf */
+
 #define __ARRAYSIZE(x) (sizeof(x)/sizeof((x)[0]))
+
+#define WIN32_VER_CHECK(lposvi,platform,major,minor) ( ( (lposvi)->dwPlatformId==(platform) ) && ( ( (lposvi)->dwMajorVersion>(major) ) || ( (lposvi)->dwMajorVersion==(major) && (lposvi)->dwMinorVersion>=(minor) ) ) )
 
 static inline void __stdcall DebugBreakHere(void)
 {

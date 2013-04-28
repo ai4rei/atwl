@@ -8,11 +8,21 @@ See doc/license.txt for details.
 == Distribution Layout File ========================================
 
     /
-     -> opensetup.exe   main ro setup executable
+     -> opensetup.exe
+        main ro setup executable
 
     /doc/
-     -> history.txt     changelog
-     -> layout.txt      description of distributed files
-     -> license.txt     well, the software license
+     -> build.txt
+        short tips on compiling from source
+     -> history.txt
+        changelog
+     -> layout.txt
+        description of distributed files, this file
+     -> license.txt
+        well, the software license
+     -> license-lua.txt
+        Lua engine license
+     -> license-tabicons.txt
+        Tab icon attribution
 
 ====================================================================
