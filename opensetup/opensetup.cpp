@@ -791,34 +791,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             break;
         }
 
-        for(;;)
-        {
-            if(dwDisposition==REG_OPENED_EXISTING_KEY)
-            {// key already existed
-                REGUTILLOADINFO Li[] =
-                {
-                    { szFileName, szCompatFlags, __ARRAYSIZE(szCompatFlags), &dwLength, REG_SZ },
-                };
+        if(dwDisposition==REG_OPENED_EXISTING_KEY)
+        {// key already existed
+            REGUTILLOADINFO Li[] =
+            {
+                { szFileName, szCompatFlags, __ARRAYSIZE(szCompatFlags), &dwLength, REG_SZ },
+            };
 
-                if(RegUtilLoad(hKey, Li, __ARRAYSIZE(Li)))
-                {
-                    if(szCompatFlags[0])
-                    {// there are flags
-                        if(!lstrcmpiA(szCompatFlags, "~ 16BITCOLOR"))
-                        {// there are the flags we intend to set
-                            break;
-                        }
+            if(RegUtilLoad(hKey, Li, __ARRAYSIZE(Li)))
+            {
+                if(szCompatFlags[0])
+                {// there are flags
+                    if(!lstrcmpiA(szCompatFlags, "~ 16BITCOLOR"))
+                    {// there are the flags we intend to set
+                        RegCloseKey(hKey);
+                        break;
                     }
                 }
             }
-
-            REGUTILSAVEINFO Si[] =
-            {
-                { szFileName, "~ 16BITCOLOR", 12+1, REG_SZ },
-            };
-            RegUtilSave(hKey, Si, __ARRAYSIZE(Si));
-            break;
         }
+
+        REGUTILSAVEINFO Si[] =
+        {
+            { szFileName, "~ 16BITCOLOR", 12+1, REG_SZ },
+        };
+        RegUtilSave(hKey, Si, __ARRAYSIZE(Si));
         RegCloseKey(hKey);
 
         // restart
