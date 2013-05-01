@@ -285,6 +285,7 @@ Private Sub ExportSQL_P_TableWrite(hFile As Long, oTable As TableDef)
     ExportSQL_P_TableDump hFile, oTable.Name
 End Sub
 
+' ExportSQL "", "dump.sql"
 Public Sub ExportSQL(Optional sTable As String = "", Optional sFileName As String = "")
     Dim hFile As Long
     Dim nCount As Long
@@ -299,14 +300,16 @@ Public Sub ExportSQL(Optional sTable As String = "", Optional sFileName As Strin
     If sTable <> "" Then
         ExportSQL_P_TableWrite hFile, CurrentDb.TableDefs(sTable)
     Else
+        ' tables
         For Each oTable In CurrentDb.TableDefs
-            If LCase(Left(oTable.Name, 4)) <> "msys" Then
+            If LCase(Left(oTable.Name, 4)) <> "msys" Then ' all but system tables
                 If sFileName <> "" Then Debug.Print oTable.Name
                 ExportSQL_P_TableWrite hFile, oTable
                 If sFileName <> "" Then Debug.Print "   OK"
+                DoEvents
             End If
-            DoEvents
         Next
+        ' relations
         If sFileName <> "" Then Debug.Print "<Relations>"
         ExportSQL_P_TableForeignKeys hFile
         If sFileName <> "" Then Debug.Print "   OK"
