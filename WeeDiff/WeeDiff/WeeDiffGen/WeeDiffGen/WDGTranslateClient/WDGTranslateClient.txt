@@ -42,6 +42,11 @@
 //
 // =================================================================
 
+// == Credits ======================================================
+// [nkwz*]
+// - http://rathena.org/board/topic/71122-2012-client-translation/
+// =================================================================
+
 // Translate Delete Time
 //
 F:2564BFF9202564C0CF202564BDC3202564BAD0202564C3CA
@@ -64,3 +69,103 @@ R:'(Used / Total)'
 //
 F:C4C9B8AFC5CD20B8B8B5E9B1E2
 R:'Make Character'
+
+// Graphics Setting Window [nkwz*]
+F:C0FCC0E5
+R:'Show'
+
+// Navigation Window [nkwz*]
+F:B0CBBBF620B4DCBEEE20BCB3C1A4202845783A20B4DCBEEE20B4DCBEEE202E2E2E
+R:'Type anything here (Ex: Prontera)'
+
+F:B0CBBBF6
+R:'Find'
+
+' FIXME: 00 byte
+F:B1E620C1A4BAB800B8F1C7A5B7CE20BEC8B3BB
+R:'Back to Navigation'
+
+F:B0CBBBF620C1A4BAB8
+R:'Show List'
+
+F:BAB8B1E220B8F0B5E520BAAFB0E6
+R:'Toggle Minimap'
+
+// Monster Info - Elements [nkwz*]
+F:BCF6BCD3BCBA
+R:'Shadow'
+
+F:C1F6BCD3BCBA
+R:'Earth'
+
+F:BECFBCD3BCBA
+R:'Water'
+
+F:C8ADBCD3BCBA
+R:'Fire'
+
+F:BFB0BCD3BCBA
+R:'Ghost'
+
+F:C7B3BCD3BCBA
+R:'Wind'
+
+F:B5B6BCD3BCBA
+R:'Poison'
+
+F:BCBABCD3BCBA
+R:'Holy'
+
+F:BEF0B5A5B5E5
+R:'Undead'
+
+F:B9ABBCD3BCBA
+R:'Neutral'
+
+// Monster Info - Size [nkwz*]
+F:B4EBC7FC
+R:'Large'
+
+F:C1DFC7FC
+R:'Medium'
+
+F:BCD2C7FC
+R:'Small'
+
+// Monster Info - Race [nkwz*]
+F:BEC7B8B6C7FC
+R:'Demon'
+
+F:C0CEB0A3C7FC
+R:'Demi-H'
+
+F:B9ABC7FC
+R:'Formles'
+
+F:BAD2BBE7C7FC
+R:'Undead'
+
+F:BDC4B9B0C7FC
+R:'Plant'
+
+F:BEEEC6D0C7FC
+R:'Fish'
+
+F:B5BFB9B0C7FC
+R:'Brute'
+
+F:C3B5BBE7C7FC
+R:'Angel'
+
+F:B0EFC3E6C7FC
+R:'Insect'
+
+F:BFEBC1B7
+R:'Dragon'
+
+// Monster Info - Type [nkwz*]
+F:28C0CFB9DD29
+R:'Monster'
+
+F:28BAB8BDBA29
+R:'Boss'
