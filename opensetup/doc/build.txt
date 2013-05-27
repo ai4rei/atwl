@@ -9,6 +9,8 @@ See doc/license.txt for details.
 
 - Make sure you have some version of Microsoft Visual C++ installed.
   MSVC++ 6.0 is most recommended.
+- Make sure you have DirectX SDK installed. Version 9 is most
+  recommended.
 - Download lua-5.1.4 and build static libraries for the following
   configurations:
   - release (lua.lib)
