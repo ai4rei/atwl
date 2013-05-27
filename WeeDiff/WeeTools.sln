@@ -81,10 +81,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipResurrectionButtons"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipServiceSelect", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSkipServiceSelect\WDGSkipServiceSelect.vcxproj", "{7632B416-E6FA-421C-944B-D7CBA194055A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGTranslateClientIntoEnglish", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGTranslateClientIntoEnglish\WDGTranslateClientIntoEnglish.vcxproj", "{E6D35D40-EBE3-4093-BE59-FE4B4AC70480}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseArialOnAllLangtypes", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseArialOnAllLangtypes\WDGUseArialOnAllLangtypes.vcxproj", "{7544A274-5D53-43DC-9740-F529E2F65B83}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseCustomAuraSprites", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseCustomAuraSprites\WDGUseCustomAuraSprites.vcxproj", "{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseNormalGuildBrackets", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseNormalGuildBrackets\WDGUseNormalGuildBrackets.vcxproj", "{3761B6BC-B953-4935-8AE9-A55871525C02}"
@@ -293,14 +289,6 @@ Global
 		{7632B416-E6FA-421C-944B-D7CBA194055A}.Debug|Win32.Build.0 = Debug|Win32
 		{7632B416-E6FA-421C-944B-D7CBA194055A}.Release|Win32.ActiveCfg = Release|Win32
 		{7632B416-E6FA-421C-944B-D7CBA194055A}.Release|Win32.Build.0 = Release|Win32
-		{E6D35D40-EBE3-4093-BE59-FE4B4AC70480}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E6D35D40-EBE3-4093-BE59-FE4B4AC70480}.Debug|Win32.Build.0 = Debug|Win32
-		{E6D35D40-EBE3-4093-BE59-FE4B4AC70480}.Release|Win32.ActiveCfg = Release|Win32
-		{E6D35D40-EBE3-4093-BE59-FE4B4AC70480}.Release|Win32.Build.0 = Release|Win32
-		{7544A274-5D53-43DC-9740-F529E2F65B83}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7544A274-5D53-43DC-9740-F529E2F65B83}.Debug|Win32.Build.0 = Debug|Win32
-		{7544A274-5D53-43DC-9740-F529E2F65B83}.Release|Win32.ActiveCfg = Release|Win32
-		{7544A274-5D53-43DC-9740-F529E2F65B83}.Release|Win32.Build.0 = Release|Win32
 		{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}.Debug|Win32.ActiveCfg = Debug|Win32
 		{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}.Debug|Win32.Build.0 = Debug|Win32
 		{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}.Release|Win32.ActiveCfg = Release|Win32
