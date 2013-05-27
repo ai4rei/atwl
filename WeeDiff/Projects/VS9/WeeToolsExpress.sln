@@ -1,129 +1,129 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiff", "WeeDiff\WeeDiff\WeeDiff.vcxproj", "{EE433D9B-3B6F-468F-9ACD-C664D37E030D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiff", "WeeDiff.vcxproj", "{EE433D9B-3B6F-468F-9ACD-C664D37E030D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiffGen", "WeeDiff\WeeDiffGen\WeeDiffGen.vcxproj", "{33DB0806-DF25-49A2-AEED-FB32D4A0B93B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiffGen", "WeeDiffGen.vcxproj", "{33DB0806-DF25-49A2-AEED-FB32D4A0B93B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiffPlain", "WeeDiff\WeeDiffPlain\WeeDiffPlain.vcxproj", "{DB4EEF31-A3E3-4B1B-B4AE-9F3B1FF31726}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WeeDiffPlain", "WeeDiffPlain.vcxproj", "{DB4EEF31-A3E3-4B1B-B4AE-9F3B1FF31726}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAllowChatFlood", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGAllowChatFlood\WDGAllowChatFlood.vcxproj", "{649CB795-B877-44EA-B18E-C2F6CA9FBC9B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAllowChatFlood", "..\..\WeeDiffGen\Plugins\WDGAllowChatFlood\WDGAllowChatFlood.vcxproj", "{649CB795-B877-44EA-B18E-C2F6CA9FBC9B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAllowMultipleWindows", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGAllowMultipleWindows\WDGAllowMultipleWindows.vcxproj", "{EBEF97E1-B383-44CD-AF0B-86CBD0AD4E78}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAllowMultipleWindows", "..\..\WeeDiffGen\Plugins\WDGAllowMultipleWindows\WDGAllowMultipleWindows.vcxproj", "{EBEF97E1-B383-44CD-AF0B-86CBD0AD4E78}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAlwaysCallSelectKoreaClientInfo", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGAlwaysCallSelectKoreaClientInfo\WDGAlwaysCallSelectKoreaClientInfo.vcxproj", "{D15D55EC-574B-4FCF-9F9E-118C992E40D2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGAlwaysCallSelectKoreaClientInfo", "..\..\WeeDiffGen\Plugins\WDGAlwaysCallSelectKoreaClientInfo\WDGAlwaysCallSelectKoreaClientInfo.vcxproj", "{D15D55EC-574B-4FCF-9F9E-118C992E40D2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGCustomWindowTitle", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGCustomWindowTitle\WDGCustomWindowTitle.vcxproj", "{3DA84D20-B038-401E-BF01-5E9646F5D014}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGCustomWindowTitle", "..\..\WeeDiffGen\Plugins\WDGCustomWindowTitle\WDGCustomWindowTitle.vcxproj", "{3DA84D20-B038-401E-BF01-5E9646F5D014}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable1rag1", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisable1rag1\WDGDisable1rag1.vcxproj", "{A1459148-5AD4-47F0-9C7C-1120A2F2A827}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable1rag1", "..\..\WeeDiffGen\Plugins\WDGDisable1rag1\WDGDisable1rag1.vcxproj", "{A1459148-5AD4-47F0-9C7C-1120A2F2A827}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserCharacterLimit", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisable4LetterUserCharacterLimit\WDGDisable4LetterUserCharacterLimit.vcxproj", "{C4659A1A-83C9-45F6-9D0E-25235AF0C334}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserCharacterLimit", "..\..\WeeDiffGen\Plugins\WDGDisable4LetterUserCharacterLimit\WDGDisable4LetterUserCharacterLimit.vcxproj", "{C4659A1A-83C9-45F6-9D0E-25235AF0C334}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserIDLimit", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisable4LetterUserIDLimit\WDGDisable4LetterUserIDLimit.vcxproj", "{5F47FFB1-96F1-49B6-8F3D-E70EF796B6E0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserIDLimit", "..\..\WeeDiffGen\Plugins\WDGDisable4LetterUserIDLimit\WDGDisable4LetterUserIDLimit.vcxproj", "{5F47FFB1-96F1-49B6-8F3D-E70EF796B6E0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserPasswordLimit", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisable4LetterUserPasswordLimit\WDGDisable4LetterUserPasswordLimit.vcxproj", "{5F94B6F5-E0CE-434C-8203-404EC619FEA9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisable4LetterUserPasswordLimit", "..\..\WeeDiffGen\Plugins\WDGDisable4LetterUserPasswordLimit\WDGDisable4LetterUserPasswordLimit.vcxproj", "{5F94B6F5-E0CE-434C-8203-404EC619FEA9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableFilenameCheck", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableFilenameCheck\WDGDisableFilenameCheck.vcxproj", "{FE20B167-2635-4F0D-8E63-1EFF24EB77B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableFilenameCheck", "..\..\WeeDiffGen\Plugins\WDGDisableFilenameCheck\WDGDisableFilenameCheck.vcxproj", "{FE20B167-2635-4F0D-8E63-1EFF24EB77B8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableHallucinationWavyScreen", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableHallucinationWavyScreen\WDGDisableHallucinationWavyScreen.vcxproj", "{5CA4BE01-9AC8-45D8-8619-478C2500BEB4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableHallucinationWavyScreen", "..\..\WeeDiffGen\Plugins\WDGDisableHallucinationWavyScreen\WDGDisableHallucinationWavyScreen.vcxproj", "{5CA4BE01-9AC8-45D8-8619-478C2500BEB4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableHShield", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableHShield\WDGDisableHShield.vcxproj", "{338D38B1-ABE1-40C8-9E34-8309948A66CA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableHShield", "..\..\WeeDiffGen\Plugins\WDGDisableHShield\WDGDisableHShield.vcxproj", "{338D38B1-ABE1-40C8-9E34-8309948A66CA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableSwearFilter", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableSwearFilter\WDGDisableSwearFilter.vcxproj", "{0BC38319-B3D2-49A9-8471-E2DA30A3C526}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableSwearFilter", "..\..\WeeDiffGen\Plugins\WDGDisableSwearFilter\WDGDisableSwearFilter.vcxproj", "{0BC38319-B3D2-49A9-8471-E2DA30A3C526}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableMultipleGRF", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableMultipleGRF\WDGEnableMultipleGRF.vcxproj", "{93104FD4-91E1-4C02-94EE-2FF178773597}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableMultipleGRF", "..\..\WeeDiffGen\Plugins\WDGEnableMultipleGRF\WDGEnableMultipleGRF.vcxproj", "{93104FD4-91E1-4C02-94EE-2FF178773597}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableOfficialCustomFonts", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableOfficialCustomFonts\WDGEnableOfficialCustomFonts.vcxproj", "{495435A6-CEED-4D63-A21F-B545677D18CF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableOfficialCustomFonts", "..\..\WeeDiffGen\Plugins\WDGEnableOfficialCustomFonts\WDGEnableOfficialCustomFonts.vcxproj", "{495435A6-CEED-4D63-A21F-B545677D18CF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableTitleBarMenu", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableTitleBarMenu\WDGEnableTitleBarMenu.vcxproj", "{7A2F3F22-B90B-457E-92FA-BB755FFBE393}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableTitleBarMenu", "..\..\WeeDiffGen\Plugins\WDGEnableTitleBarMenu\WDGEnableTitleBarMenu.vcxproj", "{7A2F3F22-B90B-457E-92FA-BB755FFBE393}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedChatBox", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGExtendedChatBox\WDGExtendedChatBox.vcxproj", "{53169EB2-9862-40B1-8F66-ABC67D68AEFA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedChatBox", "..\..\WeeDiffGen\Plugins\WDGExtendedChatBox\WDGExtendedChatBox.vcxproj", "{53169EB2-9862-40B1-8F66-ABC67D68AEFA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedChatRoomBox", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGExtendedChatRoomBox\WDGExtendedChatRoomBox.vcxproj", "{02B19A82-07EB-4C30-BA98-ABC662A35F45}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedChatRoomBox", "..\..\WeeDiffGen\Plugins\WDGExtendedChatRoomBox\WDGExtendedChatRoomBox.vcxproj", "{02B19A82-07EB-4C30-BA98-ABC662A35F45}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedPMBox", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGExtendedPMBox\WDGExtendedPMBox.vcxproj", "{4CA3E0AA-A3C4-4CEB-B92F-048AC5BC68B6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGExtendedPMBox", "..\..\WeeDiffGen\Plugins\WDGExtendedPMBox\WDGExtendedPMBox.vcxproj", "{4CA3E0AA-A3C4-4CEB-B92F-048AC5BC68B6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesFull", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGFixCameraAnglesFull\WDGFixCameraAnglesFull.vcxproj", "{20601DAD-FCB7-4B09-9D85-3E6E69269AFB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesFull", "..\..\WeeDiffGen\Plugins\WDGFixCameraAnglesFull\WDGFixCameraAnglesFull.vcxproj", "{20601DAD-FCB7-4B09-9D85-3E6E69269AFB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesLess", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGFixCameraAnglesLess\WDGFixCameraAnglesLess.vcxproj", "{1DCB2F1D-4EFB-48FF-8B35-A712F968B1FF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesLess", "..\..\WeeDiffGen\Plugins\WDGFixCameraAnglesLess\WDGFixCameraAnglesLess.vcxproj", "{1DCB2F1D-4EFB-48FF-8B35-A712F968B1FF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesMedium", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGFixCameraAnglesMedium\WDGFixCameraAnglesMedium.vcxproj", "{55FDE174-BC4B-4309-ACE6-15AA0E118BAB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGFixCameraAnglesMedium", "..\..\WeeDiffGen\Plugins\WDGFixCameraAnglesMedium\WDGFixCameraAnglesMedium.vcxproj", "{55FDE174-BC4B-4309-ACE6-15AA0E118BAB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGHKLMtoHKCU", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGHKLMtoHKCU\WDGHKLMtoHKCU.vcxproj", "{7D6F26BC-B8E3-44C8-9342-65D71C1F2F0A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGHKLMtoHKCU", "..\..\WeeDiffGen\Plugins\WDGHKLMtoHKCU\WDGHKLMtoHKCU.vcxproj", "{7D6F26BC-B8E3-44C8-9342-65D71C1F2F0A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseHeadgearViewID", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIncreaseHeadgearViewID\WDGIncreaseHeadgearViewID.vcxproj", "{917A49F1-ABAB-4D20-AA8E-97DABBBAEED6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseHeadgearViewID", "..\..\WeeDiffGen\Plugins\WDGIncreaseHeadgearViewID\WDGIncreaseHeadgearViewID.vcxproj", "{917A49F1-ABAB-4D20-AA8E-97DABBBAEED6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOut50Per", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIncreaseZoomOut50Per\WDGIncreaseZoomOut50Per.vcxproj", "{E19101C9-C8B2-426C-AEAF-67C9A2DCE066}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOut50Per", "..\..\WeeDiffGen\Plugins\WDGIncreaseZoomOut50Per\WDGIncreaseZoomOut50Per.vcxproj", "{E19101C9-C8B2-426C-AEAF-67C9A2DCE066}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOut75Per", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIncreaseZoomOut75Per\WDGIncreaseZoomOut75Per.vcxproj", "{03230BCB-6A20-4E2B-BE8D-1F961E86F44A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOut75Per", "..\..\WeeDiffGen\Plugins\WDGIncreaseZoomOut75Per\WDGIncreaseZoomOut75Per.vcxproj", "{03230BCB-6A20-4E2B-BE8D-1F961E86F44A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOutMax", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIncreaseZoomOutMax\WDGIncreaseZoomOutMax.vcxproj", "{EB2547B9-4D70-4A7D-A513-2F73B8997E7D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIncreaseZoomOutMax", "..\..\WeeDiffGen\Plugins\WDGIncreaseZoomOutMax\WDGIncreaseZoomOutMax.vcxproj", "{EB2547B9-4D70-4A7D-A513-2F73B8997E7D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGLoadLUABeforeLUB", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGLoadLUABeforeLUB\WDGLoadLUABeforeLUB.vcxproj", "{9DD5109A-5E72-4C23-9B68-BD5A7EE4E4D8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGLoadLUABeforeLUB", "..\..\WeeDiffGen\Plugins\WDGLoadLUABeforeLUB\WDGLoadLUABeforeLUB.vcxproj", "{9DD5109A-5E72-4C23-9B68-BD5A7EE4E4D8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadDataFolderFirst", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGReadDataFolderFirst\WDGReadDataFolderFirst.vcxproj", "{525D3404-3998-4368-BDDD-9EC85FDD2DC8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadDataFolderFirst", "..\..\WeeDiffGen\Plugins\WDGReadDataFolderFirst\WDGReadDataFolderFirst.vcxproj", "{525D3404-3998-4368-BDDD-9EC85FDD2DC8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadMsgStringTable", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGReadMsgStringTable\WDGReadMsgStringTable.vcxproj", "{35E0249A-3B5E-4225-A854-5A3E8CD491F5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadMsgStringTable", "..\..\WeeDiffGen\Plugins\WDGReadMsgStringTable\WDGReadMsgStringTable.vcxproj", "{35E0249A-3B5E-4225-A854-5A3E8CD491F5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadQuestTable", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGReadQuestTable\WDGReadQuestTable.vcxproj", "{EB21D561-5E3E-400C-A56E-D949E0C3582A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGReadQuestTable", "..\..\WeeDiffGen\Plugins\WDGReadQuestTable\WDGReadQuestTable.vcxproj", "{EB21D561-5E3E-400C-A56E-D949E0C3582A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveGravityAds", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRemoveGravityAds\WDGRemoveGravityAds.vcxproj", "{9DDF54D4-4029-4595-94FB-E7CE440AE95C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveGravityAds", "..\..\WeeDiffGen\Plugins\WDGRemoveGravityAds\WDGRemoveGravityAds.vcxproj", "{9DDF54D4-4029-4595-94FB-E7CE440AE95C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveGravityLogo", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRemoveGravityLogo\WDGRemoveGravityLogo.vcxproj", "{1AF89733-5804-4029-9564-B266DFDBF7A4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveGravityLogo", "..\..\WeeDiffGen\Plugins\WDGRemoveGravityLogo\WDGRemoveGravityLogo.vcxproj", "{1AF89733-5804-4029-9564-B266DFDBF7A4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRestoreLoginWindow", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRestoreLoginWindow\WDGRestoreLoginWindow.vcxproj", "{BBD1FEF3-0196-4BF4-919E-214889C473BC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRestoreLoginWindow", "..\..\WeeDiffGen\Plugins\WDGRestoreLoginWindow\WDGRestoreLoginWindow.vcxproj", "{BBD1FEF3-0196-4BF4-919E-214889C473BC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipLicenseScreen", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSkipLicenseScreen\WDGSkipLicenseScreen.vcxproj", "{6357A0EA-BF93-4427-943A-57369D9D1046}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipLicenseScreen", "..\..\WeeDiffGen\Plugins\WDGSkipLicenseScreen\WDGSkipLicenseScreen.vcxproj", "{6357A0EA-BF93-4427-943A-57369D9D1046}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipResurrectionButtons", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSkipResurrectionButtons\WDGSkipResurrectionButtons.vcxproj", "{F77D0AFB-F491-4435-8A95-5E528271EF8C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipResurrectionButtons", "..\..\WeeDiffGen\Plugins\WDGSkipResurrectionButtons\WDGSkipResurrectionButtons.vcxproj", "{F77D0AFB-F491-4435-8A95-5E528271EF8C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipServiceSelect", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSkipServiceSelect\WDGSkipServiceSelect.vcxproj", "{7632B416-E6FA-421C-944B-D7CBA194055A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipServiceSelect", "..\..\WeeDiffGen\Plugins\WDGSkipServiceSelect\WDGSkipServiceSelect.vcxproj", "{7632B416-E6FA-421C-944B-D7CBA194055A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseCustomAuraSprites", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseCustomAuraSprites\WDGUseCustomAuraSprites.vcxproj", "{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseCustomAuraSprites", "..\..\WeeDiffGen\Plugins\WDGUseCustomAuraSprites\WDGUseCustomAuraSprites.vcxproj", "{17FF4CCC-89DA-47CC-B63D-5909F4FC654F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseNormalGuildBrackets", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseNormalGuildBrackets\WDGUseNormalGuildBrackets.vcxproj", "{3761B6BC-B953-4935-8AE9-A55871525C02}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseNormalGuildBrackets", "..\..\WeeDiffGen\Plugins\WDGUseNormalGuildBrackets\WDGUseNormalGuildBrackets.vcxproj", "{3761B6BC-B953-4935-8AE9-A55871525C02}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUsePlainTextDescriptions", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUsePlainTextDescriptions\WDGUsePlainTextDescriptions.vcxproj", "{CFCC2D06-77D3-474B-97BE-B41EAA6F2182}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUsePlainTextDescriptions", "..\..\WeeDiffGen\Plugins\WDGUsePlainTextDescriptions\WDGUsePlainTextDescriptions.vcxproj", "{CFCC2D06-77D3-474B-97BE-B41EAA6F2182}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseRagnarokIcon", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGUseRagnarokIcon\WDGUseRagnarokIcon.vcxproj", "{995C94BD-EA9C-4112-945D-4CAAE48E22DB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGUseRagnarokIcon", "..\..\WeeDiffGen\Plugins\WDGUseRagnarokIcon\WDGUseRagnarokIcon.vcxproj", "{995C94BD-EA9C-4112-945D-4CAAE48E22DB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnable127Hairstyles", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnable127Hairstyles\WDGEnable127Hairstyles.vcxproj", "{965F65C6-C747-4855-B45D-E16075850273}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnable127Hairstyles", "..\..\WeeDiffGen\Plugins\WDGEnable127Hairstyles\WDGEnable127Hairstyles.vcxproj", "{965F65C6-C747-4855-B45D-E16075850273}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGChatAtBug", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGChatAtBug\WDGChatAtBug.vcxproj", "{A744E110-156E-4777-A740-8502273B4119}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGChatAtBug", "..\..\WeeDiffGen\Plugins\WDGChatAtBug\WDGChatAtBug.vcxproj", "{A744E110-156E-4777-A740-8502273B4119}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableMultipleGRFExtended", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableMultipleGRFExtended\WDGEnableMultipleGRFExtended.vcxproj", "{5976D201-7056-4892-93FA-A70CADEE2B82}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableMultipleGRFExtended", "..\..\WeeDiffGen\Plugins\WDGEnableMultipleGRFExtended\WDGEnableMultipleGRFExtended.vcxproj", "{5976D201-7056-4892-93FA-A70CADEE2B82}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableNagleAlgorithm", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableNagleAlgorithm\WDGDisableNagleAlgorithm.vcxproj", "{A4432506-DB0D-4CB7-A82C-449A0F5DCBC3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableNagleAlgorithm", "..\..\WeeDiffGen\Plugins\WDGDisableNagleAlgorithm\WDGDisableNagleAlgorithm.vcxproj", "{A4432506-DB0D-4CB7-A82C-449A0F5DCBC3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableMultipleWindows", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGDisableMultipleWindows\WDGDisableMultipleWindows.vcxproj", "{52EC6B18-2B3C-41B7-B23F-30F97CCC3317}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGDisableMultipleWindows", "..\..\WeeDiffGen\Plugins\WDGDisableMultipleWindows\WDGDisableMultipleWindows.vcxproj", "{52EC6B18-2B3C-41B7-B23F-30F97CCC3317}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIgnoreMissingFileErrors", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIgnoreMissingFileErrors\WDGIgnoreMissingFileErrors.vcxproj", "{A7149DC3-39CD-4903-A73E-195C78AD303F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIgnoreMissingFileErrors", "..\..\WeeDiffGen\Plugins\WDGIgnoreMissingFileErrors\WDGIgnoreMissingFileErrors.vcxproj", "{A7149DC3-39CD-4903-A73E-195C78AD303F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIgnoreMissingPaletteErrors", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGIgnoreMissingPaletteErrors\WDGIgnoreMissingPaletteErrors.vcxproj", "{3C9E5BD0-47BA-4A3C-BED0-14F602E46AA1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGIgnoreMissingPaletteErrors", "..\..\WeeDiffGen\Plugins\WDGIgnoreMissingPaletteErrors\WDGIgnoreMissingPaletteErrors.vcxproj", "{3C9E5BD0-47BA-4A3C-BED0-14F602E46AA1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableAuraOverLvl99", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableAuraOverLvl99\WDGEnableAuraOverLvl99.vcxproj", "{9EA06438-C101-4908-847A-F1BDFCA05DD1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableAuraOverLvl99", "..\..\WeeDiffGen\Plugins\WDGEnableAuraOverLvl99\WDGEnableAuraOverLvl99.vcxproj", "{9EA06438-C101-4908-847A-F1BDFCA05DD1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableDNSSupport", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableDNSSupport\WDGEnableDNSSupport.vcxproj", "{22F97C65-4DA2-4CE0-B320-C88F676B5663}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableDNSSupport", "..\..\WeeDiffGen\Plugins\WDGEnableDNSSupport\WDGEnableDNSSupport.vcxproj", "{22F97C65-4DA2-4CE0-B320-C88F676B5663}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnforceOfficialLoginBackground", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnforceOfficialLoginBackground\WDGEnforceOfficialLoginBackground.vcxproj", "{3DA53F6F-6FBC-4366-BF0C-1B50B3F448EC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnforceOfficialLoginBackground", "..\..\WeeDiffGen\Plugins\WDGEnforceOfficialLoginBackground\WDGEnforceOfficialLoginBackground.vcxproj", "{3DA53F6F-6FBC-4366-BF0C-1B50B3F448EC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGOnlyFirstLoginBackground", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGOnlyFirstLoginBackground\WDGOnlyFirstLoginBackground.vcxproj", "{1661D956-39B2-4E02-A332-78744A3F043D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGOnlyFirstLoginBackground", "..\..\WeeDiffGen\Plugins\WDGOnlyFirstLoginBackground\WDGOnlyFirstLoginBackground.vcxproj", "{1661D956-39B2-4E02-A332-78744A3F043D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGOnlySecondLoginBackground", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGOnlySecondLoginBackground\WDGOnlySecondLoginBackground.vcxproj", "{7E168C5F-E4A0-4BE2-A567-9D7ACD897DE9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGOnlySecondLoginBackground", "..\..\WeeDiffGen\Plugins\WDGOnlySecondLoginBackground\WDGOnlySecondLoginBackground.vcxproj", "{7E168C5F-E4A0-4BE2-A567-9D7ACD897DE9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableAsciiInText", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGEnableAsciiInText\WDGEnableAsciiInText.vcxproj", "{5891296D-0DCA-4F18-BBB3-ECA40A1A8A0A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGEnableAsciiInText", "..\..\WeeDiffGen\Plugins\WDGEnableAsciiInText\WDGEnableAsciiInText.vcxproj", "{5891296D-0DCA-4F18-BBB3-ECA40A1A8A0A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveHourlyGameGrade", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRemoveHourlyGameGrade\WDGRemoveHourlyGameGrade.vcxproj", "{1C8FC05A-3BD1-41F2-BA91-76C10E5CF908}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveHourlyGameGrade", "..\..\WeeDiffGen\Plugins\WDGRemoveHourlyGameGrade\WDGRemoveHourlyGameGrade.vcxproj", "{1C8FC05A-3BD1-41F2-BA91-76C10E5CF908}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveHourlyPlaytimeMinder", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRemoveHourlyPlaytimeMinder\WDGRemoveHourlyPlaytimeMinder.vcxproj", "{46A22494-1EFB-4854-806F-48A45367D1BF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveHourlyPlaytimeMinder", "..\..\WeeDiffGen\Plugins\WDGRemoveHourlyPlaytimeMinder\WDGRemoveHourlyPlaytimeMinder.vcxproj", "{46A22494-1EFB-4854-806F-48A45367D1BF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveQuakeSkillEffect", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGRemoveQuakeSkillEffect\WDGRemoveQuakeSkillEffect.vcxproj", "{C8B1D8D3-4E1D-4CA8-BDE3-DD030151C751}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGRemoveQuakeSkillEffect", "..\..\WeeDiffGen\Plugins\WDGRemoveQuakeSkillEffect\WDGRemoveQuakeSkillEffect.vcxproj", "{C8B1D8D3-4E1D-4CA8-BDE3-DD030151C751}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSharedBodyPalettes", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSharedBodyPalettes\WDGSharedBodyPalettes.vcxproj", "{2DBB0D21-9505-4E2B-85B4-51D0D4043D54}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSharedBodyPalettes", "..\..\WeeDiffGen\Plugins\WDGSharedBodyPalettes\WDGSharedBodyPalettes.vcxproj", "{2DBB0D21-9505-4E2B-85B4-51D0D4043D54}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSharedHeadPalettes", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSharedHeadPalettes\WDGSharedHeadPalettes.vcxproj", "{DF686B63-B27A-4645-AA2C-20F3C54A3FD5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSharedHeadPalettes", "..\..\WeeDiffGen\Plugins\WDGSharedHeadPalettes\WDGSharedHeadPalettes.vcxproj", "{DF686B63-B27A-4645-AA2C-20F3C54A3FD5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipPacketHeaderObfuscation", "WeeDiff\WeeDiffGen\WeeDiffGen\WDGSkipPacketHeaderObfuscation\WDGSkipPacketHeaderObfuscation.vcxproj", "{4EB70AE5-2789-4C92-90FF-8590B49CF8C3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WDGSkipPacketHeaderObfuscation", "..\..\WeeDiffGen\Plugins\WDGSkipPacketHeaderObfuscation\WDGSkipPacketHeaderObfuscation.vcxproj", "{4EB70AE5-2789-4C92-90FF-8590B49CF8C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

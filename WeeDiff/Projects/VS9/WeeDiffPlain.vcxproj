@@ -90,11 +90,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="WeeDiffPlain.cpp" />
+    <ClCompile Include="..\..\WeeDiffPlain\WeeDiffPlain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Common\WeeDiffPlugin.h" />
-    <ClInclude Include="WeeDiffPlain.h" />
+    <ClInclude Include="..\..\Common\WeeDiffPlugin.h" />
+    <ClInclude Include="..\..\WeeDiffPlain\WeeDiffPlain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

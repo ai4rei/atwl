@@ -17,30 +17,30 @@
     <ClInclude Include="..\..\Snippets\WeeException.h" />
     <ClInclude Include="..\..\Snippets\WeeMessageBox.h" />
     <ClInclude Include="..\..\Snippets\Window.h" />
-    <ClInclude Include="..\Common\WeeDiffPlugin.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="WeeDiff.h" />
-    <ClInclude Include="WeeGUInterface.h" />
-    <ClInclude Include="WeePluginManager.h" />
-    <ClInclude Include="weeresource.h" />
+    <ClInclude Include="..\..\Common\WeeDiffPlugin.h" />
+    <ClInclude Include="..\..\WeeDiff\resource.h" />
+    <ClInclude Include="..\..\WeeDiff\WeeDiff.h" />
+    <ClInclude Include="..\..\WeeDiff\WeeGUInterface.h" />
+    <ClInclude Include="..\..\WeeDiff\WeePluginManager.h" />
+    <ClInclude Include="..\..\WeeDiff\weeresource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Snippets\Control.cpp" />
     <ClCompile Include="..\..\Snippets\Toolbar.cpp" />
     <ClCompile Include="..\..\Snippets\WeeMessageBox.cpp" />
     <ClCompile Include="..\..\Snippets\Window.cpp" />
-    <ClCompile Include="WeeDiff.cpp" />
-    <ClCompile Include="WeePluginManager.cpp" />
+    <ClCompile Include="..\..\WeeDiff\WeeDiff.cpp" />
+    <ClCompile Include="..\..\WeeDiff\WeePluginManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="WeeDiff.rc" />
+    <ResourceCompile Include="..\..\WeeDiff\WeeDiff.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Snippets\WeeMessageBox.bmp" />
     <None Include="..\..\Snippets\WeeTools.bmp" />
-    <None Include="checkboxes.bmp" />
-    <None Include="icons.ico" />
-    <None Include="imagelist.bmp" />
+    <None Include="..\..\WeeDiff\checkboxes.bmp" />
+    <None Include="..\..\WeeDiff\icons.ico" />
+    <None Include="..\..\WeeDiff\imagelist.bmp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EE433D9B-3B6F-468F-9ACD-C664D37E030D}</ProjectGuid>

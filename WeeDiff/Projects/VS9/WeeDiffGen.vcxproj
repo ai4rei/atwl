@@ -78,22 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Common\WeeDiffGenPlugin.h" />
-    <ClInclude Include="..\Common\WeeDiffPlugin.h" />
-    <ClInclude Include="RagExe.h" />
-    <ClInclude Include="WeeDiffCallback.h" />
-    <ClInclude Include="WeeDiffGen.h" />
-    <ClInclude Include="WeeInputBox.h" />
-    <ClInclude Include="WeePluginManager.h" />
-    <ClInclude Include="WeeUtility.h" />
+    <ClInclude Include="..\..\Common\WeeDiffGenPlugin.h" />
+    <ClInclude Include="..\..\Common\WeeDiffPlugin.h" />
+    <ClInclude Include="..\..\WeeDiffGen\RagExe.h" />
+    <ClInclude Include="..\..\WeeDiffGen\WeeDiffCallback.h" />
+    <ClInclude Include="..\..\WeeDiffGen\WeeDiffGen.h" />
+    <ClInclude Include="..\..\WeeDiffGen\WeeInputBox.h" />
+    <ClInclude Include="..\..\WeeDiffGen\WeePluginManager.h" />
+    <ClInclude Include="..\..\WeeDiffGen\WeeUtility.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RagExe.cpp" />
-    <ClCompile Include="WeeDiffCallback.cpp" />
-    <ClCompile Include="WeeDiffGen.cpp" />
-    <ClCompile Include="WeeInputBox.cpp" />
-    <ClCompile Include="WeePluginManager.cpp" />
-    <ClCompile Include="WeeUtility.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\RagExe.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\WeeDiffCallback.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\WeeDiffGen.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\WeeInputBox.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\WeePluginManager.cpp" />
+    <ClCompile Include="..\..\WeeDiffGen\WeeUtility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
