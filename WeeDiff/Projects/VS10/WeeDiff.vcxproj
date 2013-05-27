@@ -73,9 +73,13 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Program Files\Visual Leak Detector\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files\Visual Leak Detector\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\..\..\Output\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)\..\..\Output\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,6 +94,7 @@
       <PrecompiledHeaderOutputFile>$(OutDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <CompileAs>CompileAsCpp</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,6 +123,7 @@
       </StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
