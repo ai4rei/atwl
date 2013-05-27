@@ -20,8 +20,8 @@
 
 #define _CRTDBG_MAP_ALLOC
 
-#include "../Common/WeeDiffPlugin.h"
-#include "../Common/WeeDiffGenPlugin.h"
+#include <Common/WeeDiffPlugin.h>
+#include <Common/WeeDiffGenPlugin.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

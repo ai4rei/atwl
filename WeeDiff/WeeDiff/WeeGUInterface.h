@@ -18,8 +18,8 @@
 /*	
 /************************************************************************/
 
-#include "../Common/WeeDiffPlugin.h"
-#include "../../Snippets/WeeMessageBox.h"
+#include <Common/WeeDiffPlugin.h>
+#include <Snippets/WeeMessageBox.h>
 
 #include "resource.h"
 #include "weeresource.h"

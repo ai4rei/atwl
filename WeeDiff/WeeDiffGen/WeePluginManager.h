@@ -21,7 +21,7 @@
 #include <tchar.h>
 #include <map>
 
-#include "..\Common\WeeDiffGenPlugin.h"
+#include <Common/WeeDiffGenPlugin.h>
 
 class WeePluginManager
 {

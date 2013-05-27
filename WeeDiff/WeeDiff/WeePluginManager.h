@@ -27,8 +27,8 @@
 #include <map>
 #include <iterator>
 
-#include "..\..\Snippets\WeeException.h"
-#include "..\Common\WeeDiffPlugin.h"
+#include <Snippets/WeeException.h>
+#include <Common/WeeDiffPlugin.h>
 #include "WeeGUInterface.h"
 
 class WeePluginManager

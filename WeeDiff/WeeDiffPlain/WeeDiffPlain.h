@@ -18,7 +18,7 @@
 /*	
 /************************************************************************/
 
-#include "../Common/WeeDiffPlugin.h"
+#include <Common/WeeDiffPlugin.h>
 
 #include <vector>
 #include <map>

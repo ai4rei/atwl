@@ -43,12 +43,11 @@
 #include "WeePluginManager.h"
 #include "WeeGUInterface.h"
 
-#include "..\..\Snippets\Window.h"
-
-#include "..\..\Snippets\WeeMessageBox.h"
-#include "..\..\Snippets\WeeException.h"
-#include "..\..\Snippets\ListView.h"
-#include "..\Common\WeeDiffPlugin.h"
+#include <Snippets/Window.h>
+#include <Snippets/WeeMessageBox.h>
+#include <Snippets/WeeException.h>
+#include <Snippets/ListView.h>
+#include <Common/WeeDiffPlugin.h>
 
 WeeTools::Window *g_window = NULL;
 WeePluginManager *g_wpm = NULL;

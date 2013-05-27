@@ -18,7 +18,7 @@
 /*	
 /************************************************************************/
 
-#include "..\Common\WeeDiffGenPlugin.h"
+#include <Common/WeeDiffGenPlugin.h>
 
 #include "RagExe.h"
 #include "WeeInputBox.h"
