@@ -3,7 +3,7 @@
 
 #define _CRTDBG_MAP_ALLOC
 
-#include "..\..\..\Common\WeeDiffGenPlugin.h"
+#include <WeeDiffGenPlugin.h>
 #include <tchar.h>
 #include <string>
 

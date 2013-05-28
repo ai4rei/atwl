@@ -23,9 +23,9 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 // Bitmap
 //
 
-IDB_WMB                 BITMAP                  "..\\..\\Snippets\\WeeMessageBox.bmp"
+IDB_WMB                 BITMAP                  "..\\Snippets\\WeeMessageBox.bmp"
 IDB_TOOLBAR             BITMAP                  "imagelist.bmp"
-IDB_WEETOOLS            BITMAP                  "..\\..\\Snippets\\WeeTools.bmp"
+IDB_WEETOOLS            BITMAP                  "..\\Snippets\\WeeTools.bmp"
 IDB_CHECKBOXES          BITMAP                  "checkboxes.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -95,19 +95,17 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 
 1 TEXTINCLUDE 
 BEGIN
-    "resource.h\0"
+    "resource.h"
 END
 
 2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
-    "\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
     "\r\n"
-    "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
