@@ -4,8 +4,7 @@ build.bat (primary)
     are fixed ad-hoc.
 
 WeeToolsExpress.sln (updated occasionally)
-    Requires Visual C++ 2010 (any edition). Express Editions will
-    need rigged-in afxres.h for compiling resources.
+    Requires Visual C++ 2010 (any edition).
 
 WeeTools.sln (obsolete)
     Requires Visual Studio 2010 with Visual C++. Will not open
