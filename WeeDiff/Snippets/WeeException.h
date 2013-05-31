@@ -25,9 +25,12 @@
 class WeeException
 {
 public:
-	static const short E_INFO = 0;
-	static const short E_WARNING = 1;
-	static const short E_ERROR = 2;
+	enum
+	{
+		E_INFO = 0,
+		E_WARNING = 1,
+		E_ERROR = 2,
+	};
 
 	WeeException(LPCTSTR lpszMsg, SHORT nType) { m_lpszMsg = lpszMsg; m_nType = nType; }
 
