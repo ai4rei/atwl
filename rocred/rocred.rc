@@ -1,0 +1,106 @@
+// -----------------------------------------------------------------
+// RO Credentials (ROCred)
+// (c) 2012-2013 Ai4rei/AN
+//
+// -----------------------------------------------------------------
+
+#include <windows.h>
+#include "rocred.h"
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+1 ICON DISCARDABLE "app.ico"
+2 ICON DISCARDABLE "small.ico"
+
+1 VERSIONINFO
+FILEVERSION APP_VERSIONINFO_VERSION
+PRODUCTVERSION APP_VERSIONINFO_VERSION
+FILEOS 0x4
+FILETYPE 0x1
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "00000000"
+        BEGIN
+            VALUE "CompanyName", "Ai4rei/AN"
+            VALUE "FileDescription", "ROCred"
+            VALUE "FileVersion", APP_VERSION
+            VALUE "InternalName", "ROCred"
+            VALUE "LegalCopyright", "© 2012-2013 Ai4rei/AN"
+            VALUE "OriginalFilename", "ROCRED.EXE"
+            VALUE "ProductName", "ROCred"
+            VALUE "ProductVersion", APP_VERSION
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0000 0x0000
+    END
+END
+
+1 24 DISCARDABLE
+BEGIN
+    "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>\n"
+    "<assembly\n"
+    "    xmlns=""urn:schemas-microsoft-com:asm.v1""\n"
+    "    manifestVersion=""1.0"">\n"
+    "    <assemblyIdentity\n"
+    "        name=""ROCred""\n"
+    "        processorArchitecture=""x86""\n"
+    "        version="APP_VERSION"\n"
+    "        type=""win32"" />\n"
+    "    <description>ROCred</description>\n"
+    "    <dependency>\n"
+    "        <dependentAssembly>\n"
+    "            <assemblyIdentity\n"
+    "                type=""win32""\n"
+    "                name=""Microsoft.Windows.Common-Controls""\n"
+    "                version=""6.0.0.0""\n"
+    "                processorArchitecture=""x86""\n"
+    "                publicKeyToken=""6595b64144ccf1df""\n"
+    "                language=""*"" />\n"
+    "        </dependentAssembly>\n"
+    "    </dependency>\n"
+    "    <trustInfo xmlns=""urn:schemas-microsoft-com:asm.v2"">\n"
+    "        <security>\n"
+    "            <requestedPrivileges>\n"
+    "                <requestedExecutionLevel\n"
+    "                    level=""asInvoker""\n"
+    "                    uiAccess=""false"" />\n"
+    "            </requestedPrivileges>\n"
+    "        </security>\n"
+    "    </trustInfo>\n"
+    "    <compatibility xmlns=""urn:schemas-microsoft-com:compatibility.v1"">\n"
+    "        <application>\n"
+    "            <!-- Windows Vista -->\n"
+    "            <supportedOS Id=""{e2011457-1546-43c5-a5fe-008deee3d3f0}""/>\n"
+    "            <!-- Windows 7 -->\n"
+    "            <supportedOS Id=""{35138b9a-5d96-4fbd-8e2d-a2440225f93a}""/>\n"
+    "            <!-- Windows 8 -->\n"
+    "            <supportedOS Id=""{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}""/>\n"
+    "        </application>\n"
+    "    </compatibility>\n"
+    "</assembly>"
+END
+
+// You may adjust these to the language you are translating to. See
+// http://msdn.microsoft.com/en-us/library/dd318693(VS.85).aspx for
+// available constants.
+//LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    // length of the strings is limited to 255 characters
+    IDS_USERNAME,       "Username:"
+    IDS_PASSWORD,       "Password:"
+    IDS_CHECKSAVE,      "Save"
+    IDS_TITLE,          "<kindly insert your title here>"
+    IDS_OK,             "OK"
+    IDS_CANCEL,         "Cancel"
+    IDS_USER_NONE,      "Please enter a user name. User name must be at least 4 characters long."
+    IDS_USER_SHRT,      "User name must be at least 4 characters long. Please try again."
+    IDS_PASS_NONE,      "Please enter a password. Password must be at least 4 characters long."
+    IDS_PASS_SHRT,      "Password must be at least 4 characters long. Please try again."
+    IDS_EXE_ERROR,      "Failed to start client."
+END
