@@ -46,53 +46,53 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     switch(uMsg)
     {
         case WM_INITDIALOG:
-        {
-            char szBuffer[4096];
-            BOOL bCheckSave;
-            HINSTANCE hInstance = GetModuleHandleA(NULL);
-
-            SendMessage(hWnd, WM_SETICON, ICON_BIG,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
-            SendMessage(hWnd, WM_SETICON, ICON_SMALL,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
-
-            LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(hWnd, szBuffer);
-
-            LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
-
-            LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
-
-            LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
-
-            LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
-
-            LoadStringA(hInstance, IDS_CANCEL, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
-
-            LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
-
-            bCheckSave = GetPrivateProfileIntA("ROCred", "CheckSave", FALSE, l_szIniFile);
-            SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
-
-            if(bCheckSave)
             {
-                GetPrivateProfileStringA("ROCred", "UserName", "", szBuffer, __ARRAYSIZE(szBuffer), l_szIniFile);
+                char szBuffer[4096];
+                BOOL bCheckSave;
+                HINSTANCE hInstance = GetModuleHandleA(NULL);
 
-                if(szBuffer[0])
+                SendMessage(hWnd, WM_SETICON, ICON_BIG,
+                    (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
+                SendMessage(hWnd, WM_SETICON, ICON_SMALL,
+                    (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
+
+                LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(hWnd, szBuffer);
+
+                LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
+
+                LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
+
+                LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
+
+                LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
+
+                LoadStringA(hInstance, IDS_CANCEL, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
+
+                LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
+                SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
+
+                bCheckSave = GetPrivateProfileIntA("ROCred", "CheckSave", FALSE, l_szIniFile);
+                SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
+
+                if(bCheckSave)
                 {
-                    SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
-                    SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
-                    return FALSE;
+                    GetPrivateProfileStringA("ROCred", "UserName", "", szBuffer, __ARRAYSIZE(szBuffer), l_szIniFile);
+
+                    if(szBuffer[0])
+                    {
+                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
+                        SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
+                        return FALSE;
+                    }
                 }
             }
-        }
-        break;
+            break;
         case WM_COMMAND:
             if(HIWORD(wParam)!=1  && HIWORD(wParam)!=0)
             {
@@ -227,21 +227,21 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_HELP:
-        {
-            DLGABOUTINFO Dai =
             {
-                hWnd,
-                MAKELONG(2012,2013),
-                "About ROCred...",
-                "ROCred",
-                APP_VERSION,
-                "Ai4rei/AN",
-                "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
-            };
+                DLGABOUTINFO Dai =
+                {
+                    hWnd,
+                    MAKELONG(2012,2013),
+                    "About ROCred...",
+                    "ROCred",
+                    APP_VERSION,
+                    "Ai4rei/AN",
+                    "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
+                };
 
-            DlgAbout(&Dai);
-        }
-        break;
+                DlgAbout(&Dai);
+            }
+            break;
         default:
             return FALSE;
     }
