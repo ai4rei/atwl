@@ -7,12 +7,13 @@
 #ifndef _ROCRED_H_
 #define _ROCRED_H_
 
-#define APP_VERSION "1.1.0.0"
-#define APP_VERSIONINFO_VERSION 1,1,0,0
+#define APP_VERSION "1.2.0.0"
+#define APP_VERSIONINFO_VERSION 1,2,0,0
 
 #define IDC_USERNAME  101
 #define IDC_PASSWORD  102
 #define IDC_CHECKSAVE 103
+#define IDB_REPLAY    104
 #define IDS_USERNAME  1001
 #define IDS_PASSWORD  1002
 #define IDS_CHECKSAVE 1003
@@ -24,5 +25,6 @@
 #define IDS_PASS_NONE 1009
 #define IDS_PASS_SHRT 1010
 #define IDS_EXE_ERROR 1011
+#define IDS_REPLAY    1012
 
 #endif  /* _ROCRED_H_ */

@@ -91,7 +91,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 STRINGTABLE DISCARDABLE
 BEGIN
-    // length of the strings is limited to 255 characters
+    // length of the strings is limited to 4096 characters
     IDS_USERNAME,       "Username:"
     IDS_PASSWORD,       "Password:"
     IDS_CHECKSAVE,      "Save"
@@ -103,4 +103,5 @@ BEGIN
     IDS_PASS_NONE,      "Please enter a password. Password must be at least 4 characters long."
     IDS_PASS_SHRT,      "Password must be at least 4 characters long. Please try again."
     IDS_EXE_ERROR,      "Failed to start client."
+    IDS_REPLAY,         "Replay"
 END

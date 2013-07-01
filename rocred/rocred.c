@@ -24,6 +24,7 @@ static const DLGTEMPLATEITEMINFO l_DlgItems[] =
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   73,     43, 110,    10, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_DEFPUSHBUTTON|WS_TABSTOP,                        0, IDOK,            79,     61, 50,     14, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_PUSHBUTTON|WS_TABSTOP,                           0, IDCANCEL,        133,    61, 50,     14, },
+    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_PUSHBUTTON|WS_TABSTOP,                           0, IDB_REPLAY,      7,      61, 50,     14, },
 };
 static const DLGTEMPLATEINFO l_DlgTempl =
 {
@@ -73,6 +74,9 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             LoadStringA(hInstance, IDS_CANCEL, szBuffer, __ARRAYSIZE(szBuffer));
             SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
 
+            LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
+            SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
+
             bCheckSave = GetPrivateProfileIntA("ROCred", "CheckSave", FALSE, l_szIniFile);
             SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
 
@@ -96,6 +100,46 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else switch(LOWORD(wParam))
             {
+                case IDB_REPLAY:
+                    {
+                        char szExePath[MAX_PATH];
+                        char szExeName[MAX_PATH];
+                        char szExeType[16];
+                        char szBuffer[4096];
+                        HINSTANCE hInstance = GetModuleHandleA(NULL);
+                        STARTUPINFO Si = { sizeof(Si) };
+                        PROCESS_INFORMATION Pi;
+
+                        GetPrivateProfileStringA("ROCred", "ExeName", "", szExeName, __ARRAYSIZE(szExeName), l_szIniFile);
+                        GetPrivateProfileStringA("ROCred", "ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType), l_szIniFile);
+                        {
+                            char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
+
+                            for(; lpszSlash[-1]!='\\'; lpszSlash--);
+                            lpszSlash[0] = 0;
+                            lstrcat(szExePath, szExeName);
+                        }
+
+                        // Replay mode
+                        wsprintfA(szBuffer, "\"%s\" -t:Replay %s", szExePath, szExeType);
+
+                        if(CreateProcessA(szExePath, szBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
+                        {
+                            CloseHandle(Pi.hThread);
+                            CloseHandle(Pi.hProcess);
+                        }
+                        else
+                        {
+                            DWORD dwLastError = GetLastError();
+                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
+                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            LoadStringA(hInstance, IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
+                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                        }
+                    }
+                    EndDialog(hWnd, 1);
+                    break;
                 case IDOK:
                     {
                         char szUserName[24];
@@ -207,7 +251,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
-    unsigned char ucDlgBuf[248];
+    unsigned char ucDlgBuf[264];
     unsigned long luLen, luDlgBufSize = sizeof(ucDlgBuf);
 
     GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
