@@ -41,6 +41,47 @@ static const DLGTEMPLATEINFO l_DlgTempl =
 };
 static char l_szIniFile[MAX_PATH];
 
+// Waits for an process to exit, while keeping the application idle,
+// responsive and hidden.
+static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
+{
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+    NOTIFYICONDATA Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
+
+    ShowWindow(hWnd, SW_MINIMIZE);
+    Sleep(200);  // animation
+    ShowWindow(hWnd, SW_HIDE);
+
+    // set up notification icon (no 'auto restore' or 'load later')
+    Nid.hIcon = LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED);
+    LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
+    Shell_NotifyIcon(NIM_ADD, &Nid);
+
+    // go idle
+    SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+
+    // stay aware and wait for process to exit
+    while(MsgWaitForMultipleObjects(1, &hProcess, FALSE, INFINITE, QS_ALLINPUT)!=WAIT_OBJECT_0)
+    {
+        MSG Msg;
+
+        while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+        {
+            if(!IsDialogMessage(hWnd, &Msg))
+            {
+                TranslateMessage(&Msg);
+                DispatchMessage(&Msg);
+            }
+        }
+    }
+
+    // return to normal
+    SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+    Shell_NotifyIcon(NIM_DELETE, &Nid);
+    ShowWindow(hWnd, SW_SHOWMINIMIZED);
+    ShowWindow(hWnd, SW_RESTORE);
+}
+
 static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
@@ -125,6 +166,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                         if(CreateProcessA(szExePath, szBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
                         {
+                            IdleWaitProcess(hWnd, Pi.hProcess);
                             CloseHandle(Pi.hThread);
                             CloseHandle(Pi.hProcess);
                         }
@@ -138,7 +180,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
                         }
                     }
-                    EndDialog(hWnd, 1);
+                    //EndDialog(hWnd, 1);
                     break;
                 case IDOK:
                     {
@@ -206,6 +248,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                         if(CreateProcessA(szExePath, szBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
                         {
+                            IdleWaitProcess(hWnd, Pi.hProcess);
                             CloseHandle(Pi.hThread);
                             CloseHandle(Pi.hProcess);
                         }
@@ -219,7 +262,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
                         }
                     }
-                    EndDialog(hWnd, 1);
+                    //EndDialog(hWnd, 1);
                     break;
                 case IDCANCEL:
                     EndDialog(hWnd, 0);
