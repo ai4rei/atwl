@@ -35,7 +35,7 @@ void __stdcall CError::ErrorMessageFromStringImpl(HWND hWnd, DWORD dwLastError, 
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szFmtSystem, __ARRAYSIZE(szFmtSystem), NULL);
 
     // build final message
-    snprintf(szFinal, __ARRAYSIZE(szFinal), "%s\r\n\r\n%s: %s", szFmtError, szStrSystem, szFmtSystem);
+    snprintf(szFinal, __ARRAYSIZE(szFinal), "%s\r\n\r\n%s (0x%08x, %lu):\r\n%s", szFmtError, szStrSystem, dwLastError, dwLastError, szFmtSystem);
 
     MessageBox(hWnd, szFinal, szStrTitle, MB_OK|MB_ICONSTOP);
 }

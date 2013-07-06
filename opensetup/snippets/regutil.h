@@ -30,7 +30,9 @@ typedef struct REGUTILSAVEINFO
 REGUTILSAVEINFO,* LPREGUTILSAVEINFO;
 typedef const struct REGUTILSAVEINFO* LPCREGUTILSAVEINFO;
 
-bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements);
-bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements);
+bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements, long* lplLastError);
+bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements, long* lplLastError);
+
+void __stdcall RegUtilDrop(HKEY hKey, const char* lpszSubKey);
 
 #endif  /* _REGUTIL_H_ */

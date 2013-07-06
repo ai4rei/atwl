@@ -15,7 +15,7 @@
 #include "resource.h"
 #include "ui.h"
 
-void __stdcall UI::BatchMessage(HWND hWnd, struct UIBatchList* lpBatchList, unsigned long luItems)
+void __stdcall UI::BatchMessage(HWND hWnd, LPCBATCHLIST lpBatchList, unsigned long luItems)
 {
     unsigned long i;
 
@@ -131,8 +131,14 @@ void __stdcall UI::SetFont(HWND hWnd, HFONT hFont)
     InvalidateRect(hWnd, NULL, TRUE);  // reflect change
 }
 
+bool __stdcall UI::GetCheckBoxTick(HWND hWnd, int nId)
+{
+    return IsDlgButtonChecked(hWnd, nId)!=BST_UNCHECKED;
+}
+
 void __stdcall UI::HHLite(HWND hWnd, LPHELPINFO lpHi)
 {
+    static char szLastMsg[4096+1] = { 0 };
     HH_POPUP Popup;
 
     if(lpHi->cbSize<sizeof(HELPINFO))
@@ -165,10 +171,15 @@ void __stdcall UI::HHLite(HWND hWnd, LPHELPINFO lpHi)
         return;
     }
 
+    if(!LoadStringA(GetModuleHandle(NULL), lpHi->iCtrlId, szLastMsg, __ARRAYSIZE(szLastMsg)))
+    {// no such string
+        return;
+    }
+
     Popup.cbStruct = sizeof(Popup);
-    Popup.hinst = GetModuleHandle(NULL);
-    Popup.idString = lpHi->iCtrlId;
-    Popup.pszText = NULL;
+    Popup.hinst = NULL;  // GetModuleHandle(NULL);
+    Popup.idString = 0;  // lpHi->iCtrlId;
+    Popup.pszText = szLastMsg;
     Popup.pt.x = lpHi->MousePos.x;     // has no effect
     Popup.pt.y = lpHi->MousePos.y+16;  // NOTE: offset coords so that the window does not cover the control completely
     Popup.clrForeground = -1;
@@ -179,4 +190,25 @@ void __stdcall UI::HHLite(HWND hWnd, LPHELPINFO lpHi)
     Popup.rcMargins.bottom = -1;
     Popup.pszFont = "Tahoma, 8";
     HtmlHelp((HWND)lpHi->hItemHandle, NULL, HH_DISPLAY_TEXT_POPUP, (DWORD)&Popup);
+}
+
+BOOL CALLBACK UI::SetFocusFirstChildEach(HWND hWnd, LPARAM lParam)
+{
+    if(IsWindowEnabled(hWnd) /* enabled */ && IsWindowVisible(hWnd) /* visible */ && (GetWindowLong(hWnd, GWL_STYLE)&WS_TABSTOP) /* is tabbable */)
+    {
+        SetFocus(hWnd);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void __stdcall UI::SetFocusFirstChild(HWND hWnd)
+{
+    EnumChildWindows(hWnd, &UI::SetFocusFirstChildEach, 0);
+}
+
+bool __stdcall UI::IsRemoteSession(void)
+{
+    return GetSystemMetrics(SM_REMOTESESSION)!=0;
 }

@@ -195,6 +195,8 @@ static BOOL CALLBACK ROExtTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 {
     switch(uMsg)
     {
+        case WM_INITDIALOG:
+            return FALSE;
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
@@ -307,12 +309,12 @@ void __stdcall CROExt::GetTab(void)
     {
         int i;
 
-        this->Settings.Set(ROESE_MOUSEFREEDOM,      SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_MOUSEFREEDOM),      BM_GETCHECK, 0, 0));
-        this->Settings.Set(ROESE_REMAPMOUSEBUTTONS, SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_REMAPMOUSEBUTTONS), BM_GETCHECK, 0, 0));
-        this->Settings.Set(ROESE_REMAPALTF4,        SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_REMAPALTF4),        BM_GETCHECK, 0, 0));
-        this->Settings.Set(ROESE_AUTOFREECPU,       SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_AUTOFREECPU),       BM_GETCHECK, 0, 0));
-        this->Settings.Set(ROESE_WINDOWONTOP,       SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_WINDOWONTOP),       BM_GETCHECK, 0, 0));
-        this->Settings.Set(ROESE_WINDOWLOCK,        SendMessage(GetDlgItem(this->hWnd, IDCHECKBOX_WINDOWLOCK),        BM_GETCHECK, 0, 0));
+        this->Settings.Set(ROESE_MOUSEFREEDOM,      UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_MOUSEFREEDOM)     );
+        this->Settings.Set(ROESE_REMAPMOUSEBUTTONS, UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_REMAPMOUSEBUTTONS));
+        this->Settings.Set(ROESE_REMAPALTF4,        UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_REMAPALTF4)       );
+        this->Settings.Set(ROESE_AUTOFREECPU,       UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_AUTOFREECPU)      );
+        this->Settings.Set(ROESE_WINDOWONTOP,       UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_WINDOWONTOP)      );
+        this->Settings.Set(ROESE_WINDOWLOCK,        UI::GetCheckBoxTick(this->hWnd, IDCHECKBOX_WINDOWLOCK)       );
 
         if((i = SendMessage(GetDlgItem(this->hWnd, IDCOMBOBOX_CODEPAGE), CB_GETCURSEL, 0, 0))!=CB_ERR)
         {
@@ -328,7 +330,7 @@ void __stdcall CROExt::SetTab(void)
     if(this->bIsPresent)
     {
         unsigned long i;
-        struct UIBatchList lpBatchList[] =
+        UI::BATCHLIST lpBatchList[] =
         {
             // Initialize check boxes
             { IDCHECKBOX_MOUSEFREEDOM,      BM_SETCHECK,  (WPARAM)this->Settings.Get(ROESE_MOUSEFREEDOM),           0 },

@@ -73,7 +73,7 @@ void __stdcall CLuaIO::Error(void)
     {
         if(lua_isstring(this->L, -1) && (lpszErrMsg = lua_tostring(this->L, -1))!=NULL)
         {
-            CError::ErrorMessageFromStringEx(NULL, TEXT_ERROR__TITLE, "%s", lpszErrMsg);
+            CError::ErrorMessageFromStringEx(NULL, TEXT_ERROR__TITLE_LUA, "%s", lpszErrMsg);
         }
 
         // pop the error message from stack (from lua_pcall)
@@ -190,9 +190,10 @@ bool __stdcall CLuaIO::Load(const char* lpszName)
                 {
                     return true;
                 }
-
-                this->Error();
             }
+
+            // either load and pcall push a message in case of error
+            this->Error();
         }
     }
 

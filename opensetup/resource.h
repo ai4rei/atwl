@@ -13,12 +13,13 @@
 #define IDI_APPLICATION_SMALL           2
 #define IDI_ENGINE_REG                  3
 #define IDI_ENGINE_LUA                  4
+#define IDI_PROBLEM                     5
 
 // Bitmaps
 #define IDB_LOGO                        2001
-#define IDB_IMAGELIST32                 2002
-#define IDB_IMAGELIST                   2003
-#define IDB_IMAGELIST_MASK              2004
+#define IDB_IMAGELIST_MASK              2002
+#define IDB_IMAGELIST_24BP              2004
+#define IDB_IMAGELIST_32BP              2005
 
 // Imagelist Indexes
 #define IMI_VIDEO                       0
@@ -36,6 +37,11 @@
 #define IDD_TAB_SETUP                   104
 #define IDD_TAB_ROEXT                   105
 #define IDD_TAB_ABOUT                   106
+
+// Accelerators
+#define IDA_MAIN_DIALOG                 1
+#define IDC_TABNEXT                     200
+#define IDC_TABPREV                     201
 
 // Controls (Video, Sound, Setup)
 #define IDCOMBOBOX_VIDEODEVICE          1000
@@ -77,6 +83,12 @@
 #define IDCHECKBOX_ISSOUNDON            1042
 #define IDCHECKBOX_MOUSEEXCLUSIVE       1043
 #define IDCHECKBOX_TRILINEARFILTER      1044
+#define IDCHECKBOX_RESETWINDOWS         1045
+#define IDCHECKBOX_RESETSKILLLV         1046
+#define IDCHECKBOX_RESETFOLDER          1047
+#define IDCHECKBOX_RESETSETTING         1048
+#define IDINFOICON_VIDEO_REMOTESESSION  1049
+#define IDCHECKBOX_SKILLSNAP            1050
 
 // Controls (ROExt)
 #define IDCHECKBOX_MOUSEFREEDOM         1000
@@ -183,6 +195,16 @@
 #define TEXT_DLG_ABOUT_OPENSETUP        8255
 #define TEXT_DLG_LIST_CP_DEFAULT        8256
 #define TEXT_DLG_LIST_CP_UNKNOWN        8257
+#define TEXT_DLG_COMMANDS               8258
+#define TEXT_DLG_RESET_RESTORE          8259
+#define TEXT_DLG_RESET_WINDOWS          8260
+#define TEXT_DLG_RESET_SKILLLV          8261
+#define TEXT_DLG_RESET_FOLDER           8262
+#define TEXT_DLG_RESET_SETTING          8263
+#define TEXT_DLG_CMD_SKILLSNAP          8264
+
+// Misc Messages
+#define TEXT_MISC_DRAGSIZE_INFO         8900
 
 // Error Messages
 #define TEXT_ERROR__TITLE               9000
@@ -200,13 +222,15 @@
 #define TEXT_ERROR_FILE_OPEN            9012
 #define TEXT_ERROR_DIRECTORY_CREATE     9013
 #define TEXT_ERROR_ROEXT_WRITE          9014
+#define TEXT_ERROR_IPC_FAILED           9015
+#define TEXT_ERROR_UNKNOWN_ENGINE       9016
 
 // Font
 #define DLG_FONT_NAME "Tahoma"
 #define DLG_FONT_SIZE 8
 
-#define APP_VERSION "2.6.5.207"
-#define APP_VERSIONINFO_VERSION 2,6,5,207
+#define APP_VERSION "2.8.0.277"
+#define APP_VERSIONINFO_VERSION 2,8,0,277
 #define WITHOUT_BANNER
 
 // About

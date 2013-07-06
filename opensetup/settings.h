@@ -23,56 +23,68 @@ typedef enum SETTINGENTRY
     SE_BITPERPIXEL,
     SE_DEVICECNT,
     SE_MODECNT,
-    SE_ISVOODOO,        // REG
+    SE_ISVOODOO,            // REG
     SE_ISLIGHTMAP,
     SE_SPRITEMODE,
     SE_TEXTUREMODE,
-    SE_NUMSAMPLETYPE,   // REG
+    SE_NUMSAMPLETYPE,       // REG
     SE_FOG,
-    SE_SOUNDMODE,       // REG, even on LUA with values 0 and 1 only.
-    SE_SPEAKERTYPE,     // REG, even on LUA with value 0.
-    SE_DIGITALRATETYPE, // REG, even on LUA with value 0.
-    SE_DIGITALBITSTYPE, // REG, even on LUA with value 0.
-    SE_GUIDDRIVER,      // REG, even on LUA.
-    SE_GUIDDEVICE,      // REG, even on LUA.
-    SE_DEVICENAME,      // REG, even on LUA.
-    SE_PROVIDERNAME,    // REG, even on LUA with value "8—A".
+    SE_SOUNDMODE,           // REG, even on LUA with values 0 and 1 only.
+    SE_SPEAKERTYPE,         // REG, even on LUA with value 0.
+    SE_DIGITALRATETYPE,     // REG, even on LUA with value 0.
+    SE_DIGITALBITSTYPE,     // REG, even on LUA with value 0.
+    SE_GUIDDRIVER,          // REG, even on LUA.
+    SE_GUIDDEVICE,          // REG, even on LUA.
+    SE_DEVICENAME,          // REG, even on LUA.
+    SE_PROVIDERNAME,        // REG, even on LUA with value "8—A".
     // added-value
-    SE_SHOWTIPSATSTARTUP,
+    SE_SHOWTIPSATSTARTUP,   // REG, even on LUA.
     SE_TRILINEARFILTER,
     // 2.0
     SE_STREAMVOLUME,
     SE_SOUNDVOLUME,
-    SE_MOUSEEXCLUSIVE,  // LUA
+    SE_MOUSEEXCLUSIVE,      // LUA
     SE_BGMISPAUSED,
     SE_ISSOUNDON,
-    SE_NOTRADE,         // LUA
-    SE_NOSHIFT,         // LUA
+    SE_NOTRADE,             // LUA
+    SE_NOSHIFT,             // LUA
     SE_NOCTRL,
-    SE_SKILLFAIL,       // LUA
-    SE_NOTALKMSG,       // LUA
-    SE_NOTALKMSG2,      // LUA
-    SE_SHOWNAME,        // LUA
-    SE_AURA,            // LUA
-    SE_WINDOW,          // LUA
+    SE_SKILLFAIL,           // LUA
+    SE_NOTALKMSG,           // LUA
+    SE_NOTALKMSG2,          // LUA
+    SE_SHOWNAME,            // LUA
+    SE_AURA,                // LUA
+    SE_WINDOW,              // LUA
     SE_MAKEMISSEFFECT,
     SE_ISEFFECTON,
-    SE_SHOPPING,        // LUA
-    SE_STATEINFO,       // LUA
-    SE_LOGINOUT,        // LUA
+    SE_SHOPPING,            // LUA
+    SE_STATEINFO,           // LUA
+    SE_LOGINOUT,            // LUA
     SE_SNAP,
     SE_ISITEMSNAP,
+    SE_SKILLSNAP,
     SE_ISFIXEDCAMERA,
     SE_ONHOUSERAI,
     SE_ONMERUSERAI,
 }
 SETTINGENTRY;
 
+typedef enum SETTINGFLAG
+{
+    SF_RESET_UI         = 0x1,
+    SF_RESET_SKILLLEVEL = 0x2,
+    SF_RESET_USERDATA   = 0x4,
+    SF_RESET_SETTING    = 0x8,
+    //
+    SF__ALL_FLAGS       = SF_RESET_UI|SF_RESET_SKILLLEVEL|SF_RESET_USERDATA|SF_RESET_SETTING
+}
+SETTINGFLAG;
+
 typedef struct SETTINGSENTRIES
 {
     unsigned long ISFULLSCREENMODE; // Whether the game is runs in full screen (1) or not (0).
-    unsigned long WIDTH;            // Width of the window or full screen in pixel.
-    unsigned long HEIGHT;           // Height of the window or full screen in pixel.
+    unsigned long WIDTH;            // Width of the window or full screen in pixels.
+    unsigned long HEIGHT;           // Height of the window or full screen in pixels.
     unsigned long BITPERPIXEL;      // Color bit depth used in window or full screen in BPP.
     unsigned long DEVICECNT;        // Driver/Device selection zero-based combo box index.
     unsigned long MODECNT;          // Mode selection zero-based combo box index.
@@ -112,6 +124,7 @@ typedef struct SETTINGSENTRIES
     unsigned long LOGINOUT;         // Whether /loginout is turned on (1) or not (0).
     unsigned long SNAP;             // Whether /snap is turned on (1) or not (0).
     unsigned long ISITEMSNAP;       // Whether /itemsnap is turned on (1) or not (0).
+    unsigned long SKILLSNAP;        // Whether /skillsnap is turned on (1) or not (0).
     unsigned long ISFIXEDCAMERA;    // Whether /camera is turned on (1) or not (0).
     unsigned long ONHOUSERAI;       // Whether /hoai is turned on (1) or not (0).
     unsigned long ONMERUSERAI;      // Whether /merai is turned on (1) or not (0).
@@ -126,18 +139,28 @@ SETTINGSENTRIES;
 class CSettings
 {
 protected:
+    static void __stdcall DropFolders(const char* lpszFolders);
+    static void __stdcall DropFolderList(const char** lppszList, unsigned long luItems);
+
+protected:
     SETTINGSENTRIES m_Entries;
+    int m_nFlags;
 
 public:
     unsigned long __stdcall Get(SETTINGENTRY nEntry);
     void __stdcall Set(SETTINGENTRY nEntry, unsigned long luValue);
     void __stdcall Set(SETTINGENTRY nEntry, GUID* lpGuid);
     void __stdcall Set(SETTINGENTRY nEntry, const char* lpszString);
+    void __stdcall Set(SETTINGFLAG nFlag, bool bState);
     unsigned long __stdcall SaveToIPC(void);
     void __stdcall LoadFromIPC(unsigned long luHash);
-    virtual void __stdcall Save(void) = 0;
+    virtual bool __stdcall Save(void) = 0;
     virtual void __stdcall Load(void) = 0;
     virtual void __stdcall Reset(void) = 0;
+    virtual void __stdcall ResetUI(void);
+    virtual void __stdcall ResetSkillLevel(void);
+    virtual void __stdcall ResetUserData(void);
+    virtual void __stdcall ResetSettings(void) = 0;
     virtual bool __stdcall IsAvail(SETTINGENTRY nEntry) = 0;
     virtual bool __stdcall IsAdminRequired(void) = 0;
     virtual SETTINGENGINEID __stdcall GetEngineID(void) = 0;

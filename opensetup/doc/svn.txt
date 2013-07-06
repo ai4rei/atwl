@@ -1,5 +1,632 @@
 ------------------------------------------------------------------------
-r1508 | Ai4rei | 2013-04-28 12:47:38 +0100 | 1 line
+r1644 | Ai4rei | 2013-07-02 21:23:04 +0200 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.8.0.
+------------------------------------------------------------------------
+r1643 | Ai4rei | 2013-07-02 21:21:31 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
++ Added a visual cue for saving to indicate when it is done.
+------------------------------------------------------------------------
+r1642 | Ai4rei | 2013-07-02 20:57:56 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+! Fixed UI could be modified while the invoking instance was waiting for IPC to complete.
+------------------------------------------------------------------------
+r1641 | Ai4rei | 2013-07-02 18:31:20 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/settings.cpp
+
+! Fixed settings flags not being parts of the IPC data.
+------------------------------------------------------------------------
+r1640 | Ai4rei | 2013-07-02 18:28:50 +0200 | 1 line
+Changed paths:
+   M /opensetup/ui.cpp
+
+! Fixed DragSize window appearing at seemingly random positions.
+------------------------------------------------------------------------
+r1639 | Ai4rei | 2013-07-02 18:18:27 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+! Fixed dependent reset-checkboxes not getting enabled when using 'Apply' button.
+------------------------------------------------------------------------
+r1638 | Ai4rei | 2013-07-02 17:50:40 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Reverted r1624. Jumping into conclusions without looking is not healthy.
+------------------------------------------------------------------------
+r1637 | Ai4rei | 2013-07-02 17:47:11 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* DragSize button is now disabled, when there are no resolutions.
+------------------------------------------------------------------------
+r1636 | Ai4rei | 2013-07-02 17:23:20 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/warning.ico
+
+* Revised warning icon to be brighter and less blurred.
+------------------------------------------------------------------------
+r1635 | Ai4rei | 2013-07-02 17:14:45 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/EvilPuncker (pt-BR).txt
+
+
+------------------------------------------------------------------------
+r1634 | Ai4rei | 2013-07-02 17:14:35 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+! Fixed Spanish Spanish translation not getting included in the build.
+------------------------------------------------------------------------
+r1633 | Ai4rei | 2013-07-02 17:12:40 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/pt_br.rc
+
+* Updated Brazilian Portuguese localization.
+------------------------------------------------------------------------
+r1632 | Ai4rei | 2013-06-30 09:52:44 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/kr.rc
+
+* Some work on Korean.
+------------------------------------------------------------------------
+r1631 | Ai4rei | 2013-06-30 09:29:58 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/jaBote (es-ES).txt
+   M /opensetup/doc/history.txt
+   M /opensetup/res/i18n/es_es.rc
+
+* Updated Spanish localization.
+------------------------------------------------------------------------
+r1630 | Ai4rei | 2013-06-30 09:28:19 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/jp.rc
+
+* Some work on Japanese.
+------------------------------------------------------------------------
+r1629 | Ai4rei | 2013-06-30 09:27:45 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+
++ Added help texts for reset features.
+------------------------------------------------------------------------
+r1628 | Ai4rei | 2013-06-29 08:20:50 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+* Updated 'reset all' to exclude client generated data, as those aren't technically settings.
+------------------------------------------------------------------------
+r1627 | Ai4rei | 2013-06-25 21:31:52 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/EvilPuncker (pt-BR).txt
+   M /opensetup/doc/history.txt
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/opensetup.rc
+
+* Updated Brazilian Portuguese localization.
+------------------------------------------------------------------------
+r1626 | Ai4rei | 2013-06-25 20:37:10 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Whitespace.
+------------------------------------------------------------------------
+r1625 | Ai4rei | 2013-06-25 20:30:08 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/build.txt
+
+* Mention DX SDK in build instructions.
+------------------------------------------------------------------------
+r1624 | Ai4rei | 2013-06-25 19:42:43 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+- Removed unneeded icon definition.
+------------------------------------------------------------------------
+r1623 | Ai4rei | 2013-06-25 19:28:26 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Reordered commands to be A-Z.
+------------------------------------------------------------------------
+r1622 | Ai4rei | 2013-06-25 18:52:34 +0200 | 1 line
+Changed paths:
+   M /opensetup/ui.cpp
+
+! Fixed glitches with dragsize when dragging left or top border.
+------------------------------------------------------------------------
+r1621 | Ai4rei | 2013-06-25 17:55:22 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/imagelist-mask.bmp
+   M /opensetup/res/imagelist.gal
+   M /opensetup/res/imagelist04.bmp
+   M /opensetup/res/imagelist24.bmp
+   M /opensetup/res/imagelist32.bmp
+
+* Updated graphics icon.
+------------------------------------------------------------------------
+r1620 | Ai4rei | 2013-06-24 05:16:02 +0200 | 2 lines
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
++ Added /skillsnap.
+! Fixed German help texts for /snap and /itemsnap.
+------------------------------------------------------------------------
+r1619 | Ai4rei | 2013-06-23 17:52:38 +0200 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+
+* Revised certain comments.
+------------------------------------------------------------------------
+r1618 | Ai4rei | 2013-06-23 13:40:18 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/luaio.cpp
+
+! Fixed LUA engine not reporting parse errors.
+------------------------------------------------------------------------
+r1617 | Ai4rei | 2013-06-23 13:03:00 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/savedata/OptionInfo.lua
+   M /opensetup/settings_lua.cpp
+
+* Preparations for new options.
+------------------------------------------------------------------------
+r1616 | Ai4rei | 2013-06-23 10:46:21 +0200 | 1 line
+Changed paths:
+   A /opensetup/res/dragsize.ico
+
+
+------------------------------------------------------------------------
+r1615 | Ai4rei | 2013-06-23 10:45:50 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Implemented size by drag for video resolution.
+------------------------------------------------------------------------
+r1614 | Ai4rei | 2013-06-23 07:39:14 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/roext.cpp
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+! Fixed BatchList scope and naming-style.
+------------------------------------------------------------------------
+r1613 | Ai4rei | 2013-06-23 07:29:03 +0200 | 2 lines
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+
++ Added button for resolution by drag.
+* Adjusted code of semi-related relatives.
+------------------------------------------------------------------------
+r1612 | Ai4rei | 2013-06-22 21:03:19 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+
+------------------------------------------------------------------------
+r1611 | Ai4rei | 2013-06-22 21:00:19 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+   A /opensetup/res/warning.ico
+   M /opensetup/resource.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+* Give RDP users a hint, why the device list is empty.
+------------------------------------------------------------------------
+r1610 | Ai4rei | 2013-06-22 19:32:02 +0200 | 1 line
+Changed paths:
+   M /opensetup/config.cpp
+   M /opensetup/config.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.h
+   M /opensetup/opensetup.ini
+   M /opensetup/settings.cpp
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+* Made "HKLM to HKCU" to be configurable rather than compile-time.
+------------------------------------------------------------------------
+r1609 | Ai4rei | 2013-06-22 18:14:06 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+   M /opensetup/ui.cpp
+
+! Fixed first control not being marked properly on NT platforms.
+------------------------------------------------------------------------
+r1608 | Ai4rei | 2013-06-22 03:45:55 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/pt_br.rc
+
+* Aceptar has changed to OK in newer Windows versions.
+------------------------------------------------------------------------
+r1607 | Ai4rei | 2013-06-20 22:04:58 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/resource.h
+
+* Release 2.7.0 Fixed.
+------------------------------------------------------------------------
+r1606 | Ai4rei | 2013-06-20 21:58:51 +0200 | 1 line
+Changed paths:
+   M /opensetup/snippets/regutil.cpp
+
+* Receiving buffer for not-found entries is no longer cleared.
+------------------------------------------------------------------------
+r1605 | Ai4rei | 2013-06-20 21:57:39 +0200 | 1 line
+Changed paths:
+   M /opensetup/settings_reg.cpp
+
+! Fixed BGM default volume (REG).
+------------------------------------------------------------------------
+r1604 | Ai4rei | 2013-06-20 21:20:26 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/resource.h
+
+* Release 2.7.0.
+------------------------------------------------------------------------
+r1603 | Ai4rei | 2013-06-20 21:09:01 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/ui.cpp
+
+* Increased size available for help texts to 4096 characters.
+------------------------------------------------------------------------
+r1602 | Ai4rei | 2013-06-20 20:08:54 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+
+- Removed reset help texts for now, 255 chars is not enough to explain them properly.
+------------------------------------------------------------------------
+r1601 | Ai4rei | 2013-06-20 16:05:08 +0200 | 1 line
+Changed paths:
+   A /opensetup/config.cpp
+   A /opensetup/config.h
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+
+* Updated config reading to use config file from executable's path rather than 'current path'.
+------------------------------------------------------------------------
+r1600 | Ai4rei | 2013-06-20 12:58:46 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   A /opensetup/opensetup.ini
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+
++ Added support for configurable settings engine.
+------------------------------------------------------------------------
+r1599 | Ai4rei | 2013-06-19 22:35:15 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+! Fixed process left running even when window was closed.
+------------------------------------------------------------------------
+r1598 | Ai4rei | 2013-06-19 21:58:47 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/tab.cpp
+   M /opensetup/tab.h
+
+! Fixed Ctrl+TAB not switching tabs.
+------------------------------------------------------------------------
+r1597 | Ai4rei | 2013-06-19 20:32:52 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.rc
+   M /opensetup/roext.cpp
+   M /opensetup/tab.cpp
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
+! Fixed first control on each tab not getting selected when changing to that tab.
+------------------------------------------------------------------------
+r1596 | Ai4rei | 2013-06-19 20:30:17 +0200 | 1 line
+Changed paths:
+   A /opensetup/doc/opensetup.qr.ico
+
+
+------------------------------------------------------------------------
+r1595 | Ai4rei | 2013-06-19 20:30:06 +0200 | 1 line
+Changed paths:
+   D /opensetup/build-nightly.bat
+
+- Removed nightly build script, not different from normal builder.
+------------------------------------------------------------------------
+r1594 | Ai4rei | 2013-06-19 19:19:50 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+! Fixed TAB accessibility issues.
+------------------------------------------------------------------------
+r1558 | Ai4rei | 2013-06-01 21:53:26 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Increased height to comply accesibility rules.
+------------------------------------------------------------------------
+r1557 | Ai4rei | 2013-06-01 21:41:31 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/roext.cpp
+
+* Replaced BM_GETCHECK message calls with UI::GetCheckBoxTick.
+------------------------------------------------------------------------
+r1556 | Ai4rei | 2013-06-01 21:32:01 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/opensetup.dsp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/es_es.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+   M /opensetup/resource.h
+   M /opensetup/settings.cpp
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+   M /opensetup/ui.cpp
+   M /opensetup/ui.h
+
++ Added support for resetting settings and user data.
+------------------------------------------------------------------------
+r1545 | Ai4rei | 2013-05-17 18:20:58 +0200 | 1 line
+Changed paths:
+   A /opensetup/dev/translations/jaBote (es-ES).txt
+   M /opensetup/doc/history.txt
+   A /opensetup/res/i18n/es_es.rc
+   M /opensetup/resource.h
+
++ Added Spanish translation by jaBote.
+------------------------------------------------------------------------
+r1544 | Ai4rei | 2013-05-12 06:37:22 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Updated dialog resources to support relative resizing, to make alterations to the window size easier.
+------------------------------------------------------------------------
+r1543 | Ai4rei | 2013-05-11 21:22:05 +0200 | 1 line
+Changed paths:
+   M /opensetup/snippets/regutil.cpp
+   M /rosixsetup/snippets/regutil.cpp
+
+! Fixed possible crash when loading non-existing values.
+------------------------------------------------------------------------
+r1539 | Ai4rei | 2013-05-11 19:43:38 +0200 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.6.7.
+------------------------------------------------------------------------
+r1538 | Ai4rei | 2013-05-11 19:36:26 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+
+! Fixed application would stop responding while waiting for IPC to complete.
+------------------------------------------------------------------------
+r1537 | Ai4rei | 2013-05-11 19:20:21 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/i18n/cz.rc
+   M /opensetup/res/i18n/de.rc
+   M /opensetup/res/i18n/en_us.rc
+   M /opensetup/res/i18n/es_cl.rc
+   M /opensetup/res/i18n/jp.rc
+   M /opensetup/res/i18n/kr.rc
+   M /opensetup/res/i18n/pt_br.rc
+   M /opensetup/res/i18n/ru.rc
+   M /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/resource.h
+   M /opensetup/settings.h
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_lua.h
+   M /opensetup/settings_reg.cpp
+   M /opensetup/settings_reg.h
+
+! Fixed dialog would close even when settings fail to save (since UAC cancel or read-only failures are recoverable ones).
+------------------------------------------------------------------------
+r1536 | Ai4rei | 2013-05-11 19:16:39 +0200 | 1 line
+Changed paths:
+   M /opensetup/error.cpp
+
+* Error messages now display the system error number as well.
+------------------------------------------------------------------------
+r1535 | Ai4rei | 2013-05-11 15:52:57 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+   M /opensetup/res/opensetup.rc
+
+* Updated to mimic official behavior (use of 32-bit modes on Windows 8 or newer).
+------------------------------------------------------------------------
+r1534 | Ai4rei | 2013-05-08 23:39:29 +0200 | 1 line
+Changed paths:
+   A /opensetup/res/i18n/zh_chs.rc
+   M /opensetup/res/opensetup.rc
+
++ Added chinese simplified, extracted from official setup with some bits from windows and google.
+------------------------------------------------------------------------
+r1533 | Ai4rei | 2013-05-08 07:57:04 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Follow up to r1532 that escaped the commit.
+------------------------------------------------------------------------
+r1532 | Ai4rei | 2013-05-08 07:56:03 +0200 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+   M /opensetup/snippets/regutil.cpp
+   M /opensetup/snippets/regutil.h
+
+* Updated regutil to set last error result.
+------------------------------------------------------------------------
+r1531 | Ai4rei | 2013-05-08 07:30:04 +0200 | 1 line
+Changed paths:
+   M /opensetup/settings_lua.cpp
+   M /opensetup/settings_reg.cpp
+
+! Fixed CError::ErrorMessage not receiving error code from registry functions.
+------------------------------------------------------------------------
+r1530 | Ai4rei | 2013-05-02 00:55:38 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+* Do not depend on tab.h to provide stdio.h via vector.
+------------------------------------------------------------------------
+r1515 | Ai4rei | 2013-04-30 23:21:50 +0200 | 1 line
+Changed paths:
+   M /opensetup/resource.h
+
+* Release 2.6.6.
+------------------------------------------------------------------------
+r1514 | Ai4rei | 2013-04-30 23:20:41 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/Jarek (ru-RU).txt
+   M /opensetup/doc/history.txt
+   M /opensetup/res/i18n/ru.rc
+
+* Updated Russian localization.
+------------------------------------------------------------------------
+r1513 | Ai4rei | 2013-04-30 23:17:45 +0200 | 1 line
+Changed paths:
+   M /opensetup/dev/translations/Jarek (ru-RU).txt
+   M /opensetup/doc/history.txt
+   M /opensetup/res/i18n/ru.rc
+
+! Fixes to Russian localization [Jarek].
+------------------------------------------------------------------------
+r1511 | Ai4rei | 2013-04-28 21:23:36 +0200 | 1 line
+Changed paths:
+   M /opensetup/doc/history.txt
+   M /opensetup/resource.h
+
+* Release 2.6.5.
+------------------------------------------------------------------------
+r1510 | Ai4rei | 2013-04-28 21:20:21 +0200 | 1 line
+Changed paths:
+   M /opensetup/res/opensetup.rc
+
+* Disabled Windows 8 from the list of 'supportedOS', as that prevents the compatibility flags from applying.
+------------------------------------------------------------------------
+r1509 | Ai4rei | 2013-04-28 21:13:49 +0200 | 1 line
+Changed paths:
+   M /opensetup/opensetup.cpp
+
+! Fixed accidential end-less loop.
+------------------------------------------------------------------------
+r1508 | Ai4rei | 2013-04-28 13:47:38 +0200 | 1 line
 Changed paths:
    M /opensetup/resource.h
 

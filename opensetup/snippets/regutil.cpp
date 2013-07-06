@@ -11,33 +11,49 @@
 
 #include "regutil.h"
 
-#if (ERROR_SUCCESS!=0)
-    #error ERROR_SUCCESS is not zero.
-#endif
-
-bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements)
+bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luElements, long* lplLastError)
 {
-    unsigned long i, r = 0, luLen, luType;
+    long lResult, lLastError = ERROR_SUCCESS;
+    unsigned long luIdx, luLen, luType;
 
-    for(i = 0; i<luElements; i++)
+    for(luIdx = 0; luIdx<luElements; luIdx++)
     {
-        luLen = lpLi[i].luValueSize; 
+        luLen = lpLi[luIdx].luValueSize; 
 
-        r+= RegQueryValueEx(hKey, lpLi[i].lpszValueName, 0, &luType, (unsigned char*)lpLi[i].lpValue, &luLen);
+        lResult = RegQueryValueEx(hKey, lpLi[luIdx].lpszValueName, 0, &luType, (unsigned char*)lpLi[luIdx].lpValue, &luLen);
 
-        if(lpLi[i].luExpectedValueType!=luType)
+        if(lResult!=ERROR_SUCCESS)
         {
-            ZeroMemory(lpLi[i].lpValue, lpLi[i].luValueSize);
-            continue;
+            lLastError = lResult;
+
+            if(lpLi[luIdx].lpluValueLength)
+            {
+                lpLi[luIdx].lpluValueLength[0] = luLen;
+            }
         }
-
-        if(lpLi[i].lpluValueLength)
+        else
         {
-            lpLi[i].lpluValueLength[0] = luLen;
+            // different value type
+            if(lpLi[luIdx].luExpectedValueType!=luType)
+            {
+                ZeroMemory(lpLi[luIdx].lpValue, lpLi[luIdx].luValueSize);
+                continue;
+            }
+
+            // length info
+            if(lpLi[luIdx].lpluValueLength)
+            {
+                lpLi[luIdx].lpluValueLength[0] = luLen;
+            }
         }
     }
 
-    if(r)
+    if(lplLastError)
+    {
+        lplLastError[0] = lLastError;
+    }
+
+    if(lLastError!=ERROR_SUCCESS)
     {
         return false;
     }
@@ -45,19 +61,68 @@ bool __stdcall RegUtilLoad(HKEY hKey, LPCREGUTILLOADINFO lpLi, unsigned long luE
     return true;
 }
 
-bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements)
+bool __stdcall RegUtilSave(HKEY hKey, LPCREGUTILSAVEINFO lpSi, unsigned long luElements, long* lplLastError)
 {
-    unsigned long i, r = 0;
+    long lResult, lLastError = ERROR_SUCCESS;
+    unsigned long luIdx;
 
-    for(i = 0; i<luElements; i++)
+    for(luIdx = 0; luIdx<luElements; luIdx++)
     {
-        r+= RegSetValueEx(hKey, lpSi[i].lpszValueName, 0, lpSi[i].luValueType, (const unsigned char*)lpSi[i].lpValue, lpSi[i].luValueLength);
+        lResult = RegSetValueEx(hKey, lpSi[luIdx].lpszValueName, 0, lpSi[luIdx].luValueType, (const unsigned char*)lpSi[luIdx].lpValue, lpSi[luIdx].luValueLength);
+
+        if(lResult!=ERROR_SUCCESS)
+        {
+            lLastError = lResult;
+        }
     }
 
-    if(r)
+    if(lplLastError)
+    {
+        lplLastError[0] = lLastError;
+    }
+
+    if(lLastError!=ERROR_SUCCESS)
     {
         return false;
     }
 
     return true;
+}
+
+void __stdcall RegUtilDrop(HKEY hKey, const char* lpszSubKey)
+{
+    HKEY hSubKey;
+
+    // attempt to delete it as a whole first, Windows 9x allows this
+    // even when there are subkeys, so we can leave all the work to
+    // the system.
+    if(RegDeleteKey(hKey, lpszSubKey)==ERROR_SUCCESS)
+    {
+        return;
+    }
+
+    // slow motion for Windows NT platforms.
+    if(RegOpenKeyExA(hKey, lpszSubKey, 0, KEY_READ|KEY_WRITE, &hSubKey)==ERROR_SUCCESS)
+    {
+        char szKeyName[MAX_PATH];
+        DWORD dwKeyNameSize;
+        FILETIME LastWrite;
+
+        for(;;)
+        {
+            dwKeyNameSize = sizeof(szKeyName)/sizeof(szKeyName[0]);
+
+            if(RegEnumKeyExA(hSubKey, 0, szKeyName, &dwKeyNameSize, NULL, NULL, NULL, &LastWrite)!=ERROR_SUCCESS)
+            {// assume done
+                break;
+            }
+
+            RegUtilDrop(hSubKey, szKeyName);
+        }
+
+        RegCloseKey(hSubKey);
+
+        // delete for sure now
+        RegDeleteKey(hKey, lpszSubKey);
+    }
 }

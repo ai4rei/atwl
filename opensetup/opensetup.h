@@ -19,6 +19,8 @@
 
 #define WIN32_VER_CHECK(lposvi,platform,major,minor) ( ( (lposvi)->dwPlatformId==(platform) ) && ( ( (lposvi)->dwMajorVersion>(major) ) || ( (lposvi)->dwMajorVersion==(major) && (lposvi)->dwMinorVersion>=(minor) ) ) )
 
+extern HKEY HKEY_GRAVITY;
+
 static inline void __stdcall DebugBreakHere(void)
 {
     __asm int 3

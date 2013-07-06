@@ -7,6 +7,44 @@ See doc/license.txt for details.
 
 == History =========================================================
 
+[Version 2.8.0]
++ Added notice for Remote Desktop users (DirectX does not work over conventional RDP).
++ Added ability to specify the client window size using an actual window, which is constrained to available resolutions.
++ Added support for configurable "HKLM to HKCU" (was compile-time setting before).
++ Added support for "/skillsnap".
+* Updated new translation bits in Brazilian Portuguese translation [EvilPuncker].
+* Updated new translation bits in Spanish translation [jaBote].
+* Updated 'reset all' to exclude client generated data, as those aren't technically settings.
+! Fixed issue with default control focus on NT platforms.
+! Fixed LUA engine not reporting parse errors.
+! Fixed German /snap, /itemsnap help texts.
+! Fixed Spanish Spanish translation not getting included in the build.
+! Fixed dependent reset-checkboxes not getting enabled when using 'Apply' button.
+! Fixed reset not working when IPC is used to carry out the task (ex. UAC environments).
+! Fixed UI could be modified while the invoking instance was waiting for IPC to complete.
+
+[Version 2.7.0]
++ Added Spanish translation by jaBote.
++ Added support for configurable settings engine.
++ Added support for resetting settings and user data.
+* Increased space available for help texts from 255 to 4096 characters.
+! Fixed Ctrl+TAB not switching tabs.
+! Fixed TAB not working properly on all controls.
+! Fixed default values for REG engine not being properly set on certain conditions.
+
+[Version 2.6.7]
+* [snippets::regutil] Updated to support retrieval of last error value in batch actions.
+* Updated to use official logic to deal with Windows 8 (use 32-bit modes).
+! Fixed system errors from registry functions not being passed to error messages properly.
+! Fixed process elevation would not report errors.
+! Fixed application would close even when settings fail to save (since UAC cancel or read-only failures are recoverable ones).
+! Fixed application would stop responding while waiting for IPC to complete.
+# OpenSetup is now being considered Windows 8 aware and compatible. Previously applied compatibility flags are automatically removed.
+
+[Version 2.6.6]
+* Updated new translation bits in Russian translation [Jarek].
+! Fixes to Russian translation [Jarek] (since 2.6.3).
+
 [Version 2.6.5]
 ! Fixed accidential end-less loop in the initialization.
 * Removed Windows 8 from the list of 'supportedOS' as that prevents the compatibility flags from applying (thanks to the caches, it did not become apparent during release testing...).

@@ -11,9 +11,11 @@
 #include <commctrl.h>
 #include <d3d.h>
 #include <ddraw.h>
+#include <stdio.h>
 
 #include <regutil.h>
 
+#include "config.h"
 #include "dx7enum.h"
 #include "error.h"
 #include "resource.h"
@@ -59,14 +61,18 @@ static const unsigned int l_lpuDigitalBitsTypes[] =
     TEXT_DIGITALBITSTYPE_8BIT,
 };
 
+// registry target (global)
+HKEY HKEY_GRAVITY = HKEY_LOCAL_MACHINE;
+
 static HFONT l_DlgFont = NULL;
 static struct DDrawDriverDeviceInfo l_DI = { 0 };
+static class CConfig Config;
 static class CROExt ROExt;
 static class CTabMgr TabMgr;
 
 static class CSettingsLua SettingsLua;
 static class CSettingsReg SettingsReg;
-static class CSettings* Settings = &SettingsLua;
+static class CSettings* Settings = NULL;
 
 static inline unsigned long __stdcall GetDriverIndex(unsigned long luComboIndex)
 {
@@ -173,12 +179,12 @@ static void __stdcall GetVideoTab(HWND hWnd)
     }
 
     // check boxes
-    Settings->Set(SE_ISFULLSCREENMODE, SendMessage(GetDlgItem(hWnd, IDCHECKBOX_FULLSCREEN),     BM_GETCHECK, 0, 0));
-    Settings->Set(SE_FOG,              SendMessage(GetDlgItem(hWnd, IDCHECKBOX_FOG),            BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISLIGHTMAP,       SendMessage(GetDlgItem(hWnd, IDCHECKBOX_LIGHTMAP),       BM_GETCHECK, 0, 0));
-    Settings->Set(SE_TRILINEARFILTER,  SendMessage(GetDlgItem(hWnd, IDCHECKBOX_TRILINEARFILTER),BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISVOODOO,         SendMessage(GetDlgItem(hWnd, IDCHECKBOX_VOODOO),         BM_GETCHECK, 0, 0));
-    Settings->Set(SE_MOUSEEXCLUSIVE,   SendMessage(GetDlgItem(hWnd, IDCHECKBOX_MOUSEEXCLUSIVE), BM_GETCHECK, 0, 0));
+    Settings->Set(SE_ISFULLSCREENMODE, UI::GetCheckBoxTick(hWnd, IDCHECKBOX_FULLSCREEN)     );
+    Settings->Set(SE_FOG,              UI::GetCheckBoxTick(hWnd, IDCHECKBOX_FOG)            );
+    Settings->Set(SE_ISLIGHTMAP,       UI::GetCheckBoxTick(hWnd, IDCHECKBOX_LIGHTMAP)       );
+    Settings->Set(SE_TRILINEARFILTER,  UI::GetCheckBoxTick(hWnd, IDCHECKBOX_TRILINEARFILTER));
+    Settings->Set(SE_ISVOODOO,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_VOODOO)         );
+    Settings->Set(SE_MOUSEEXCLUSIVE,   UI::GetCheckBoxTick(hWnd, IDCHECKBOX_MOUSEEXCLUSIVE) );
 
     // track bars
     Settings->Set(SE_SPRITEMODE,       SendMessage(GetDlgItem(hWnd, IDTRACKBAR_SPRITEQ),    TBM_GETPOS,  0, 0));
@@ -212,8 +218,8 @@ static void __stdcall GetSoundTab(HWND hWnd)
     }
 
     // check boxes
-    Settings->Set(SE_BGMISPAUSED, SendMessage(GetDlgItem(hWnd, IDCHECKBOX_BGMISPAUSED), BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISSOUNDON,   !SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ISSOUNDON),  BM_GETCHECK, 0, 0));
+    Settings->Set(SE_BGMISPAUSED, UI::GetCheckBoxTick(hWnd, IDCHECKBOX_BGMISPAUSED));
+    Settings->Set(SE_ISSOUNDON,  !UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ISSOUNDON)  );
 
     // track bars
     Settings->Set(SE_STREAMVOLUME, SendMessage(GetDlgItem(hWnd, IDTRACKBAR_STREAMVOLUME), TBM_GETPOS,  0, 0));
@@ -223,26 +229,27 @@ static void __stdcall GetSoundTab(HWND hWnd)
 static void __stdcall GetSetupTab(HWND hWnd)
 {
     // check boxes
-    Settings->Set(SE_AURA,              SendMessage(GetDlgItem(hWnd, IDCHECKBOX_AURA),              BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISFIXEDCAMERA,     SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ISFIXEDCAMERA),     BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISEFFECTON,        SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ISEFFECTON),        BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ONHOUSERAI,        SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ONHOUSERAI),        BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ISITEMSNAP,        SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ISITEMSNAP),        BM_GETCHECK, 0, 0));
-    Settings->Set(SE_LOGINOUT,          SendMessage(GetDlgItem(hWnd, IDCHECKBOX_LOGINOUT),          BM_GETCHECK, 0, 0));
-    Settings->Set(SE_ONMERUSERAI,       SendMessage(GetDlgItem(hWnd, IDCHECKBOX_ONMERUSERAI),       BM_GETCHECK, 0, 0));
-    Settings->Set(SE_MAKEMISSEFFECT,    SendMessage(GetDlgItem(hWnd, IDCHECKBOX_MAKEMISSEFFECT),    BM_GETCHECK, 0, 0));
-    Settings->Set(SE_NOCTRL,            SendMessage(GetDlgItem(hWnd, IDCHECKBOX_NOCTRL),            BM_GETCHECK, 0, 0));
-    Settings->Set(SE_NOSHIFT,           SendMessage(GetDlgItem(hWnd, IDCHECKBOX_NOSHIFT),           BM_GETCHECK, 0, 0));
-    Settings->Set(SE_NOTRADE,           SendMessage(GetDlgItem(hWnd, IDCHECKBOX_NOTRADE),           BM_GETCHECK, 0, 0));
-    Settings->Set(SE_SHOPPING,          SendMessage(GetDlgItem(hWnd, IDCHECKBOX_SHOPPING),          BM_GETCHECK, 0, 0));
-    Settings->Set(SE_SNAP,              SendMessage(GetDlgItem(hWnd, IDCHECKBOX_SNAP),              BM_GETCHECK, 0, 0));
-    Settings->Set(SE_SKILLFAIL,         SendMessage(GetDlgItem(hWnd, IDCHECKBOX_SKILLFAIL),         BM_GETCHECK, 0, 0));
-    Settings->Set(SE_NOTALKMSG,         SendMessage(GetDlgItem(hWnd, IDCHECKBOX_NOTALKMSG),         BM_GETCHECK, 0, 0));
-    Settings->Set(SE_NOTALKMSG2,        SendMessage(GetDlgItem(hWnd, IDCHECKBOX_NOTALKMSG2),        BM_GETCHECK, 0, 0));
-    Settings->Set(SE_SHOWNAME,          SendMessage(GetDlgItem(hWnd, IDCHECKBOX_SHOWNAME),          BM_GETCHECK, 0, 0));
-    Settings->Set(SE_STATEINFO,         SendMessage(GetDlgItem(hWnd, IDCHECKBOX_STATEINFO),         BM_GETCHECK, 0, 0));
-    Settings->Set(SE_SHOWTIPSATSTARTUP, SendMessage(GetDlgItem(hWnd, IDCHECKBOX_SHOWTIPSATSTARTUP), BM_GETCHECK, 0, 0));
-    Settings->Set(SE_WINDOW,            SendMessage(GetDlgItem(hWnd, IDCHECKBOX_WINDOW),            BM_GETCHECK, 0, 0));
+    Settings->Set(SE_AURA,              UI::GetCheckBoxTick(hWnd, IDCHECKBOX_AURA)             );
+    Settings->Set(SE_ISFIXEDCAMERA,     UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ISFIXEDCAMERA)    );
+    Settings->Set(SE_ISEFFECTON,        UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ISEFFECTON)       );
+    Settings->Set(SE_ONHOUSERAI,        UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ONHOUSERAI)       );
+    Settings->Set(SE_ISITEMSNAP,        UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ISITEMSNAP)       );
+    Settings->Set(SE_LOGINOUT,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_LOGINOUT)         );
+    Settings->Set(SE_ONMERUSERAI,       UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ONMERUSERAI)      );
+    Settings->Set(SE_MAKEMISSEFFECT,    UI::GetCheckBoxTick(hWnd, IDCHECKBOX_MAKEMISSEFFECT)   );
+    Settings->Set(SE_NOCTRL,            UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOCTRL)           );
+    Settings->Set(SE_NOSHIFT,           UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOSHIFT)          );
+    Settings->Set(SE_NOTRADE,           UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTRADE)          );
+    Settings->Set(SE_SHOPPING,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SHOPPING)         );
+    Settings->Set(SE_SNAP,              UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SNAP)             );
+    Settings->Set(SE_SKILLFAIL,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SKILLFAIL)        );
+    Settings->Set(SE_NOTALKMSG,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTALKMSG)        );
+    Settings->Set(SE_NOTALKMSG2,        UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTALKMSG2)       );
+    Settings->Set(SE_SHOWNAME,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SHOWNAME)         );
+    Settings->Set(SE_STATEINFO,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_STATEINFO)        );
+    Settings->Set(SE_SHOWTIPSATSTARTUP, UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SHOWTIPSATSTARTUP));
+    Settings->Set(SE_WINDOW,            UI::GetCheckBoxTick(hWnd, IDCHECKBOX_WINDOW)           );
+    Settings->Set(SE_SKILLSNAP,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SKILLSNAP)        );
 }
 
 static void __stdcall SetVideoTab(HWND hWnd)
@@ -272,7 +279,7 @@ static void __stdcall SetVideoTab(HWND hWnd)
     SendMessage(GetDlgItem(hWnd, IDTRACKBAR_TEXTUREQ), TBM_SETRANGE, (WPARAM)FALSE, (LPARAM)MAKELONG(0, 2));
 
     // reflect settings
-    struct UIBatchList BatchList[] =
+    UI::BATCHLIST BatchList[] =
     {
         // initialize check boxes
         { IDCHECKBOX_FULLSCREEN,     BM_SETCHECK,  (WPARAM)Settings->Get(SE_ISFULLSCREENMODE), 0                                    },
@@ -310,7 +317,7 @@ static void __stdcall SetSoundTab(HWND hWnd)
     SendMessage(GetDlgItem(hWnd, IDTRACKBAR_SOUNDVOLUME),  TBM_SETRANGE, (WPARAM)FALSE, (LPARAM)MAKELONG(0, 127));
 
     // reflect settings
-    struct UIBatchList BatchList[] =
+    UI::BATCHLIST BatchList[] =
     {
         // initialize check boxes
         { IDCHECKBOX_BGMISPAUSED,       BM_SETCHECK,  (WPARAM)Settings->Get(SE_BGMISPAUSED),     0                                     },
@@ -341,7 +348,7 @@ static void __stdcall SetSoundTab(HWND hWnd)
 static void __stdcall SetSetupTab(HWND hWnd)
 {
     // reflect settings
-    struct UIBatchList BatchList[] =
+    UI::BATCHLIST BatchList[] =
     {
         // initialize check boxes
         { IDCHECKBOX_AURA,              BM_SETCHECK, (WPARAM)Settings->Get(SE_AURA),              0 },
@@ -364,6 +371,7 @@ static void __stdcall SetSetupTab(HWND hWnd)
         { IDCHECKBOX_STATEINFO,         BM_SETCHECK, (WPARAM)Settings->Get(SE_STATEINFO),         0 },
         { IDCHECKBOX_SHOWTIPSATSTARTUP, BM_SETCHECK, (WPARAM)Settings->Get(SE_SHOWTIPSATSTARTUP), 0 },
         { IDCHECKBOX_WINDOW,            BM_SETCHECK, (WPARAM)Settings->Get(SE_WINDOW),            0 },
+        { IDCHECKBOX_SKILLSNAP,         BM_SETCHECK, (WPARAM)Settings->Get(SE_SKILLSNAP),         0 },
     };
     UI::BatchMessage(hWnd, BatchList, __ARRAYSIZE(BatchList));
 
@@ -388,25 +396,36 @@ static void __stdcall SetSetupTab(HWND hWnd)
     DisableUnavailableSetting(SE_STATEINFO, hWnd, IDCHECKBOX_STATEINFO);
     DisableUnavailableSetting(SE_SHOWTIPSATSTARTUP, hWnd, IDCHECKBOX_SHOWTIPSATSTARTUP);
     DisableUnavailableSetting(SE_WINDOW, hWnd, IDCHECKBOX_WINDOW);
+    DisableUnavailableSetting(SE_SKILLSNAP, hWnd, IDCHECKBOX_SKILLSNAP);
 }
 
 static BOOL CALLBACK VideoTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    unsigned long i;
+    unsigned long luIdx;
 
     switch(uMsg)
     {
+        case WM_INITDIALOG:
+            if(!UI::IsRemoteSession())
+            {
+                ShowWindow(GetDlgItem(hWnd, IDINFOICON_VIDEO_REMOTESESSION), SW_HIDE);
+            }
+            return FALSE;
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
                 case CBN_SELCHANGE:
-                    if(LOWORD(wParam)==IDCOMBOBOX_VIDEODEVICE)
+                    switch(LOWORD(wParam))
                     {
-                        if((i = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0))!=CB_ERR)
-                        {// required for update resolution
-                            Settings->Set(SE_DEVICECNT, i);
-                        }
-                        OnChangeDevice(hWnd);
+                        case IDCOMBOBOX_VIDEODEVICE:
+                            if((luIdx = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0))!=CB_ERR)
+                            {// required for update resolution
+                                Settings->Set(SE_DEVICECNT, luIdx);
+                            }
+                            OnChangeDevice(hWnd);
+                            break;
+                        default:
+                            return FALSE;
                     }
                     break;
                 default:
@@ -426,6 +445,8 @@ static BOOL CALLBACK SoundTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 {
     switch(uMsg)
     {
+        case WM_INITDIALOG:
+            return FALSE;
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
@@ -459,6 +480,8 @@ static BOOL CALLBACK SetupTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 {
     switch(uMsg)
     {
+        case WM_INITDIALOG:
+            return FALSE;
         case WM_HELP:
             UI::HHLite(hWnd, (LPHELPINFO)lParam);
             break;
@@ -477,7 +500,7 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 SetWindowText(GetDlgItem(hWnd, IDC_ABOUT_TITLE), APP_TITLE);
                 SetWindowText(GetDlgItem(hWnd, IDC_ABOUT_CORPSE), APP_CORPSE);
             }
-            break;
+            return FALSE;
         case WM_CTLCOLORSTATIC:
             if(GetDlgItem(hWnd, IDC_ABOUT_CORPSE)!=(HWND)lParam)
             {// not the EDIT box
@@ -493,6 +516,21 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 static void __stdcall OnChangeSettingsEngine(HWND hWnd)
 {
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+
+    // set icon
+    switch(Settings->GetEngineID())
+    {
+        case SENGINE_LUA:
+            SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_LUA), IMAGE_ICON, 0, 0, LR_SHARED));
+            break;
+        case SENGINE_REG:
+            SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_REG), IMAGE_ICON, 0, 0, LR_SHARED));
+            break;
+    }
+
     // recall storage
     Settings->Load();
 
@@ -507,19 +545,42 @@ static void __stdcall OnChangeSettingsEngine(HWND hWnd)
     UI::SetButtonShield(GetDlgItem(hWnd, IDAPPLY), bAdmin);
 }
 
-static void __stdcall OnBackgroundSave(HWND hWnd, unsigned long luHash)
+static bool __stdcall OnBackgroundSave(HWND hWnd, unsigned long luHash)
 {
     char szSlave[MAX_PATH], szParam[128];
+    DWORD dwExitCode = EXIT_FAILURE;
     SHELLEXECUTEINFO Sei = { sizeof(Sei), SEE_MASK_FLAG_NO_UI|SEE_MASK_NOCLOSEPROCESS, hWnd, "runas", szSlave, szParam, ".", SW_SHOWDEFAULT };
 
     GetModuleFileNameA(NULL, szSlave, __ARRAYSIZE(szSlave));
     wsprintfA(szParam, "/save:%lu,%lu", Settings->GetEngineID(), luHash);
 
+    // disable interaction
+    EnableWindow(hWnd, FALSE);
+
     if(ShellExecuteEx(&Sei) && Sei.hProcess)
-    {// FIXME: Handle the save without blocking the message queue
-        WaitForSingleObject(Sei.hProcess, INFINITE);
+    {
+        while(MsgWaitForMultipleObjects(1, &Sei.hProcess, FALSE, INFINITE, QS_ALLINPUT)!=WAIT_OBJECT_0)
+        {
+            MSG Msg;
+
+            while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+            {
+                TranslateMessage(&Msg);
+                DispatchMessage(&Msg);
+            }
+        }
+        GetExitCodeProcess(Sei.hProcess, &dwExitCode);
         CloseHandle(Sei.hProcess);
     }
+    else if(GetLastError()!=ERROR_CANCELLED)  // do not report UAC prompt cancelation as per UAC guidelines
+    {
+        CError::ErrorMessage(hWnd, TEXT_ERROR_IPC_FAILED);
+    }
+
+    // re-enable interaction
+    EnableWindow(hWnd, TRUE);
+
+    return (dwExitCode==EXIT_SUCCESS) ? true : false;
 }
 
 static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -537,7 +598,7 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_APPLICATION_SMALL), IMAGE_ICON, 16, 16, LR_SHARED));
 
             // initialize tab manager
-            if(TabMgr.Init(hInstance, hWnd, 16, MAKEINTRESOURCE(IDB_IMAGELIST32), MAKEINTRESOURCE(IDB_IMAGELIST), MAKEINTRESOURCE(IDB_IMAGELIST_MASK), IMI_MAX))
+            if(TabMgr.Init(hInstance, hWnd, 16, IDB_IMAGELIST_MASK, IMI_MAX))
             {
                 char szTabTitle[32];
 
@@ -603,16 +664,29 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 UI::SetFont(hWnd, l_DlgFont);
             }
 
-            return TRUE;
+            return FALSE;
         }
+        case WM_CLOSE:
+            DestroyWindow(hWnd);
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
                 case 0:
+                {
+                    bool bSuccess = false;
+
                     switch(LOWORD(wParam))
                     {
                         case IDOK:
                         case IDAPPLY:
+                            // disable whatever was pressed (visual cue)
+                            EnableWindow(GetDlgItem(hWnd, LOWORD(wParam)), FALSE);
+
+                            // save add-ons (TODO: UAC?)
                             ROExt.Save();
 
                             // collect data from tabs
@@ -623,21 +697,30 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                             // persist storage
                             if(Settings->IsAdminRequired())
                             {
-                                OnBackgroundSave(hWnd, Settings->SaveToIPC());
+                                bSuccess = OnBackgroundSave(hWnd, Settings->SaveToIPC());
                             }
                             else
                             {
-                                Settings->Save();
+                                bSuccess = Settings->Save();
                             }
-                            // FIXME: Do not OK-quit on save/ipc failure
+
+                            // re-enable button
+                            EnableWindow(GetDlgItem(hWnd, LOWORD(wParam)), TRUE);
+
+                            if(!bSuccess)
+                            {// abort on failure
+                                break;
+                            }
 
                             if(LOWORD(wParam)==IDAPPLY)
                             {// do not quit when 'Apply'
+                                OnChangeSettingsEngine(hWnd);  // reflect
                                 break;
                             }
                             // but fall through for 'OK'
                         case IDCANCEL:
-                            EndDialog(hWnd, LOWORD(wParam));
+                            DestroyWindow(hWnd);
+                            //EndDialog(hWnd, LOWORD(wParam));
                             break;
                         case IDVIDEO:
                         case IDSOUND:
@@ -651,16 +734,28 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                             {
                                 case SENGINE_LUA:
                                     Settings = &SettingsReg;
-                                    SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON, (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_REG), IMAGE_ICON, 0, 0, LR_SHARED));
                                     break;
                                 case SENGINE_REG:
                                     Settings = &SettingsLua;
-                                    SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON, (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_LUA), IMAGE_ICON, 0, 0, LR_SHARED));
                                     break;
                             }
 
                             // load settings and refresh tabs
                             OnChangeSettingsEngine(hWnd);
+                            break;
+                        default:
+                            return FALSE;
+                    }
+                    break;
+                }
+                case 1:
+                    switch(LOWORD(wParam))
+                    {
+                        case IDC_TABNEXT:
+                            TabMgr.ActivateTabNext();
+                            break;
+                        case IDC_TABPREV:
+                            TabMgr.ActivateTabPrev();
                             break;
                         default:
                             return FALSE;
@@ -690,7 +785,8 @@ static int __cdecl DX7E_P_GetInfoSort(const void* lpA, const void* lpB)
 
 static bool __stdcall DX7E_P_GetInfo(void)
 {
-    unsigned long luDrivers, luModes;
+    unsigned long luDrivers, luModes, luBitDepthFlt = 16;
+    OSVERSIONINFO Osvi = { sizeof(Osvi) };
 
     // retrieve direct x information
     if(!DX7E_EnumDriverDevices(&l_DI))
@@ -698,12 +794,22 @@ static bool __stdcall DX7E_P_GetInfo(void)
         return false;
     }
 
+    // windows 8 does not support 16 bit colored modes, so stick
+    // with 32-bit
+    if(GetVersionExA(&Osvi))
+    {
+        if(WIN32_VER_CHECK(&Osvi, VER_PLATFORM_WIN32_NT, 6, 2))
+        {
+            luBitDepthFlt = 32;
+        }
+    }
+
     // sort out irrelevant stuff
     for(luDrivers=0; luDrivers<l_DI.luItems; luDrivers++)
     {
         for(luModes = l_DI.Drivers[luDrivers].luModes; luModes>0; luModes--)
         {
-            if(l_DI.Drivers[luDrivers].Modes[luModes-1].luWidth<640 || l_DI.Drivers[luDrivers].Modes[luModes-1].luHeight<480 || l_DI.Drivers[luDrivers].Modes[luModes-1].luBitDepth!=16)
+            if(l_DI.Drivers[luDrivers].Modes[luModes-1].luWidth<640 || l_DI.Drivers[luDrivers].Modes[luModes-1].luHeight<480 || l_DI.Drivers[luDrivers].Modes[luModes-1].luBitDepth!=luBitDepthFlt)
             {// setup imposed limitations
                 if(luModes<l_DI.Drivers[luDrivers].luModes)
                 {
@@ -723,6 +829,12 @@ static bool __stdcall DX7E_P_GetInfo(void)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nShowCmd)
 {
+    // select registry target
+    if(Config.GetBool("settings", "HKLMtoHKCU", false))
+    {
+        HKEY_GRAVITY = HKEY_CURRENT_USER;
+    }
+
     // handle ipc save request
     if(lpCmdLine[0]=='/')
     {
@@ -743,21 +855,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             }
 
             Settings->LoadFromIPC(luHash);
-            Settings->Save();
+            return Settings->Save() ? EXIT_SUCCESS : EXIT_FAILURE;
         }
-
-        return EXIT_SUCCESS;
     }
 
-    // Handle Windows8's sick PCA, which creates compatibility
-    // entries for pretty much every app, thus breaks, rather
-    // than fixing them.
-    // This can be removed when Gravity decides to run RO in 32-bit
-    // color modes.
+    // Obsolete: Windows 8 PCA rewriting code, now a cleanup. Remove
+    // in a version or two.
     for(;;)
     {
-        CHAR szFileName[MAX_PATH], szCompatFlags[1024];
-        DWORD dwDisposition, dwLength = 0;
+        CHAR szFileName[MAX_PATH];
         HKEY hKey;
         LONG lResult;
         OSVERSIONINFO Osvi = { sizeof(Osvi) };
@@ -774,59 +880,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 
         GetModuleFileNameA(NULL, szFileName, __ARRAYSIZE(szFileName));
 
-        lResult = RegCreateKeyExA(
+        lResult = RegOpenKeyExA(
             HKEY_CURRENT_USER,                                                          // handle this per user
             "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers",  // PCA compatibility flags
             0,                                                                          // reserved
-            NULL,                                                                       // no key class
-            REG_OPTION_NON_VOLATILE,                                                    // persist to disk
             KEY_READ|KEY_WRITE,                                                         // read & write
-            NULL,                                                                       // default security (inherit)
-            &hKey,                                                                      // destination key handle
-            &dwDisposition                                                              // 'created' or 'opened' disposition
+            &hKey                                                                       // destination key handle
         );
 
         if(lResult!=ERROR_SUCCESS)
-        {// restricted access?
+        {// not found, good
             break;
         }
 
-        if(dwDisposition==REG_OPENED_EXISTING_KEY)
-        {// key already existed
-            REGUTILLOADINFO Li[] =
-            {
-                { szFileName, szCompatFlags, __ARRAYSIZE(szCompatFlags), &dwLength, REG_SZ },
-            };
-
-            if(RegUtilLoad(hKey, Li, __ARRAYSIZE(Li)))
-            {
-                if(szCompatFlags[0])
-                {// there are flags
-                    if(!lstrcmpiA(szCompatFlags, "~ 16BITCOLOR"))
-                    {// there are the flags we intend to set
-                        RegCloseKey(hKey);
-                        break;
-                    }
-                }
-            }
-        }
-
-        REGUTILSAVEINFO Si[] =
-        {
-            { szFileName, "~ 16BITCOLOR", 12+1, REG_SZ },
-        };
-        RegUtilSave(hKey, Si, __ARRAYSIZE(Si));
+        // delete our entry unconditionally
+        RegDeleteValue(hKey, szFileName);
         RegCloseKey(hKey);
-
-        // restart
-        SHELLEXECUTEINFO Sei = { sizeof(Sei), 0, NULL, "open", szFileName, "", ".", SW_SHOWDEFAULT };
-
-        if(ShellExecuteExA(&Sei) && Sei.hProcess)
-        {
-            CloseHandle(Sei.hProcess);
-        }
-
-        return EXIT_SUCCESS;
+        break;
     }
 
     HANDLE hMutex = CreateMutex(NULL, FALSE, "Global\\OpenSetupSIMutex");
@@ -858,8 +928,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         CError::ErrorMessage(NULL, TEXT_ERROR_INIT_DIRECTX7);
     }
 
+    unsigned long luEngine = SENGINE_LUA;
+
+    // we are reading strings into unsigned longs, aren't we great?
+    // check settings.h if you are still in doubt.
+    Config.GetString("settings", "Engine", (char*)&luEngine, (char*)&luEngine, sizeof(luEngine));
+
+    // select settings engine
+    switch(luEngine)
+    {
+        case SENGINE_LUA:
+            Settings = &SettingsLua;
+            break;
+        case SENGINE_REG:
+            Settings = &SettingsReg;
+            break;
+        default:
+            CError::ErrorMessage(NULL, TEXT_ERROR_UNKNOWN_ENGINE, luEngine);
+            return EXIT_FAILURE;
+    }
+
     // show 'em the dialog
-    DialogBox(hInstance, MAKEINTRESOURCE(IDD_MAIN_DIALOG), NULL, &MainDialogProc);
+    HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDA_MAIN_DIALOG));
+    HWND hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MAIN_DIALOG), NULL, &MainDialogProc);
+    MSG Msg;
+
+    // process messages
+    while(GetMessage(&Msg, NULL, 0, 0)>0)
+    {
+        if(!TranslateAccelerator(hWnd, hAccel, &Msg))
+        {
+            if(!IsDialogMessage(hWnd, &Msg))
+            {
+                TranslateMessage(&Msg);
+                DispatchMessage(&Msg);
+            }
+        }
+    }
 
     // free font, if any
     if(l_DlgFont)

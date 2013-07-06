@@ -18,8 +18,6 @@
 #include "settings.h"
 #include "settings_lua.h"
 
-//#define HKLM_TO_HKCU
-
 #define SETTINGS_REGPATH "Software\\Gravity Soft\\Ragnarok"
 #define SETTINGS_RENEWPATH "Software\\Gravity Soft\\RenewSetup"
 #define SETTINGS_LUAPATH "savedata"
@@ -29,6 +27,15 @@
 #define SETTINGS_CAT_OPTIONLIST "OptionInfoList"
 #define SETTINGS_CAT_COMMANDLIST "CmdOnOffList"
 
+static const char* l_lppszResetFileList[] =
+{
+    SETTINGS_LUAPATH,
+    // old clients
+    "data\\ChatWndInfo_U.lua",
+    "data\\OptionInfo.lua",
+    "data\\UserKeys_s.lua",
+};
+
 typedef struct LUAOPTIONINFOINT
 {
     const char* lpszCategory;
@@ -37,15 +44,10 @@ typedef struct LUAOPTIONINFOINT
 }
 LUAOPTIONINFOINT;
 
-#ifndef HKLM_TO_HKCU
-    #define HKEY_GRAVITY HKEY_LOCAL_MACHINE
-#else
-    #define HKEY_GRAVITY HKEY_CURRENT_USER
-#endif
-
-void __stdcall CSettingsLua::Save(void)
+bool __stdcall CSettingsLua::Save(void)
 {
     HKEY hKey;
+    LONG lResult;
     REGUTILSAVEINFO SaveInfo[] =
     {
 #define SAVEENTRY(name,type) { #name, &this->m_Entries.##name, sizeof(this->m_Entries.##name), (type) }
@@ -94,38 +96,64 @@ void __stdcall CSettingsLua::Save(void)
         SAVEENTRY(LOGINOUT,             SETTINGS_CAT_COMMANDLIST, "/loginout"      ),
         SAVEENTRY(SNAP,                 SETTINGS_CAT_COMMANDLIST, "/snap"          ),
         SAVEENTRY(ISITEMSNAP,           SETTINGS_CAT_COMMANDLIST, "/itemsnap"      ),
+        SAVEENTRY(SKILLSNAP,            SETTINGS_CAT_COMMANDLIST, "/skillsnap"     ),
         SAVEENTRY(ISFIXEDCAMERA,        SETTINGS_CAT_COMMANDLIST, "/camera"        ),
         SAVEENTRY(ONHOUSERAI,           SETTINGS_CAT_COMMANDLIST, "/hoai"          ),
         SAVEENTRY(ONMERUSERAI,          SETTINGS_CAT_COMMANDLIST, "/merai"         ),
         SAVEENTRY(ISLIGHTMAP,           SETTINGS_CAT_COMMANDLIST, "/lightmap"      ),
-        // /btg
-        //SAVEENTRY(ISVOODOO,           , "" ),
-        //SAVEENTRY(NUMSAMPLETYPE,      , "" ),
-        //SAVEENTRY(SOUNDMODE,          , "" ),  // still uses REG
-        //SAVEENTRY(SPEAKERTYPE,        , "" ),  // still uses REG
-        //SAVEENTRY(DIGITALRATETYPE,    , "" ),  // still uses REG
-        //SAVEENTRY(DIGITALBITSTYPE,    , "" ),  // still uses REG
-        //SAVEENTRY(GUIDDRIVER,         , "" ),  // still uses REG
-        //SAVEENTRY(GUIDDEVICE,         , "" ),  // still uses REG
-        //SAVEENTRY(DEVICENAME,         , "" ),  // still uses REG
-        //SAVEENTRY(PROVIDERNAME,       , "" ),  // still uses REG
-        //SAVEENTRY(SHOWTIPSATSTARTUP,  , "" ),
 #undef SAVEENTRY
     };
 
-    if(RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_RENEWPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL)==ERROR_SUCCESS)
+    if(this->m_nFlags)
     {
-        RegCloseKey(hKey);
+        bool bCanSave = true;
+
+        if(this->m_nFlags&SF_RESET_UI)
+        {
+            this->ResetUI();
+        }
+        if(this->m_nFlags&SF_RESET_SKILLLEVEL)
+        {
+            this->ResetSkillLevel();
+        }
+        if(this->m_nFlags&SF_RESET_USERDATA)
+        {
+            this->ResetUserData();
+        }
+        if(this->m_nFlags&SF_RESET_SETTING)
+        {
+            this->ResetSettings();
+            bCanSave = false;
+        }
+
+        if(!bCanSave)
+        {
+            return true;
+        }
     }
 
-    if(RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL)!=ERROR_SUCCESS)
+    lResult = RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_RENEWPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
+
+    if(lResult!=ERROR_SUCCESS)
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
-        return;
+        return false;
+    }
+    RegCloseKey(hKey);
+
+    lResult = RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
+
+    if(lResult!=ERROR_SUCCESS)
+    {
+        SetLastError(lResult);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
+        return false;
     }
 
-    if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo)))
+    if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo), &lResult))
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_WRITE);
     }
 
@@ -133,10 +161,8 @@ void __stdcall CSettingsLua::Save(void)
     RegCloseKey(hKey);
 
     // Lua
-    // Gravity is lazy as we are in this part. They just append all
-    // values to the possibly existing ones, so that options saved
-    // by the client do not get lost, yet the ones set by setup get
-    // updated. An ever-growing pile of sh-, i mean settings...
+    // TODO: Load tables, modify and save.
+    bool bSuccess = false;
     FILE* hFile;
 
     this->m_Entries.BGMISPAUSED = !this->m_Entries.BGMISPAUSED;  // the meaning in LUA is reversed
@@ -155,6 +181,10 @@ void __stdcall CSettingsLua::Save(void)
                     break;
                 }
             }
+            if(i==__ARRAYSIZE(LuaSaveInfo))
+            {
+                bSuccess = true;
+            }
     
             fclose(hFile);
         }
@@ -163,7 +193,7 @@ void __stdcall CSettingsLua::Save(void)
             DWORD dwAttr = GetFileAttributes(SETTINGS_LUAFULL);
 
             if(dwAttr!=INVALID_FILE_ATTRIBUTES && (dwAttr&FILE_ATTRIBUTE_READONLY))
-            {// 7 of 9 failures probably account for this
+            {
                 CError::ErrorMessage(NULL, TEXT_ERROR_FILE_OPEN_READONLY);
             }
             else
@@ -178,6 +208,8 @@ void __stdcall CSettingsLua::Save(void)
     }
 
     this->m_Entries.BGMISPAUSED = !this->m_Entries.BGMISPAUSED;  // restore
+
+    return bSuccess;
 }
 
 void __stdcall CSettingsLua::Load(void)
@@ -207,21 +239,10 @@ void __stdcall CSettingsLua::Load(void)
         LOADENTRY(BITPERPIXEL,          SETTINGS_CAT_OPTIONLIST, "BITPERPIXEL"     ),
         LOADENTRY(DEVICECNT,            SETTINGS_CAT_OPTIONLIST, "DEVICECNT"       ),
         LOADENTRY(MODECNT,              SETTINGS_CAT_OPTIONLIST, "MODECNT"         ),
-        //LOADENTRY(ISVOODOO,           , "" ),
         LOADENTRY(ISLIGHTMAP,           SETTINGS_CAT_COMMANDLIST, "/lightmap"      ),
         LOADENTRY(SPRITEMODE,           SETTINGS_CAT_OPTIONLIST, "SPRITEMODE"      ),
         LOADENTRY(TEXTUREMODE,          SETTINGS_CAT_OPTIONLIST, "TEXTUREMODE"     ),
-        //LOADENTRY(NUMSAMPLETYPE,      , "" ),
         LOADENTRY(FOG,                  SETTINGS_CAT_COMMANDLIST, "/fog"           ),
-        //LOADENTRY(SOUNDMODE,          , "" ),
-        //LOADENTRY(SPEAKERTYPE,        , "" ),
-        //LOADENTRY(DIGITALRATETYPE,    , "" ),
-        //LOADENTRY(DIGITALBITSTYPE,    , "" ),
-        //LOADENTRY(GUIDDRIVER,         , "" ),
-        //LOADENTRY(GUIDDEVICE,         , "" ),
-        //LOADENTRY(DEVICENAME,         , "" ),
-        //LOADENTRY(PROVIDERNAME,       , "" ),
-        //LOADENTRY(SHOWTIPSATSTARTUP,  , "" ),
         LOADENTRY(TRILINEARFILTER,      SETTINGS_CAT_OPTIONLIST, "Trilinear"       ),
         LOADENTRY(STREAMVOLUME,         SETTINGS_CAT_OPTIONLIST, "Bgm_Volume"      ),
         LOADENTRY(SOUNDVOLUME,          SETTINGS_CAT_OPTIONLIST, "Effect_Volume"   ),
@@ -244,6 +265,7 @@ void __stdcall CSettingsLua::Load(void)
         LOADENTRY(LOGINOUT,             SETTINGS_CAT_COMMANDLIST, "/loginout"      ),
         LOADENTRY(SNAP,                 SETTINGS_CAT_COMMANDLIST, "/snap"          ),
         LOADENTRY(ISITEMSNAP,           SETTINGS_CAT_COMMANDLIST, "/itemsnap"      ),
+        LOADENTRY(SKILLSNAP,            SETTINGS_CAT_COMMANDLIST, "/skillsnap"     ),
         LOADENTRY(ISFIXEDCAMERA,        SETTINGS_CAT_COMMANDLIST, "/camera"        ),
         LOADENTRY(ONHOUSERAI,           SETTINGS_CAT_COMMANDLIST, "/hoai"          ),
         LOADENTRY(ONMERUSERAI,          SETTINGS_CAT_COMMANDLIST, "/merai"         ),
@@ -254,15 +276,17 @@ void __stdcall CSettingsLua::Load(void)
 
     if(RegOpenKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, KEY_READ, &hKey)==ERROR_SUCCESS)
     {
-        RegUtilLoad(hKey, LoadInfo, __ARRAYSIZE(LoadInfo));
+        RegUtilLoad(hKey, LoadInfo, __ARRAYSIZE(LoadInfo), NULL);
         RegCloseKey(hKey);
     }
 
     // Lua
     CLuaIO L;
-    // TODO: Does official setup do this, too? (or do we need to include something else as well?)
-    L.DefineTable(SETTINGS_CAT_OPTIONLIST);
+
+    // Define tables
     L.DefineTable(SETTINGS_CAT_COMMANDLIST);
+    L.DefineTable(SETTINGS_CAT_OPTIONLIST);
+    // L.Load("System\\LuaFiles514\\OptionInfo");  // official defaults
 
     if(L.Load(SETTINGS_LUAFILE))
     {
@@ -302,7 +326,7 @@ void __stdcall CSettingsLua::Reset(void)
     this->Set(SE_GUIDDRIVER,       &Guid        );
     this->Set(SE_GUIDDEVICE,       &Guid        );
     this->Set(SE_DEVICENAME,       ""           );
-    this->Set(SE_PROVIDERNAME,     "8—A");
+    this->Set(SE_PROVIDERNAME,     "No Provider");  // NOTE: Official setup saves "8—A", even though it intends this value.
     //
     this->Set(SE_SHOWTIPSATSTARTUP,1UL          );
     this->Set(SE_TRILINEARFILTER,  0UL          );
@@ -328,9 +352,12 @@ void __stdcall CSettingsLua::Reset(void)
     this->Set(SE_LOGINOUT,         1UL          );
     this->Set(SE_SNAP,             0UL          );
     this->Set(SE_ISITEMSNAP,       0UL          );
+    this->Set(SE_SKILLSNAP,        1UL          );
     this->Set(SE_ISFIXEDCAMERA,    0UL          );
     this->Set(SE_ONHOUSERAI,       0UL          );
     this->Set(SE_ONMERUSERAI,      0UL          );
+    //
+    this->Set(SF__ALL_FLAGS, false);
 }
 
 bool __stdcall CSettingsLua::IsAvail(SETTINGENTRY nEntry)
@@ -382,6 +409,7 @@ bool __stdcall CSettingsLua::IsAvail(SETTINGENTRY nEntry)
         case SE_LOGINOUT:
         case SE_SNAP:
         case SE_ISITEMSNAP:
+        case SE_SKILLSNAP:
         case SE_ISFIXEDCAMERA:
         case SE_ONHOUSERAI:
         case SE_ONMERUSERAI:
@@ -436,4 +464,12 @@ bool __stdcall CSettingsLua::IsAdminRequired(void)
 SETTINGENGINEID __stdcall CSettingsLua::GetEngineID(void)
 {
     return SENGINE_LUA;
+}
+
+
+void __stdcall CSettingsLua::ResetSettings(void)
+{
+    /* this:: */DropFolderList(l_lppszResetFileList, __ARRAYSIZE(l_lppszResetFileList));
+    RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH);
+    RegUtilDrop(HKEY_GRAVITY, SETTINGS_RENEWPATH);
 }

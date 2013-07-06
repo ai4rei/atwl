@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /vd0 /GX /Ox /Ot /Og /Oi /Gy /I "snippets" /I "lib/lua" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /FD /GF /c
+# ADD CPP /nologo /W3 /vd0 /GX /Ox /Ot /Og /Oi /Gy /I "snippets" /I "lib/lua" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /D _WIN32_IE=0x0600 /FD /GF /c
 # SUBTRACT CPP /Os /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /Oicf /win32
@@ -72,7 +72,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /Gi /GX /ZI /Od /I "snippets" /I "lib/lua" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /Gi /GX /ZI /Od /I "snippets" /I "lib/lua" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "STRICT" /D "HAVE_LUA514" /D "DX7E_DYNAMIC" /D _WIN32_IE=0x0600 /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /Oicf /win32
@@ -95,6 +95,10 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\config.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=.\dx7enum.cpp
@@ -139,6 +143,10 @@ SOURCE=.\ui.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\config.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\dx7enum.h

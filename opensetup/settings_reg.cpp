@@ -16,18 +16,10 @@
 #include "settings.h"
 #include "settings_reg.h"
 
-//#define HKLM_TO_HKCU
-
 #define SETTINGS_REGPATH "Software\\Gravity Soft\\Ragnarok"
 #define SETTINGS_REGPATH_OPTION SETTINGS_REGPATH"\\Option"
 
-#ifndef HKLM_TO_HKCU
-    #define HKEY_GRAVITY HKEY_LOCAL_MACHINE
-#else
-    #define HKEY_GRAVITY HKEY_CURRENT_USER
-#endif
-
-void __stdcall CSettingsReg::Save(void)
+bool __stdcall CSettingsReg::Save(void)
 {
     HKEY hKey;
     LONG lResult;
@@ -63,41 +55,60 @@ void __stdcall CSettingsReg::Save(void)
 #define SAVEENTRY(name,type,optname) { optname, &this->m_Entries.##name, sizeof(this->m_Entries.##name), (type) }
         SAVEENTRY(STREAMVOLUME,     REG_DWORD, "streamVolume"           ),
         SAVEENTRY(SOUNDVOLUME,      REG_DWORD, "soundVolume"            ),
-        //SAVEENTRY(MOUSEEXCLUSIVE,   REG_DWORD, "" ),
         SAVEENTRY(BGMISPAUSED,      REG_DWORD, "bgmIsPaused"            ),
         SAVEENTRY(ISSOUNDON,        REG_DWORD, "isSoundOn"              ),
-        //SAVEENTRY(NOTRADE,          REG_DWORD, "" ),
-        //SAVEENTRY(NOSHIFT,          REG_DWORD, "" ),
         SAVEENTRY(NOCTRL,           REG_DWORD, "m_isNoCtrl"             ),
-        //SAVEENTRY(SKILLFAIL,        REG_DWORD, "" ),
-        //SAVEENTRY(NOTALKMSG,        REG_DWORD, "" ),
-        //SAVEENTRY(NOTALKMSG2,       REG_DWORD, "" ),
-        //SAVEENTRY(SHOWNAME,         REG_DWORD, "" ),
-        //SAVEENTRY(AURA,             REG_DWORD, "" ),
-        //SAVEENTRY(WINDOW,           REG_DWORD, "" ),
         SAVEENTRY(MAKEMISSEFFECT,   REG_DWORD, "m_bMakeMissEffect"      ),
         SAVEENTRY(ISEFFECTON,       REG_DWORD, "isEffectOn"             ),
-        //SAVEENTRY(SHOPPING,         REG_DWORD, "" ),
-        //SAVEENTRY(STATEINFO,        REG_DWORD, "" ),
-        //SAVEENTRY(LOGINOUT,         REG_DWORD, "" ),
         SAVEENTRY(SNAP,             REG_DWORD, "m_monsterSnapOn_NoSkill"),
         SAVEENTRY(ISITEMSNAP,       REG_DWORD, "m_isItemSnap"           ),
+        SAVEENTRY(SKILLSNAP,        REG_DWORD, "m_monsterSnapOn_Skill"  ),
         SAVEENTRY(ISFIXEDCAMERA,    REG_DWORD, "g_isFixedCamera"        ),
         SAVEENTRY(ONHOUSERAI,       REG_DWORD, "onHoUserAI"             ),
         SAVEENTRY(ONMERUSERAI,      REG_DWORD, "onMerUserAI"            ),
 #undef SAVEENTRY
     };
 
+    if(this->m_nFlags)
+    {
+        bool bCanSave = true;
+
+        if(this->m_nFlags&SF_RESET_UI)
+        {
+            this->ResetUI();
+        }
+        if(this->m_nFlags&SF_RESET_SKILLLEVEL)
+        {
+            this->ResetSkillLevel();
+        }
+        if(this->m_nFlags&SF_RESET_USERDATA)
+        {
+            this->ResetUserData();
+        }
+        if(this->m_nFlags&SF_RESET_SETTING)
+        {
+            this->ResetSettings();
+            bCanSave = false;
+        }
+
+        if(!bCanSave)
+        {
+            return true;
+        }
+    }
+
     lResult = RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
 
     if(lResult!=ERROR_SUCCESS)
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
-        return;
+        return false;
     }
 
-    if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo)))
+    if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo), &lResult))
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_WRITE);
     }
 
@@ -108,17 +119,20 @@ void __stdcall CSettingsReg::Save(void)
 
     if(lResult!=ERROR_SUCCESS)
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_OPT_CREATE);
-        return;
+        return false;
     }
 
-    if(!RegUtilSave(hKey, SaveOptionInfo, __ARRAYSIZE(SaveOptionInfo)))
+    if(!RegUtilSave(hKey, SaveOptionInfo, __ARRAYSIZE(SaveOptionInfo), &lResult))
     {
+        SetLastError(lResult);
         CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_OPT_WRITE);
     }
 
     RegFlushKey(hKey);
     RegCloseKey(hKey);
+    return true;
 }
 
 void __stdcall CSettingsReg::Load(void)
@@ -157,25 +171,14 @@ void __stdcall CSettingsReg::Load(void)
 #define LOADENTRY(name,type,optname) { optname, &this->m_Entries.##name, sizeof(this->m_Entries.##name), NULL, (type) }
         LOADENTRY(STREAMVOLUME,     REG_DWORD, "streamVolume"           ),
         LOADENTRY(SOUNDVOLUME,      REG_DWORD, "soundVolume"            ),
-        //LOADENTRY(MOUSEEXCLUSIVE,   REG_DWORD, "" ),
         LOADENTRY(BGMISPAUSED,      REG_DWORD, "bgmIsPaused"            ),
         LOADENTRY(ISSOUNDON,        REG_DWORD, "isSoundOn"              ),
-        //LOADENTRY(NOTRADE,          REG_DWORD, "" ),
-        //LOADENTRY(NOSHIFT,          REG_DWORD, "" ),
         LOADENTRY(NOCTRL,           REG_DWORD, "m_isNoCtrl"             ),
-        //LOADENTRY(SKILLFAIL,        REG_DWORD, "" ),
-        //LOADENTRY(NOTALKMSG,        REG_DWORD, "" ),
-        //LOADENTRY(NOTALKMSG2,       REG_DWORD, "" ),
-        //LOADENTRY(SHOWNAME,         REG_DWORD, "" ),
-        //LOADENTRY(AURA,             REG_DWORD, "" ),
-        //LOADENTRY(WINDOW,           REG_DWORD, "" ),
         LOADENTRY(MAKEMISSEFFECT,   REG_DWORD, "m_bMakeMissEffect"      ),
         LOADENTRY(ISEFFECTON,       REG_DWORD, "isEffectOn"             ),
-        //LOADENTRY(SHOPPING,         REG_DWORD, "" ),
-        //LOADENTRY(STATEINFO,        REG_DWORD, "" ),
-        //LOADENTRY(LOGINOUT,         REG_DWORD, "" ),
         LOADENTRY(SNAP,             REG_DWORD, "m_monsterSnapOn_NoSkill"),
         LOADENTRY(ISITEMSNAP,       REG_DWORD, "m_isItemSnap"           ),
+        LOADENTRY(SKILLSNAP,        REG_DWORD, "m_monsterSnapOn_Skill"  ),
         LOADENTRY(ISFIXEDCAMERA,    REG_DWORD, "g_isFixedCamera"        ),
         LOADENTRY(ONHOUSERAI,       REG_DWORD, "onHoUserAI"             ),
         LOADENTRY(ONMERUSERAI,      REG_DWORD, "onMerUserAI"            ),
@@ -186,13 +189,13 @@ void __stdcall CSettingsReg::Load(void)
 
     if(RegOpenKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, KEY_READ, &hKey)==ERROR_SUCCESS)
     {
-        RegUtilLoad(hKey, LoadInfo, __ARRAYSIZE(LoadInfo));
+        RegUtilLoad(hKey, LoadInfo, __ARRAYSIZE(LoadInfo), NULL);
         RegCloseKey(hKey);
     }
 
     if(RegOpenKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH_OPTION, 0, KEY_READ, &hKey)==ERROR_SUCCESS)
     {
-        RegUtilLoad(hKey, LoadOptionInfo, __ARRAYSIZE(LoadOptionInfo));
+        RegUtilLoad(hKey, LoadOptionInfo, __ARRAYSIZE(LoadOptionInfo), NULL);
         RegCloseKey(hKey);
     }
 }
@@ -227,7 +230,7 @@ void __stdcall CSettingsReg::Reset(void)
     this->Set(SE_SHOWTIPSATSTARTUP,1UL          );
     this->Set(SE_TRILINEARFILTER,  0UL          );
     //
-    this->Set(SE_STREAMVOLUME,     0UL          );
+    this->Set(SE_STREAMVOLUME,     100UL        );
     this->Set(SE_SOUNDVOLUME,      100UL        );
     this->Set(SE_MOUSEEXCLUSIVE,   0UL          );
     this->Set(SE_BGMISPAUSED,      0UL          );
@@ -248,9 +251,12 @@ void __stdcall CSettingsReg::Reset(void)
     this->Set(SE_LOGINOUT,         0UL          );
     this->Set(SE_SNAP,             0UL          );
     this->Set(SE_ISITEMSNAP,       0UL          );
+    this->Set(SE_SKILLSNAP,        1UL          );
     this->Set(SE_ISFIXEDCAMERA,    0UL          );
     this->Set(SE_ONHOUSERAI,       0UL          );
     this->Set(SE_ONMERUSERAI,      0UL          );
+    //
+    this->Set(SF__ALL_FLAGS, false);
 }
 
 bool __stdcall CSettingsReg::IsAvail(SETTINGENTRY nEntry)
@@ -302,6 +308,7 @@ bool __stdcall CSettingsReg::IsAvail(SETTINGENTRY nEntry)
         //case SE_LOGINOUT:
         case SE_SNAP:
         case SE_ISITEMSNAP:
+        case SE_SKILLSNAP:
         case SE_ISFIXEDCAMERA:
         case SE_ONHOUSERAI:
         case SE_ONMERUSERAI:
@@ -335,4 +342,9 @@ bool __stdcall CSettingsReg::IsAdminRequired(void)
 SETTINGENGINEID __stdcall CSettingsReg::GetEngineID(void)
 {
     return SENGINE_REG;
+}
+
+void __stdcall CSettingsReg::ResetSettings(void)
+{
+    RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH);
 }

@@ -7,9 +7,25 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
+
+#include <regutil.h>
 
 #include "opensetup.h"
 #include "settings.h"
+
+#define SETTINGS_REGPATH "Software\\Gravity Soft\\Ragnarok"
+#define SETTINGS_REGPATH_UIRECTINFO SETTINGS_REGPATH"\\UIRectInfo"
+#define SETTINGS_REGPATH_SKILLUSELEVELINFO SETTINGS_REGPATH"\\SkillUseLevelInfo"
+
+static const char* l_lppszUserDataItems[] =
+{
+    "_tmpEmblem",
+    "Chat",
+    "Chat_BM",
+    "Replay",
+    "ScreenShot",
+};
 
 // shared section for elevated actions
 #pragma data_seg(".shared")
@@ -19,6 +35,64 @@ static SETTINGSENTRIES l_IPCBuffer = { 0 };
 static LONG l_lSpinLock = 0;
 #pragma data_seg()
 #pragma comment(linker, "/SECTION:.shared,RWS")
+
+void __stdcall CSettings::DropFolders(const char* lpszFolders)
+{
+    // we do not have the guts to delete everything immediately, so
+    // let's delete to recycle bin, if any.
+    SHFILEOPSTRUCTA Fo = { 0 };
+
+    Fo.wFunc = FO_DELETE;
+    Fo.pFrom = lpszFolders;
+    Fo.fFlags = FOF_ALLOWUNDO|FOF_NOCONFIRMATION|FOF_NOERRORUI|FOF_WANTNUKEWARNING;
+
+    SHFileOperationA(&Fo);
+}
+
+void __stdcall CSettings::DropFolderList(const char** lppszList, unsigned long luItems)
+{
+    char* lpszSlash;
+    char* lpszItems;
+    char szBasePath[MAX_PATH], szFilePath[MAX_PATH];
+    unsigned long luIdx, luItemLen = 0, luLen;
+
+    GetModuleFileNameA(NULL, szBasePath, __ARRAYSIZE(szBasePath));
+
+    if((lpszSlash = strrchr(szBasePath, '\\'))!=NULL)
+    {
+        lpszSlash[1] = 0;
+        luLen = lstrlenA(szBasePath);
+
+        for(luIdx = 0; luIdx<luItems; luIdx++)
+        {
+            luItemLen+= luLen+lstrlenA(lppszList[luIdx])+1;  // +1 = account for zero-termination
+        }
+
+        luItemLen++;  // account for array termination
+
+        lpszItems = new char[luItemLen];
+        luLen = 0;
+
+        for(luIdx = 0; luIdx<luItems; luIdx++)
+        {
+            wsprintfA(szFilePath, "%s%s", szBasePath, lppszList[luIdx]);
+
+            if(GetFileAttributes(szFilePath)!=~0UL)
+            {// add it only if it exists
+                luLen+= wsprintfA(lpszItems+luLen, "%s", szFilePath)+1;
+            }
+        }
+
+        if(luLen)
+        {// there is something to delete
+            lpszItems[luLen] = 0;  // terminate array
+
+            /* this:: */DropFolders(lpszItems);
+        }
+
+        delete[] lpszItems;
+    }
+}
 
 unsigned long __stdcall CSettings::Get(SETTINGENTRY nEntry)
 {
@@ -64,6 +138,7 @@ unsigned long __stdcall CSettings::Get(SETTINGENTRY nEntry)
         GETENTRY(LOGINOUT         );
         GETENTRY(SNAP             );
         GETENTRY(ISITEMSNAP       );
+        GETENTRY(SKILLSNAP        );
         GETENTRY(ISFIXEDCAMERA    );
         GETENTRY(ONHOUSERAI       );
         GETENTRY(ONMERUSERAI      );
@@ -117,6 +192,7 @@ void __stdcall CSettings::Set(SETTINGENTRY nEntry, unsigned long luValue)
         SETENTRY(LOGINOUT         );
         SETENTRY(SNAP             );
         SETENTRY(ISITEMSNAP       );
+        SETENTRY(SKILLSNAP        );
         SETENTRY(ISFIXEDCAMERA    );
         SETENTRY(ONHOUSERAI       );
         SETENTRY(ONMERUSERAI      );
@@ -127,33 +203,37 @@ void __stdcall CSettings::Set(SETTINGENTRY nEntry, unsigned long luValue)
 
 void __stdcall CSettings::Set(SETTINGENTRY nEntry, GUID* lpGuid)
 {
-    if(nEntry==SE_GUIDDRIVER)
+#define SETENTRY(name) case SE_##name: CopyMemory(&this->m_Entries.##name, lpGuid, sizeof(this->m_Entries.##name)); break
+    switch(nEntry)
     {
-        CopyMemory(&this->m_Entries.GUIDDRIVER, lpGuid, sizeof(this->m_Entries.GUIDDRIVER));
+        SETENTRY(GUIDDRIVER       );
+        SETENTRY(GUIDDEVICE       );
+        default: DebugBreakHere();
     }
-    else if(nEntry==SE_GUIDDEVICE)
-    {
-        CopyMemory(&this->m_Entries.GUIDDEVICE, lpGuid, sizeof(this->m_Entries.GUIDDEVICE));
-    }
-    else
-    {
-        DebugBreakHere();
-    }
+#undef SETENTRY
 }
 
 void __stdcall CSettings::Set(SETTINGENTRY nEntry, const char* lpszString)
 {
-    if(nEntry==SE_DEVICENAME)
+#define SETENTRY(name) case SE_##name: lstrcpynA(this->m_Entries.##name, lpszString, sizeof(this->m_Entries.##name)); break
+    switch(nEntry)
     {
-        lstrcpyn(this->m_Entries.DEVICENAME, lpszString, sizeof(this->m_Entries.DEVICENAME));
+        SETENTRY(DEVICENAME       );
+        SETENTRY(PROVIDERNAME     );
+        default: DebugBreakHere();
     }
-    else if(nEntry==SE_PROVIDERNAME)
+#undef SETENTRY
+}
+
+void __stdcall CSettings::Set(SETTINGFLAG nFlag, bool bState)
+{
+    if(bState)
     {
-        lstrcpyn(this->m_Entries.PROVIDERNAME, lpszString, sizeof(this->m_Entries.PROVIDERNAME));
+        this->m_nFlags|= nFlag;
     }
     else
     {
-        DebugBreakHere();
+        this->m_nFlags&=~nFlag;
     }
 }
 
@@ -187,4 +267,19 @@ void __stdcall CSettings::LoadFromIPC(unsigned long luHash)
     }
 
     LeaveSpinLock(&l_lSpinLock);
+}
+
+void __stdcall CSettings::ResetUI(void)
+{
+    RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH_UIRECTINFO);
+}
+
+void __stdcall CSettings::ResetSkillLevel(void)
+{
+    RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH_SKILLUSELEVELINFO);
+}
+
+void __stdcall CSettings::ResetUserData(void)
+{
+    /* this:: */DropFolderList(l_lppszUserDataItems, __ARRAYSIZE(l_lppszUserDataItems));
 }
