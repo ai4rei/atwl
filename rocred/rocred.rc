@@ -97,7 +97,7 @@ BEGIN
     IDS_CHECKSAVE,      "Save"
     IDS_TITLE,          "<kindly insert your title here>"
     IDS_OK,             "OK"
-    IDS_CANCEL,         "Cancel"
+    IDS_CLOSE,          "Close"
     IDS_USER_NONE,      "Please enter a user name. User name must be at least 4 characters long."
     IDS_USER_SHRT,      "User name must be at least 4 characters long. Please try again."
     IDS_PASS_NONE,      "Please enter a password. Password must be at least 4 characters long."

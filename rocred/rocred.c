@@ -112,7 +112,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
 
-                LoadStringA(hInstance, IDS_CANCEL, szBuffer, __ARRAYSIZE(szBuffer));
+                LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
 
                 LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
