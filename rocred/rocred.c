@@ -41,6 +41,21 @@ static const DLGTEMPLATEINFO l_DlgTempl =
 };
 static char l_szIniFile[MAX_PATH];
 
+static void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
+{
+    WritePrivateProfileStringA("ROCred", lpszKey, lpszValue, l_szIniFile);
+}
+
+static void __stdcall ConfigGetStr(const char* lpszKey, const char* lpszDefault, char* lpszBuffer, unsigned long luBufferSize)
+{
+    GetPrivateProfileStringA("ROCred", lpszKey, lpszDefault, lpszBuffer, luBufferSize, l_szIniFile);
+}
+
+static int __stdcall ConfigGetInt(const char* lpszKey, int nDefault)
+{
+    return GetPrivateProfileIntA("ROCred", lpszKey, nDefault, l_szIniFile);
+}
+
 // Waits for an process to exit, while keeping the application idle,
 // responsive and hidden.
 static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
@@ -118,12 +133,12 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
 
-                bCheckSave = GetPrivateProfileIntA("ROCred", "CheckSave", FALSE, l_szIniFile);
+                bCheckSave = ConfigGetInt("CheckSave", FALSE);
                 SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
 
                 if(bCheckSave)
                 {
-                    GetPrivateProfileStringA("ROCred", "UserName", "", szBuffer, __ARRAYSIZE(szBuffer), l_szIniFile);
+                    ConfigGetStr("UserName", "", szBuffer, __ARRAYSIZE(szBuffer));
 
                     if(szBuffer[0])
                     {
@@ -151,8 +166,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         STARTUPINFO Si = { sizeof(Si) };
                         PROCESS_INFORMATION Pi;
 
-                        GetPrivateProfileStringA("ROCred", "ExeName", "", szExeName, __ARRAYSIZE(szExeName), l_szIniFile);
-                        GetPrivateProfileStringA("ROCred", "ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType), l_szIniFile);
+                        ConfigGetStr("ExeName", "", szExeName, __ARRAYSIZE(szExeName));
+                        ConfigGetStr("ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType));
                         {
                             char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
 
@@ -214,15 +229,19 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
 
                         bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, 103), BM_GETCHECK, 0, 0)==BST_CHECKED);
-                        WritePrivateProfileStringA("ROCred", "CheckSave", bCheckSave ? "1" : "0", l_szIniFile);
+                        ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
 
                         if(bCheckSave)
                         {// save
-                            WritePrivateProfileStringA("ROCred", "UserName", szUserName, l_szIniFile);
+                            ConfigSetStr("UserName", szUserName);
+                        }
+                        else
+                        {// delete
+                            ConfigSetStr("UserName", NULL);
                         }
 
-                        GetPrivateProfileStringA("ROCred", "ExeName", "", szExeName, __ARRAYSIZE(szExeName), l_szIniFile);
-                        GetPrivateProfileStringA("ROCred", "ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType), l_szIniFile);
+                        ConfigGetStr("ExeName", "", szExeName, __ARRAYSIZE(szExeName));
+                        ConfigGetStr("ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType));
                         {
                             char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
 
@@ -231,7 +250,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             lstrcat(szExePath, szExeName);
                         }
 
-                        if(GetPrivateProfileIntA("ROCred", "HashMD5", FALSE, l_szIniFile))
+                        if(ConfigGetInt("HashMD5", FALSE))
                         {// MD5
                             uint8 ucHash[4*4];
                             char szHexHash[4*4*2+1];
