@@ -97,6 +97,45 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     ShowWindow(hWnd, SW_RESTORE);
 }
 
+static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
+{
+    char* lpszPtr;
+    char szMutexName[MAX_PATH];
+
+    // care about secondary instances?
+    if(ConfigGetInt("SecondInstance", 0))
+    {
+        return true;
+    }
+
+    // fetch our name (block double execution of this very same exe only)
+    GetModuleFileNameA(NULL, szMutexName, __ARRAYSIZE(szMutexName));
+
+    // replace backslashes with a valid character
+    for(lpszPtr = szMutexName; lpszPtr[0] = lpszPtr[0]=='\\' ? '!' : lpszPtr[0]; lpszPtr++);
+
+    if((lphMutex[0] = CreateMutex(NULL, FALSE, szMutexName))==NULL)
+    {
+        return false;
+    }
+    else if(GetLastError()==ERROR_ALREADY_EXISTS || WaitForSingleObject(lphMutex[0], 0)!=WAIT_OBJECT_0)
+    {
+        CloseHandle(lphMutex[0]);
+        return false;
+    }
+
+    return true;
+}
+
+static void __stdcall AppMutexRelease(HANDLE* lphMutex)
+{
+    if(lphMutex[0])
+    {
+        CloseHandle(lphMutex[0]);
+        lphMutex[0] = NULL;
+    }
+}
+
 static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
@@ -315,14 +354,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 {
     unsigned char ucDlgBuf[264];
     unsigned long luLen, luDlgBufSize = sizeof(ucDlgBuf);
+    HANDLE hMutex = NULL;
 
     GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
     luLen = lstrlenA(l_szIniFile);
     lstrcpyA((luLen>4 && l_szIniFile[luLen-4]=='.') ? &l_szIniFile[luLen-4] : &l_szIniFile[luLen], ".ini");
 
-    AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
-    InitCommonControls();
-    DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+    if(AppMutexAcquire(&hMutex))
+    {
+        AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
+        InitCommonControls();
+        DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+
+        AppMutexRelease(&hMutex);
+    }
 
     return 0;
 }
