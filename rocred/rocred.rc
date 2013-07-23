@@ -104,4 +104,5 @@ BEGIN
     IDS_PASS_SHRT,      "Password must be at least 4 characters long. Please try again."
     IDS_EXE_ERROR,      "Failed to start client."
     IDS_REPLAY,         "Replay"
+    IDS_CONFIG_ERROR,   "Failed to initialize configuration."
 END

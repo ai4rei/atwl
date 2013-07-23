@@ -13,6 +13,7 @@
 #include <md5.h>
 #include <xf_binhex.h>
 
+#include "config.h"
 #include "rocred.h"
 
 static const DLGTEMPLATEITEMINFO l_DlgItems[] =
@@ -39,24 +40,8 @@ static const DLGTEMPLATEINFO l_DlgTempl =
     82,
     l_DlgItems,
 };
-static char l_szIniFile[MAX_PATH];
 
 static char l_szAppTitle[1024] = { 0 };
-
-static void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
-{
-    WritePrivateProfileStringA("ROCred", lpszKey, lpszValue, l_szIniFile);
-}
-
-static void __stdcall ConfigGetStr(const char* lpszKey, const char* lpszDefault, char* lpszBuffer, unsigned long luBufferSize)
-{
-    GetPrivateProfileStringA("ROCred", lpszKey, lpszDefault, lpszBuffer, luBufferSize, l_szIniFile);
-}
-
-static int __stdcall ConfigGetInt(const char* lpszKey, int nDefault)
-{
-    return GetPrivateProfileIntA("ROCred", lpszKey, nDefault, l_szIniFile);
-}
 
 // Waits for an process to exit, while keeping the application idle,
 // responsive and hidden.
@@ -105,7 +90,7 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
     char szMutexName[MAX_PATH];
 
     // care about secondary instances?
-    if(ConfigGetInt("SecondInstance", 0))
+    if(ConfigGetInt("SecondInstance"))
     {
         return true;
     }
@@ -173,12 +158,12 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
 
-                bCheckSave = ConfigGetInt("CheckSave", FALSE);
+                bCheckSave = ConfigGetInt("CheckSave");
                 SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
 
                 if(bCheckSave)
                 {
-                    ConfigGetStr("UserName", "", szBuffer, __ARRAYSIZE(szBuffer));
+                    ConfigGetStr("UserName", szBuffer, __ARRAYSIZE(szBuffer));
 
                     if(szBuffer[0])
                     {
@@ -206,8 +191,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         STARTUPINFO Si = { sizeof(Si) };
                         PROCESS_INFORMATION Pi;
 
-                        ConfigGetStr("ExeName", "", szExeName, __ARRAYSIZE(szExeName));
-                        ConfigGetStr("ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType));
+                        ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
+                        ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
                         {
                             char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
 
@@ -281,8 +266,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             ConfigSetStr("UserName", NULL);
                         }
 
-                        ConfigGetStr("ExeName", "", szExeName, __ARRAYSIZE(szExeName));
-                        ConfigGetStr("ExeType", "1rag1", szExeType, __ARRAYSIZE(szExeType));
+                        ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
+                        ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
                         {
                             char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
 
@@ -291,7 +276,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             lstrcat(szExePath, szExeName);
                         }
 
-                        if(ConfigGetInt("HashMD5", FALSE))
+                        if(ConfigGetInt("HashMD5"))
                         {// MD5
                             uint8 ucHash[4*4];
                             char szHexHash[4*4*2+1];
@@ -355,25 +340,32 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
+    char szErrMsg[256];
     unsigned char ucDlgBuf[264];
-    unsigned long luLen, luDlgBufSize = sizeof(ucDlgBuf);
+    unsigned long luDlgBufSize = sizeof(ucDlgBuf);
     HANDLE hMutex = NULL;
 
     // global window title
     LoadStringA(hInstance, IDS_TITLE, l_szAppTitle, __ARRAYSIZE(l_szAppTitle));
 
     // start up
-    GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
-    luLen = lstrlenA(l_szIniFile);
-    lstrcpyA((luLen>4 && l_szIniFile[luLen-4]=='.') ? &l_szIniFile[luLen-4] : &l_szIniFile[luLen], ".ini");
-
-    if(AppMutexAcquire(&hMutex))
+    if(ConfigInit())
     {
-        AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
-        InitCommonControls();
-        DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+        if(AppMutexAcquire(&hMutex))
+        {
+            AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
+            InitCommonControls();
+            DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
 
-        AppMutexRelease(&hMutex);
+            AppMutexRelease(&hMutex);
+        }
+
+        ConfigQuit();
+    }
+    else
+    {
+        LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
+        MessageBox(NULL, szErrMsg, l_szAppTitle, MB_OK|MB_ICONSTOP);
     }
 
     return 0;
