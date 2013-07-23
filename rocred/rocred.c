@@ -41,6 +41,8 @@ static const DLGTEMPLATEINFO l_DlgTempl =
 };
 static char l_szIniFile[MAX_PATH];
 
+static char l_szAppTitle[1024] = { 0 };
+
 static void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
 {
     WritePrivateProfileStringA("ROCred", lpszKey, lpszValue, l_szIniFile);
@@ -151,8 +153,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 SendMessage(hWnd, WM_SETICON, ICON_SMALL,
                     (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
 
-                LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
-                SetWindowTextA(hWnd, szBuffer);
+                SetWindowTextA(hWnd, l_szAppTitle);
 
                 LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
@@ -226,12 +227,13 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
                         else
                         {
+                        	// FIXME: improve this
                             DWORD dwLastError = GetLastError();
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                             FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                             LoadStringA(hInstance, IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                         }
                     }
                     //EndDialog(hWnd, 1);
@@ -312,12 +314,13 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
                         else
                         {
+                        	// FIXME: improve this
                             DWORD dwLastError = GetLastError();
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
-                            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+                            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                             LoadStringA(hInstance, IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONSTOP);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                         }
                     }
                     //EndDialog(hWnd, 1);
@@ -356,6 +359,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     unsigned long luLen, luDlgBufSize = sizeof(ucDlgBuf);
     HANDLE hMutex = NULL;
 
+    // global window title
+    LoadStringA(hInstance, IDS_TITLE, l_szAppTitle, __ARRAYSIZE(l_szAppTitle));
+
+    // start up
     GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
     luLen = lstrlenA(l_szIniFile);
     lstrcpyA((luLen>4 && l_szIniFile[luLen-4]=='.') ? &l_szIniFile[luLen-4] : &l_szIniFile[luLen], ".ini");
