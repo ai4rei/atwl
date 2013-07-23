@@ -212,7 +212,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
                         else
                         {
-                        	// FIXME: improve this
+                            // FIXME: improve this
                             DWORD dwLastError = GetLastError();
                             MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                             FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
@@ -299,7 +299,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
                         else
                         {
-                        	// FIXME: improve this
+                            // FIXME: improve this
                             DWORD dwLastError = GetLastError();
                             MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
                             FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
@@ -353,9 +353,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     {
         if(AppMutexAcquire(&hMutex))
         {
-            AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
-            InitCommonControls();
-            DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+            if(lpszCmdLine[0]=='/')
+            {
+                if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
+                {
+                    if(!ConfigSave())
+                    {
+                        MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up.", l_szAppTitle, MB_OK|MB_ICONSTOP);
+                    }
+                }
+            }
+            else
+            {
+                AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
+                InitCommonControls();
+                DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+            }
 
             AppMutexRelease(&hMutex);
         }

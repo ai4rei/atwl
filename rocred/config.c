@@ -107,6 +107,63 @@ int __stdcall ConfigGetInt(const char* lpszKey)
     return GetPrivateProfileIntA(CONFIG_MAIN_SECTION, lpszKey, nDefault, l_szIniFile);
 }
 
+bool __stdcall ConfigSave(void)
+{
+    bool bSuccess = false;
+    unsigned long luLen, luRead;
+    void* lpData;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+
+    // load configuration
+    if((hFile = CreateFileA(l_szIniFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL))!=INVALID_HANDLE_VALUE)
+    {
+        luLen = GetFileSize(hFile, NULL);
+
+        if((lpData = LocalAlloc(0, luLen))!=NULL)
+        {
+            if(ReadFile(hFile, lpData, luLen, &luRead, NULL) && luLen==luRead)
+            {
+                char szSrcName[MAX_PATH];
+                char szDstName[MAX_PATH];
+                HANDLE hUpdate;
+
+                GetModuleFileNameA(NULL, szSrcName, __ARRAYSIZE(szSrcName));
+                wsprintfA(szDstName, "%s.embed.exe", szSrcName);
+
+                if(CopyFileA(szSrcName, szDstName, FALSE))
+                {
+                    // persist as resource
+                    if((hUpdate = BeginUpdateResource(szDstName, FALSE))!=NULL)
+                    {
+                        if(UpdateResource(hUpdate, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", 0, lpData, luLen))
+                        {
+                            if(EndUpdateResource(hUpdate, FALSE))
+                            {
+                                bSuccess = true;
+                            }
+                        }
+                        else
+                        {
+                            EndUpdateResource(hUpdate, TRUE);
+                        }
+                    }
+
+                    if(!bSuccess)
+                    {
+                        DeleteFileA(szDstName);
+                    }
+                }
+            }
+
+            LocalFree(lpData);
+        }
+
+        CloseHandle(hFile);
+    }
+
+    return bSuccess;
+}
+
 bool __stdcall ConfigInit(void)
 {
     unsigned long luLen, luWritten;
@@ -115,41 +172,39 @@ bool __stdcall ConfigInit(void)
     HRSRC hInfo;
 
     // embedded/admin configuration
-    if((hInfo = FindResourceA(hInstance, ".ini", MAKEINTRESOURCE(RT_RCDATA)))!=NULL && SizeofResource(hInstance, hInfo)>=sizeof(unsigned long))
+    if((hInfo = FindResourceA(hInstance, "CONFIG", MAKEINTRESOURCE(RT_RCDATA)))!=NULL)
     {
         if((hConf = LoadResource(hInstance, hInfo))!=NULL)
         {
-            // resource layout: <size of data>.L <data>.?
-            const unsigned long* lpluData = (const unsigned long*)LockResource(hConf);
+            const void* lpData = LockResource(hConf);
+            char szTmpPath[MAX_PATH];
+            unsigned int uUniq = 0;
 
-            if(lpluData[0]<=SizeofResource(hInstance, hInfo))
+            GetTempPathA(__ARRAYSIZE(szTmpPath), szTmpPath);
+
+            do
             {
-                char szTmpPath[MAX_PATH];
-                unsigned int uUniq = 0;
+                wsprintfA(l_szMbdFile, "%s\\~rcd%04x.ini", szTmpPath, uUniq++);
 
-                GetTempPathA(__ARRAYSIZE(szTmpPath), szTmpPath);
+                // BUG: Keeping the file open for the sake of delete
+                //      on close will prevent GetPrivateProfile* on
+                //      Windows 9x, because of exclusive access.
+                l_hMbd = CreateFileA(l_szMbdFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_WRITE_THROUGH, NULL);
+            }
+            while(l_hMbd==INVALID_HANDLE_VALUE && GetLastError()==ERROR_FILE_EXISTS && uUniq<=0xFFFF);
 
-                do
+            if(l_hMbd!=INVALID_HANDLE_VALUE)
+            {
+                if(!WriteFile(l_hMbd, lpData, SizeofResource(hInstance, hInfo), &luWritten, NULL))
                 {
-                    wsprintfA(l_szMbdFile, "%s\\~rcd%04x.ini", szTmpPath, uUniq++);
-
-                    l_hMbd = CreateFileA(l_szMbdFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_WRITE_THROUGH, NULL);
-                }
-                while(l_hMbd==INVALID_HANDLE_VALUE && GetLastError()==ERROR_FILE_EXISTS && uUniq<=0xFFFF);
-
-                if(l_hMbd!=INVALID_HANDLE_VALUE)
-                {
-                    if(!WriteFile(l_hMbd, &lpluData[1], lpluData[0]-sizeof(unsigned long), &luWritten, NULL))
-                    {
-                        // clean up the evidence if we failed
-                        CloseHandle(l_hMbd);
-                        l_szMbdFile[0] = 0;
-                    }
-                }
-                else
-                {
+                    // clean up the evidence if we failed
+                    CloseHandle(l_hMbd);
                     l_szMbdFile[0] = 0;
                 }
+            }
+            else
+            {
+                l_szMbdFile[0] = 0;
             }
         }
 

@@ -10,6 +10,7 @@
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue);
 void __stdcall ConfigGetStr(const char* lpszKey, char* lpszBuffer, unsigned long luBufferSize);
 int __stdcall ConfigGetInt(const char* lpszKey);
+bool __stdcall ConfigSave(void);
 bool __stdcall ConfigInit(void);
 void __stdcall ConfigQuit(void);
 
