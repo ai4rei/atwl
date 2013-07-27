@@ -47,6 +47,7 @@ static char l_szAppTitle[1024] = { 0 };
 // responsive and hidden.
 static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 {
+    bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
     HINSTANCE hInstance = GetModuleHandle(NULL);
     NOTIFYICONDATA Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
 
@@ -54,10 +55,13 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     Sleep(200);  // animation
     ShowWindow(hWnd, SW_HIDE);
 
-    // set up notification icon (no 'auto restore' or 'load later')
-    Nid.hIcon = LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED);
-    LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
-    Shell_NotifyIcon(NIM_ADD, &Nid);
+    if(bTrayIcon)
+    {
+        // set up notification icon (no 'auto restore' or 'load later')
+        Nid.hIcon = LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED);
+        LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
+        Shell_NotifyIcon(NIM_ADD, &Nid);
+    }
 
     // go idle
     SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
@@ -79,7 +83,12 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 
     // return to normal
     SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
-    Shell_NotifyIcon(NIM_DELETE, &Nid);
+
+    if(bTrayIcon)
+    {
+        Shell_NotifyIcon(NIM_DELETE, &Nid);
+    }
+
     ShowWindow(hWnd, SW_SHOWMINIMIZED);
     ShowWindow(hWnd, SW_RESTORE);
 }
@@ -181,8 +190,30 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
 
-                LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
-                SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
+                if(ConfigGetInt("PolicyNoCheckSave"))
+                {
+                    ShowWindow(GetDlgItem(hWnd, IDC_CHECKSAVE), SW_HIDE);
+                }
+                else
+                {
+                    LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
+                    SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
+
+                    bCheckSave = ConfigGetInt("CheckSave");
+                    SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
+
+                    if(bCheckSave)
+                    {
+                        ConfigGetStr("UserName", szBuffer, __ARRAYSIZE(szBuffer));
+
+                        if(szBuffer[0])
+                        {
+                            SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
+                            SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
+                            return FALSE;
+                        }
+                    }
+                }
 
                 LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
@@ -190,22 +221,14 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
 
-                LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
-                SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
-
-                bCheckSave = ConfigGetInt("CheckSave");
-                SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
-
-                if(bCheckSave)
+                if(ConfigGetInt("PolicyNoReplay"))
                 {
-                    ConfigGetStr("UserName", szBuffer, __ARRAYSIZE(szBuffer));
-
-                    if(szBuffer[0])
-                    {
-                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
-                        SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
-                        return FALSE;
-                    }
+                    ShowWindow(GetDlgItem(hWnd, IDB_REPLAY), SW_HIDE);
+                }
+                else
+                {
+                    LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
+                    SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
                 }
             }
             break;
@@ -264,6 +287,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             LoadStringA(hInstance, szPassWord[0] ? IDS_PASS_SHRT : IDS_PASS_NONE, szBuffer, __ARRAYSIZE(szBuffer));
                             MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONINFORMATION);
                             break;
+                        }
+
+                        if(ConfigGetInt("PolicyNoSessionPassword"))
+                        {
+                            SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
                         }
 
                         bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, 103), BM_GETCHECK, 0, 0)==BST_CHECKED);

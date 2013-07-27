@@ -37,12 +37,16 @@ typedef const CONFIGDEFAULTVALUE* LPCCONFIGDEFAULTVALUE;
 
 static const CONFIGDEFAULTVALUE l_DefaultValues[] =
 {
-    { "CheckSave",      CDVT_NUM, FALSE   },
-    { "UserName",       CDVT_STR, ""      },
-    { "ExeName",        CDVT_STR, ""      },
-    { "ExeType",        CDVT_STR, "1rag1" },
-    { "HashMD5",        CDVT_NUM, FALSE   },
-    { "SecondInstance", CDVT_NUM, FALSE   },
+    { "CheckSave",                  CDVT_NUM, FALSE   },
+    { "UserName",                   CDVT_STR, ""      },
+    { "ExeName",                    CDVT_STR, ""      },
+    { "ExeType",                    CDVT_STR, "1rag1" },
+    { "HashMD5",                    CDVT_NUM, FALSE   },
+    { "SecondInstance",             CDVT_NUM, FALSE   },
+    { "PolicyNoCheckSave",          CDVT_NUM, FALSE   },
+    { "PolicyNoReplay",             CDVT_NUM, FALSE   },
+    { "PolicyNoTrayIcon",           CDVT_NUM, FALSE   },
+    { "PolicyNoSessionPassword",    CDVT_NUM, FALSE   },
 };
 
 static char l_szIniFile[MAX_PATH] = { 0 };
