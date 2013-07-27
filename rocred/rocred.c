@@ -174,7 +174,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_INITDIALOG:
             {
                 char szBuffer[4096];
-                BOOL bCheckSave;
+                BOOL bCheckSave, bSetFocus = TRUE;
                 HINSTANCE hInstance = GetModuleHandleA(NULL);
 
                 SendMessage(hWnd, WM_SETICON, ICON_BIG,
@@ -210,7 +210,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         {
                             SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
                             SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
-                            return FALSE;
+                            bSetFocus = FALSE;
                         }
                     }
                 }
@@ -230,8 +230,9 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
                     SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
                 }
+
+                return bSetFocus;
             }
-            break;
         case WM_COMMAND:
             if(HIWORD(wParam)!=1  && HIWORD(wParam)!=0)
             {
