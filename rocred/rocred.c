@@ -84,6 +84,41 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     ShowWindow(hWnd, SW_RESTORE);
 }
 
+// Run and execute process.
+static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
+{
+    char szBuffer[4096];
+    va_list lpVl;
+    SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+
+    va_start(lpVl, lpszParamFmt);
+    wvsprintfA(szBuffer, lpszParamFmt, lpVl);
+    va_end(lpVl);
+
+    Sei.fMask = SEE_MASK_NOCLOSEPROCESS|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0);
+    Sei.hwnd = hWnd;
+    Sei.lpVerb = "open";
+    Sei.lpFile = lpszApplication;
+    Sei.lpParameters = szBuffer;
+    Sei.nShow = SW_SHOWNORMAL;
+
+    if(ShellExecuteEx(&Sei))
+    {
+        IdleWaitProcess(hWnd, Sei.hProcess);
+        CloseHandle(Sei.hProcess);
+    }
+    else
+    {
+        // FIXME: improve this
+        DWORD dwLastError = GetLastError();
+        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
+        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+        LoadStringA(GetModuleHandle(NULL), IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
+        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+    }
+}
+
 static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
 {
     char* lpszPtr;
@@ -186,10 +221,6 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         char szExePath[MAX_PATH];
                         char szExeName[MAX_PATH];
                         char szExeType[16];
-                        char szBuffer[4096];
-                        HINSTANCE hInstance = GetModuleHandleA(NULL);
-                        STARTUPINFO Si = { sizeof(Si) };
-                        PROCESS_INFORMATION Pi;
 
                         ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
                         ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
@@ -202,24 +233,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         }
 
                         // Replay mode
-                        wsprintfA(szBuffer, "\"%s\" -t:Replay %s", szExePath, szExeType);
-
-                        if(CreateProcessA(szExePath, szBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
-                        {
-                            IdleWaitProcess(hWnd, Pi.hProcess);
-                            CloseHandle(Pi.hThread);
-                            CloseHandle(Pi.hProcess);
-                        }
-                        else
-                        {
-                            // FIXME: improve this
-                            DWORD dwLastError = GetLastError();
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-                            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-                            LoadStringA(hInstance, IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-                        }
+                        InvokeProcess(hWnd, szExePath, "-t:Replay %s", szExeType);
                     }
                     //EndDialog(hWnd, 1);
                     break;
@@ -233,8 +247,6 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         char szBuffer[4096];
                         BOOL bCheckSave;
                         HINSTANCE hInstance = GetModuleHandleA(NULL);
-                        STARTUPINFO Si = { sizeof(Si) };
-                        PROCESS_INFORMATION Pi;
 
                         GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
 
@@ -284,28 +296,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             MD5_String(szPassWord, ucHash);
                             XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), ucHash, __ARRAYSIZE(ucHash));
 
-                            wsprintfA(szBuffer, "\"%s\" -t:%s %s %s", szExePath, szHexHash, szUserName, szExeType);
+                            InvokeProcess(hWnd, szExePath, "-t:%s %s %s", szHexHash, szUserName, szExeType);
                         }
                         else
                         {// Plaintext
-                            wsprintfA(szBuffer, "\"%s\" -t:%s %s %s", szExePath, szPassWord, szUserName, szExeType);
-                        }
-
-                        if(CreateProcessA(szExePath, szBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
-                        {
-                            IdleWaitProcess(hWnd, Pi.hProcess);
-                            CloseHandle(Pi.hThread);
-                            CloseHandle(Pi.hProcess);
-                        }
-                        else
-                        {
-                            // FIXME: improve this
-                            DWORD dwLastError = GetLastError();
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-                            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-                            LoadStringA(hInstance, IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+                            InvokeProcess(hWnd, szExePath, "-t:%s %s %s", szPassWord, szUserName, szExeType);
                         }
                     }
                     //EndDialog(hWnd, 1);
