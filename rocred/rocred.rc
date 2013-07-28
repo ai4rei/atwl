@@ -95,7 +95,7 @@ BEGIN
     IDS_USERNAME,       "Username:"
     IDS_PASSWORD,       "Password:"
     IDS_CHECKSAVE,      "Save"
-    IDS_TITLE,          "RO Credentials - Minimalist Client Launcher"
+    IDS_TITLE,          "RO Credentials - Minimalist Launcher"
     IDS_OK,             "Start"
     IDS_CLOSE,          "Close"
     IDS_USER_NONE,      "Please enter a user name. User name must be at least 4 characters long."
