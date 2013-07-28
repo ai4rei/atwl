@@ -6,7 +6,7 @@ REM
 REM ----------------------------------------------------------------
 
 :CLEAN
-FOR %%v IN (*.obj rocred.res) DO IF EXIST %%v DEL %%v
+FOR %%v IN (*.obj snippets.lib rocred.res) DO IF EXIST %%v DEL %%v
 IF "%1"=="clean" GOTO END
 :BUILD
 SET CLOPT=/nologo /c /W3 /O1s /GF /GA /IC:\Progra~1\Micros~1\SDK\include /I..\snippets
