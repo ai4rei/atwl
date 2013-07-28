@@ -23,12 +23,12 @@ BEGIN
         BLOCK "00000000"
         BEGIN
             VALUE "CompanyName", "Ai4rei/AN"
-            VALUE "FileDescription", "ROCred"
+            VALUE "FileDescription", "Minimalist Client Launcher"
             VALUE "FileVersion", APP_VERSION
             VALUE "InternalName", "ROCred"
             VALUE "LegalCopyright", "© 2012-2013 Ai4rei/AN"
             VALUE "OriginalFilename", "ROCRED.EXE"
-            VALUE "ProductName", "ROCred"
+            VALUE "ProductName", "RO Credentials"
             VALUE "ProductVersion", APP_VERSION
         END
     END
@@ -49,7 +49,7 @@ BEGIN
     "        processorArchitecture=""x86""\n"
     "        version="APP_VERSION"\n"
     "        type=""win32"" />\n"
-    "    <description>ROCred</description>\n"
+    "    <description>Minimalist Client Launcher</description>\n"
     "    <dependency>\n"
     "        <dependentAssembly>\n"
     "            <assemblyIdentity\n"
@@ -95,8 +95,8 @@ BEGIN
     IDS_USERNAME,       "Username:"
     IDS_PASSWORD,       "Password:"
     IDS_CHECKSAVE,      "Save"
-    IDS_TITLE,          "<kindly insert your title here>"
-    IDS_OK,             "OK"
+    IDS_TITLE,          "RO Credentials - Minimalist Client Launcher"
+    IDS_OK,             "Start"
     IDS_CLOSE,          "Close"
     IDS_USER_NONE,      "Please enter a user name. User name must be at least 4 characters long."
     IDS_USER_SHRT,      "User name must be at least 4 characters long. Please try again."
