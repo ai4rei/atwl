@@ -383,7 +383,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                 {
                     if(!ConfigSave())
                     {
-                        MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up.", l_szAppTitle, MB_OK|MB_ICONSTOP);
+                        MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", l_szAppTitle, MB_OK|MB_ICONSTOP);
                     }
                 }
             }
