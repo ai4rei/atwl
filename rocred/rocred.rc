@@ -102,7 +102,7 @@ BEGIN
     IDS_USER_SHRT,      "User name must be at least 4 characters long. Please try again."
     IDS_PASS_NONE,      "Please enter a password. Password must be at least 4 characters long."
     IDS_PASS_SHRT,      "Password must be at least 4 characters long. Please try again."
-    IDS_EXE_ERROR,      "Failed to start client."
+    IDS_EXE_ERROR,      "Failed to start client.\n\nCommand Line:\n\t""%s"" %s\n\nLast Error:\n\t%s"
     IDS_REPLAY,         "Replay"
     IDS_CONFIG_ERROR,   "Failed to initialize configuration."
 END

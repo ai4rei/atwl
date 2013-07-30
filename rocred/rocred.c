@@ -96,7 +96,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 // Run and execute process.
 static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
 {
-    char szBuffer[4096];
+    char szBuffer[1024];
     va_list lpVl;
     SHELLEXECUTEINFO Sei = { sizeof(Sei) };
 
@@ -104,7 +104,7 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     wvsprintfA(szBuffer, lpszParamFmt, lpVl);
     va_end(lpVl);
 
-    Sei.fMask = SEE_MASK_NOCLOSEPROCESS|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0);
+    Sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0);
     Sei.hwnd = hWnd;
     Sei.lpVerb = "open";
     Sei.lpFile = lpszApplication;
@@ -118,13 +118,14 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     }
     else
     {
-        // FIXME: improve this
-        DWORD dwLastError = GetLastError();
-        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, dwLastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szBuffer, __ARRAYSIZE(szBuffer), NULL);
-        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
-        LoadStringA(GetModuleHandle(NULL), IDS_EXE_ERROR, szBuffer, __ARRAYSIZE(szBuffer));
-        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONSTOP);
+        char szMessage[4096];
+        char szFormat[256];
+        char szError[1024];
+
+        FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szError, __ARRAYSIZE(szError), NULL);
+        LoadStringA(GetModuleHandle(NULL), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
+        wsprintfA(szMessage, szFormat, lpszApplication, szBuffer, szError);
+        MessageBoxA(hWnd, szMessage, l_szAppTitle, MB_ICONSTOP|MB_OK);
     }
 }
 
