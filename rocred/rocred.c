@@ -277,7 +277,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         if(lstrlenA(szUserName)<4)
                         {
                             LoadStringA(hInstance, szUserName[0] ? IDS_USER_SHRT : IDS_USER_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONINFORMATION);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONINFORMATION);
                             break;
                         }
 
@@ -286,7 +286,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         if(lstrlenA(szPassWord)<4)
                         {
                             LoadStringA(hInstance, szPassWord[0] ? IDS_PASS_SHRT : IDS_PASS_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                            MessageBox(hWnd, szBuffer, "", MB_OK|MB_ICONINFORMATION);
+                            MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONINFORMATION);
                             break;
                         }
 
