@@ -43,6 +43,15 @@ static const DLGTEMPLATEINFO l_DlgTempl =
 
 static char l_szAppTitle[1024] = { 0 };
 
+static void __stdcall CombineExePathName(char* lpszExePath, unsigned long luExePathSize, const char* lpszExeName)
+{
+    char* lpszSlash = lpszExePath+GetModuleFileNameA(NULL, lpszExePath, luExePathSize);
+
+    for(; lpszSlash[-1]!='\\'; lpszSlash--);
+
+    lstrcpyA(lpszSlash, lpszExeName);
+}
+
 // Waits for an process to exit, while keeping the application idle,
 // responsive and hidden.
 static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
@@ -249,13 +258,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                         ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
                         ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
-                        {
-                            char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
-
-                            for(; lpszSlash[-1]!='\\'; lpszSlash--);
-                            lpszSlash[0] = 0;
-                            lstrcat(szExePath, szExeName);
-                        }
+                        CombineExePathName(szExePath, __ARRAYSIZE(szExePath), szExeName);
 
                         // Replay mode
                         InvokeProcess(hWnd, szExePath, "-t:Replay %s", szExeType);
@@ -310,13 +313,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                         ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
                         ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
-                        {
-                            char* lpszSlash = szExePath+GetModuleFileNameA(NULL, szExePath, __ARRAYSIZE(szExePath));
-
-                            for(; lpszSlash[-1]!='\\'; lpszSlash--);
-                            lpszSlash[0] = 0;
-                            lstrcat(szExePath, szExeName);
-                        }
+                        CombineExePathName(szExePath, __ARRAYSIZE(szExePath), szExeName);
 
                         if(ConfigGetInt("HashMD5"))
                         {// MD5
@@ -332,6 +329,9 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         {// Plaintext
                             InvokeProcess(hWnd, szExePath, "-t:%s %s %s", szPassWord, szUserName, szExeType);
                         }
+
+                        // get rid of the password after it has been used
+                        ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
                     }
                     //EndDialog(hWnd, 1);
                     break;
