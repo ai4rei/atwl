@@ -13,6 +13,7 @@
 #include <md5.h>
 #include <xf_binhex.h>
 
+#include "bgskin.h"
 #include "config.h"
 #include "rocred.h"
 
@@ -30,7 +31,7 @@ static const DLGTEMPLATEITEMINFO l_DlgItems[] =
 static const DLGTEMPLATEINFO l_DlgTempl =
 {
     L"Tahoma",
-    DS_MODALFRAME|DS_CENTER|DS_SETFONT|WS_POPUPWINDOW|WS_CAPTION,
+    DS_CENTER|DS_SETFONT|WS_POPUPWINDOW|WS_CAPTION,
     0,
     __ARRAYSIZE(l_DlgItems),
     9,
@@ -187,6 +188,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 BOOL bCheckSave, bSetFocus = TRUE;
                 HINSTANCE hInstance = GetModuleHandleA(NULL);
 
+                BgSkinOnCreate(hWnd);
+
                 SendMessage(hWnd, WM_SETICON, ICON_BIG,
                     (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
                 SendMessage(hWnd, WM_SETICON, ICON_SMALL,
@@ -340,6 +343,20 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     break;
             }
             break;
+        case WM_ERASEBKGND:
+            if(!BgSkinOnEraseBkGnd(hWnd, (HDC)wParam))
+            {
+                return FALSE;  // default background
+            }
+            break;
+        case WM_LBUTTONDOWN:
+            if(!BgSkinOnLButtonDown(hWnd))
+            {
+                return FALSE;
+            }
+            break;
+        case WM_CTLCOLORSTATIC:
+            return BgSkinOnCtlColorStatic((HDC)wParam);
         case WM_HELP:
             {
                 DLGABOUTINFO Dai =
@@ -377,30 +394,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     // start up
     if(ConfigInit())
     {
-        if(AppMutexAcquire(&hMutex))
+        if(BgSkinInit())
         {
-            if(lpszCmdLine[0]=='/')
+            if(AppMutexAcquire(&hMutex))
             {
-                if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
+                if(lpszCmdLine[0]=='/')
                 {
-                    if(ConfigSave())
+                    if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
                     {
-                        MessageBox(NULL, "Configuration was successfully embedded.", l_szAppTitle, MB_OK|MB_ICONINFORMATION);
-                    }
-                    else
-                    {
-                        MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", l_szAppTitle, MB_OK|MB_ICONSTOP);
+                        if(ConfigSave())
+                        {
+                            MessageBox(NULL, "Configuration was successfully embedded.", l_szAppTitle, MB_OK|MB_ICONINFORMATION);
+                        }
+                        else
+                        {
+                            MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", l_szAppTitle, MB_OK|MB_ICONSTOP);
+                        }
                     }
                 }
-            }
-            else
-            {
-                AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
-                InitCommonControls();
-                DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+                else
+                {
+                    AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
+                    //InitCommonControls();
+                    DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+                }
+
+                AppMutexRelease(&hMutex);
             }
 
-            AppMutexRelease(&hMutex);
+            BgSkinQuit();
         }
 
         ConfigQuit();
