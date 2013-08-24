@@ -84,6 +84,12 @@ void __stdcall BgSkinOnCreate(HWND hWnd)
             SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX);
             SetWindowPos(hWnd, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
 
+            // center window
+            GetWindowRect(hWnd, &rcWnd);
+            SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWA, 0);
+            OffsetRect(&rcWA, ((rcWA.right-rcWA.left)-(rcWnd.right-rcWnd.left))/2, ((rcWA.bottom-rcWA.top)-(rcWnd.bottom-rcWnd.top))/2);
+            SetWindowPos(hWnd, NULL, rcWA.left, rcWA.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
             // window size for base window region (origin transform)
             GetWindowRect(hWnd, &rcWnd);
             rcWnd.right-= rcWnd.left;
@@ -128,12 +134,6 @@ void __stdcall BgSkinOnCreate(HWND hWnd)
             // disable client area visual styles to prevent glitches
             BgSkin_P_DisableVisualStyles(hChild);
         }
-
-        // center window
-        GetWindowRect(hWnd, &rcWnd);
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWA, 0);
-        OffsetRect(&rcWA, ((rcWA.right-rcWA.left)-(rcWnd.right-rcWnd.left))/2, ((rcWA.bottom-rcWA.top)-(rcWnd.bottom-rcWnd.top))/2);
-        SetWindowPos(hWnd, NULL, rcWA.left, rcWA.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
     }
 }
 
