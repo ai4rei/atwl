@@ -123,8 +123,11 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
 
     if(ShellExecuteEx(&Sei))
     {
-        IdleWaitProcess(hWnd, Sei.hProcess);
-        CloseHandle(Sei.hProcess);
+        if(Sei.hProcess)
+        {
+            IdleWaitProcess(hWnd, Sei.hProcess);
+            CloseHandle(Sei.hProcess);
+        }
     }
     else
     {
