@@ -59,6 +59,22 @@ static BUTTONSKININFO l_ButtonSkinInfo[] =
 };
 static HBITMAP l_hbmBackground = NULL;
 
+static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
+{
+    unsigned char ucIndex = 0;
+
+    if(uState&ODS_SELECTED)
+    {
+        ucIndex = 2;
+    }
+    else if(uState&ODS_FOCUS)
+    {
+        ucIndex = 1;
+    }
+
+    return ucIndex;
+}
+
 static bool __stdcall BgSkin_P_QueryButtonSkinInfo(UINT uID, LPBUTTONSKININFO* lppBsi)
 {
     unsigned long luIdx;
@@ -197,7 +213,7 @@ void __stdcall BgSkinOnCreate(HWND hWnd)
                     SetWindowLongPtr(hChild, GWL_STYLE, GetWindowLongPtr(hChild, GWL_STYLE)|BS_OWNERDRAW);
 
                     // set size to the bitmap
-                    SetWindowPos(hChild, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
+                    SetWindowPos(hChild, NULL, 0, 0, bmBG.bmWidth/3, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
                 }
             }
         }
@@ -262,9 +278,11 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
     {
         if((hdcBitmap = CreateCompatibleDC(lpDis->hDC))!=NULL)
         {
+            int nWidth = lpDis->rcItem.right-lpDis->rcItem.left;
+            int nHeight = lpDis->rcItem.bottom-lpDis->rcItem.top;
             HGDIOBJ hGdiObj = SelectObject(hdcBitmap, lpBsi->hbmLook);
 
-            BitBlt(lpDis->hDC, lpDis->rcItem.left, lpDis->rcItem.top, lpDis->rcItem.right-lpDis->rcItem.left, lpDis->rcItem.bottom-lpDis->rcItem.top, hdcBitmap, lpDis->rcItem.left, lpDis->rcItem.top, SRCCOPY);
+            BitBlt(lpDis->hDC, lpDis->rcItem.left, lpDis->rcItem.top, nWidth, nHeight, hdcBitmap, lpDis->rcItem.left+BgSkin_P_ButtonState2Index(lpDis->itemState)*nWidth, lpDis->rcItem.top, SRCCOPY);
 
             SelectObject(hdcBitmap, hGdiObj);
             DeleteDC(hdcBitmap);
