@@ -35,6 +35,8 @@ typedef struct CONFIGDEFAULTVALUE
 CONFIGDEFAULTVALUE;
 typedef const CONFIGDEFAULTVALUE* LPCCONFIGDEFAULTVALUE;
 
+#define NUM(x) ((const char*)x)
+
 static const CONFIGDEFAULTVALUE l_DefaultValues[] =
 {
     { "CheckSave",                  CDVT_NUM, FALSE   },
@@ -47,6 +49,7 @@ static const CONFIGDEFAULTVALUE l_DefaultValues[] =
     { "PolicyNoReplay",             CDVT_NUM, FALSE   },
     { "PolicyNoTrayIcon",           CDVT_NUM, FALSE   },
     { "PolicyNoSessionPassword",    CDVT_NUM, FALSE   },
+    { "FontSize",                   CDVT_NUM, NUM(9)  },
     { "IDS_USERNAME.X",             CDVT_NUM, 0       },
     { "IDS_USERNAME.Y",             CDVT_NUM, 0       },
     { "IDS_USERNAME.W",             CDVT_NUM, 0       },

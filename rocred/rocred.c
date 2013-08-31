@@ -397,6 +397,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     char szErrMsg[256];
     unsigned char ucDlgBuf[264];
     unsigned long luDlgBufSize = sizeof(ucDlgBuf);
+    DLGTEMPLATEINFO DlgTi;
     HANDLE hMutex = NULL;
 
     // global window title
@@ -425,7 +426,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                 }
                 else
                 {
-                    AssertHere(DlgTemplate(&l_DlgTempl, ucDlgBuf, &luDlgBufSize));
+                    CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
+                    DlgTi.huFontSize = ConfigGetInt("FontSize");
+                    AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
                     //InitCommonControls();
                     DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
                 }
