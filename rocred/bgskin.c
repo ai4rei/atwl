@@ -28,7 +28,17 @@ typedef struct BGSKINBATCHINFO
 BGSKINBATCHINFO,* LPBGSKINBATCHINFO;
 typedef const BGSKINBATCHINFO* LPCBGSKINBATCHINFO;
 
+typedef struct BUTTONSKININFO
+{
+    UINT uID;
+    const char* lpszName;
+    HBITMAP hbmLook;
+}
+BUTTONSKININFO,* LPBUTTONSKININFO;
+typedef const BUTTONSKININFO* LPCBUTTONSKININFO;
+
 #define BGSKINBATCHINIT(x) { x, #x }
+#define BUTTONSKININIT(x,name) { x, name }
 
 static const BGSKINBATCHINFO l_BatchInfo[] =
 {
@@ -41,7 +51,46 @@ static const BGSKINBATCHINFO l_BatchInfo[] =
     BGSKINBATCHINIT(IDOK),
     BGSKINBATCHINIT(IDCANCEL),
 };
+static BUTTONSKININFO l_ButtonSkinInfo[] =
+{
+    BUTTONSKININIT(IDB_REPLAY, "btnreplay"),
+    BUTTONSKININIT(IDOK, "btnstart"),
+    BUTTONSKININIT(IDCANCEL, "btnclose"),
+};
 static HBITMAP l_hbmBackground = NULL;
+
+static bool __stdcall BgSkin_P_QueryButtonSkinInfo(UINT uID, LPBUTTONSKININFO* lppBsi)
+{
+    unsigned long luIdx;
+
+    for(luIdx = 0; luIdx<__ARRAYSIZE(l_ButtonSkinInfo); luIdx++)
+    {
+        if(l_ButtonSkinInfo[luIdx].uID==uID)
+        {
+            lppBsi[0] = &l_ButtonSkinInfo[luIdx];
+
+            return true;
+        }
+    }
+
+    lppBsi[0] = NULL;
+
+    return false;
+}
+
+static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
+{
+    HBITMAP hBitmap;
+
+    // try local file
+    if((hBitmap = LoadImage(NULL, lpszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))==NULL)
+    {
+        // fall back to embedded, but do not actually care about the result
+        hBitmap = LoadImage(GetModuleHandle(NULL), lpszImageName, IMAGE_BITMAP, 0, 0, 0);
+    }
+
+    return hBitmap;
+}
 
 static bool __stdcall BgSkin_P_IsActive(void)
 {
@@ -114,6 +163,7 @@ void __stdcall BgSkinOnCreate(HWND hWnd)
         // load child control metrics
         for(luIdx = 0; luIdx<__ARRAYSIZE(l_BatchInfo); luIdx++)
         {
+            LPBUTTONSKININFO lpBsi;
             LPCBGSKINBATCHINFO lpBbi = &l_BatchInfo[luIdx];
             HWND hChild = GetDlgItem(hWnd, lpBbi->uID);
 
@@ -133,6 +183,23 @@ void __stdcall BgSkinOnCreate(HWND hWnd)
 
             // disable client area visual styles to prevent glitches
             BgSkin_P_DisableVisualStyles(hChild);
+
+            // is this a button? load skin for it, too!
+            if(BgSkin_P_QueryButtonSkinInfo(lpBbi->uID, &lpBsi))
+            {
+                char szFileName[64];
+
+                wsprintfA(szFileName, "%s.bmp", lpBsi->lpszName);
+
+                if((lpBsi->hbmLook = BgSkin_P_LoadBitmap(szFileName, lpBbi->lpszName))!=NULL && GetObject(lpBsi->hbmLook, sizeof(bmBG), &bmBG))
+                {
+                    // switch button to use skins
+                    SetWindowLongPtr(hChild, GWL_STYLE, GetWindowLongPtr(hChild, GWL_STYLE)|BS_OWNERDRAW);
+
+                    // set size to the bitmap
+                    SetWindowPos(hChild, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
+                }
+            }
         }
     }
 }
@@ -186,20 +253,48 @@ BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC)
     return FALSE;
 }
 
+bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
+{
+    HDC hdcBitmap;
+    LPBUTTONSKININFO lpBsi;
+
+    if(BgSkin_P_QueryButtonSkinInfo(uID, &lpBsi) && lpBsi->hbmLook)
+    {
+        if((hdcBitmap = CreateCompatibleDC(lpDis->hDC))!=NULL)
+        {
+            HGDIOBJ hGdiObj = SelectObject(hdcBitmap, lpBsi->hbmLook);
+
+            BitBlt(lpDis->hDC, lpDis->rcItem.left, lpDis->rcItem.top, lpDis->rcItem.right-lpDis->rcItem.left, lpDis->rcItem.bottom-lpDis->rcItem.top, hdcBitmap, lpDis->rcItem.left, lpDis->rcItem.top, SRCCOPY);
+
+            SelectObject(hdcBitmap, hGdiObj);
+            DeleteDC(hdcBitmap);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool __stdcall BgSkinInit(void)
 {
-    // try local file
-    if((l_hbmBackground = LoadImage(NULL, "bgskin.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))==NULL)
-    {
-        // fall back to embedded, but do not actually care about the result
-        l_hbmBackground = LoadImage(GetModuleHandle(NULL), "BGSKIN", IMAGE_BITMAP, 0, 0, 0);
-    }
+    l_hbmBackground = BgSkin_P_LoadBitmap("bgskin.bmp", "BGSKIN");
 
     return true;
 }
 
 void __stdcall BgSkinQuit(void)
 {
+    unsigned long luIdx;
+
+    for(luIdx = 0; luIdx<__ARRAYSIZE(l_ButtonSkinInfo); luIdx++)
+    {
+        if(l_ButtonSkinInfo[luIdx].hbmLook)
+        {
+            DeleteObject(l_ButtonSkinInfo[luIdx].hbmLook);
+            l_ButtonSkinInfo[luIdx].hbmLook = NULL;
+        }
+    }
+
     if(l_hbmBackground)
     {
         DeleteObject(l_hbmBackground);
