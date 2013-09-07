@@ -120,13 +120,29 @@ void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
     WritePrivateProfileStringA(CONFIG_MAIN_SECTION, lpszKey, lpszValue, l_szIniFile);
 }
 
+void __stdcall ConfigSetInt(const char* lpszKey, int nValue)
+{
+    char szBuffer[16];
+
+    wsprintfA(szBuffer, "%d", nValue);
+    ConfigSetStr(lpszKey, szBuffer);
+}
+
+void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
+{
+    char szBuffer[16];
+
+    wsprintfA(szBuffer, "%u", uValue);
+    ConfigSetStr(lpszKey, szBuffer);
+}
+
 void __stdcall ConfigGetStr(const char* lpszKey, char* lpszBuffer, unsigned long luBufferSize)
 {
     char szDefault[1024];
 
     lstrcpynA(szDefault, Config_P_GetDefault(lpszKey, CDVT_STR)->lpszField, __ARRAYSIZE(szDefault));
 
-    if(l_szMbdFile[0])
+    if(l_szMbdFile[0] && lpszKey[0]!='_')
     {
         GetPrivateProfileStringA(CONFIG_MAIN_SECTION, lpszKey, szDefault, szDefault, __ARRAYSIZE(szDefault), l_szMbdFile);
     }
@@ -138,12 +154,17 @@ int __stdcall ConfigGetInt(const char* lpszKey)
 {
     int nDefault = Config_P_GetDefault(lpszKey, CDVT_NUM)->nField;
 
-    if(l_szMbdFile[0])
+    if(l_szMbdFile[0] && lpszKey[0]!='_')
     {
         nDefault = GetPrivateProfileIntA(CONFIG_MAIN_SECTION, lpszKey, nDefault, l_szMbdFile);
     }
 
     return GetPrivateProfileIntA(CONFIG_MAIN_SECTION, lpszKey, nDefault, l_szIniFile);
+}
+
+unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
+{
+    return ConfigGetInt(lpszKey);
 }
 
 bool __stdcall ConfigSave(void)
