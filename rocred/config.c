@@ -50,6 +50,8 @@ static const CONFIGDEFAULTVALUE l_DefaultValues[] =
     { "PolicyNoTrayIcon",           CDVT_NUM, FALSE   },
     { "PolicyNoSessionPassword",    CDVT_NUM, FALSE   },
     { "FontSize",                   CDVT_NUM, NUM(9)  },
+    { "MiscInfo",                   CDVT_NUM, 0       },
+    { "_MiscInfoLastAgreed",        CDVT_NUM, 0       },
     { "IDS_USERNAME.X",             CDVT_NUM, 0       },
     { "IDS_USERNAME.Y",             CDVT_NUM, 0       },
     { "IDS_USERNAME.W",             CDVT_NUM, 0       },

@@ -10,7 +10,7 @@ FOR %%v IN (*.obj snippets.lib rocred.res) DO IF EXIST %%v DEL %%v
 IF "%1"=="clean" GOTO END
 :BUILD
 SET CLOPT=/nologo /c /W3 /O1s /GF /GA /IC:\Progra~1\Micros~1\SDK\include /I..\snippets
-FOR %%v IN (dlgabout.c dlgtempl.c md5.c regionui.c xf_binhex.c) DO CL %CLOPT% ..\snippets\%%v
+FOR %%v IN (dlgabout.c dlgtempl.c macaddr.c md5.c memory.c regionui.c xf_binhex.c) DO CL %CLOPT% ..\snippets\%%v
 LIB /NOLOGO /OUT:snippets.lib *.obj
 DEL *.obj > NUL
 RC /Forocred.res rocred.rc

@@ -10,6 +10,7 @@
 #include <btypes.h>
 #include <dlgabout.h>
 #include <dlgtempl.h>
+#include <macaddr.h>
 #include <md5.h>
 #include <xf_binhex.h>
 
@@ -42,7 +43,56 @@ static const DLGTEMPLATEINFO l_DlgTempl =
     l_DlgItems,
 };
 
+typedef enum MISCINFOOPTION
+{
+    MISCINFO_OPT_MACADDRESS = 0x1,
+}
+MISCINFOOPTION;
+static const UINT l_uMiscInfoOptName[] =
+{
+    IDS_MISCINFO_OPT_MACADDRESS,
+};
+
 static char l_szAppTitle[1024] = { 0 };
+
+static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
+{
+    char szBuffer[256*3+128];
+    char szPrefix[256], szSuffix[256], szInfo[256] = { 0 };
+    int nMiscInfo, nMiscInfoAgree;
+    unsigned long luIdx;
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+
+    nMiscInfo = ConfigGetInt("MiscInfo");
+    nMiscInfoAgree = ConfigGetInt("_MiscInfoLastAgreed");
+
+    if(nMiscInfo==nMiscInfoAgree)
+    {
+        return true;
+    }
+
+    LoadStringA(hInstance, IDS_MISCINFO_PROMPT_PREFIX, szPrefix, __ARRAYSIZE(szPrefix));
+    LoadStringA(hInstance, IDS_MISCINFO_PROMPT_SUFFIX, szSuffix, __ARRAYSIZE(szSuffix));
+
+    for(luIdx = 0; luIdx<__ARRAYSIZE(l_uMiscInfoOptName); luIdx++)
+    {
+        if(nMiscInfo&(1<<luIdx))
+        {
+            lstrcatA(szInfo, "\r\n\t- ");
+            LoadStringA(hInstance, l_uMiscInfoOptName[luIdx], szInfo+lstrlenA(szInfo), __ARRAYSIZE(szInfo)-lstrlenA(szInfo));
+        }
+    }
+
+    wsprintfA(szBuffer, "%s%s\r\n\r\n%s", szPrefix, szInfo, szSuffix);
+
+    if(MessageBoxA(hWnd, szBuffer, l_szAppTitle, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)==IDYES)
+    {
+        ConfigSetInt("_MiscInfoLastAgreed", nMiscInfo);
+        return true;
+    }
+
+    return false;
+}
 
 static void __stdcall CombineExePathName(char* lpszExePath, unsigned long luExePathSize, const char* lpszExeName)
 {
@@ -279,6 +329,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     char szExePath[MAX_PATH];
                     char szExeName[MAX_PATH];
                     char szExeType[16];
+                    char szMiscInfo[128] = { 0 };
                     char szBuffer[4096];
                     BOOL bCheckSave;
                     HINSTANCE hInstance = GetModuleHandleA(NULL);
@@ -322,6 +373,29 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
                     CombineExePathName(szExePath, __ARRAYSIZE(szExePath), szExeName);
 
+                    // miscellaneous information for the server
+                    if(ConfigGetInt("MiscInfo"))
+                    {
+                        if(MiscInfoAgreePrompt(hWnd))
+                        {// agreed
+                            int nInfo = ConfigGetInt("MiscInfo");
+
+                            if(nInfo&MISCINFO_OPT_MACADDRESS)
+                            {
+                                MACADDRESS Mac;
+                                MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
+
+                                wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
+                            }
+
+                            lstrcatA(szMiscInfo, "key=");
+                        }
+                        else
+                        {// did not agree
+                            break;
+                        }
+                    }
+
                     if(ConfigGetInt("HashMD5"))
                     {// MD5
                         uint8 ucHash[4*4];
@@ -330,11 +404,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         MD5_String(szPassWord, ucHash);
                         XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), ucHash, __ARRAYSIZE(ucHash));
 
-                        InvokeProcess(hWnd, szExePath, "-t:%s %s %s", szHexHash, szUserName, szExeType);
+                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, szExeType);
                     }
                     else
                     {// Plaintext
-                        InvokeProcess(hWnd, szExePath, "-t:%s %s %s", szPassWord, szUserName, szExeType);
+                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, szExeType);
                     }
 
                     // get rid of the password after it has been used
