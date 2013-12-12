@@ -1,0 +1,6 @@
+TARGETNAME=kbdcatch
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+
+SOURCES=kbdcatch.c \
+        kbdcatch.rc

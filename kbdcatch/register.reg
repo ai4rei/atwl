@@ -1,0 +1,9 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\kbdcatch]
+"DisplayName"="Keyboard Catcher"
+"ImagePath"="\\SystemRoot\\System32\\Drivers\\kbdcatch.sys"
+"ErrorControl"=dword:00000001
+"Start"=dword:00000003
+"Type"=dword:00000001
+
