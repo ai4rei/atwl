@@ -53,15 +53,15 @@ Routine Description:
     // and the explicitly fill in the functions we are going to intercept
     //
     for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) {
-        DriverObject->MajorFunction[i] = KbFilter_DispatchPassThrough;
+        DriverObject->MajorFunction[i] = &KbFilter_DispatchPassThrough;
     }
 
     DriverObject->MajorFunction [IRP_MJ_CREATE] =
-    DriverObject->MajorFunction [IRP_MJ_CLOSE] =        KbFilter_CreateClose;
-    DriverObject->MajorFunction [IRP_MJ_PNP] =          KbFilter_PnP;
-    DriverObject->MajorFunction [IRP_MJ_POWER] =        KbFilter_Power;
+    DriverObject->MajorFunction [IRP_MJ_CLOSE] =        &KbFilter_CreateClose;
+    DriverObject->MajorFunction [IRP_MJ_PNP] =          &KbFilter_PnP;
+    DriverObject->MajorFunction [IRP_MJ_POWER] =        &KbFilter_Power;
     DriverObject->MajorFunction [IRP_MJ_INTERNAL_DEVICE_CONTROL] =
-                                                        KbFilter_InternIoCtl;
+                                                        &KbFilter_InternIoCtl;
     //
     // If you are planning on using this function, you must create another
     // device object to send the requests to.  Please see the considerations
@@ -69,8 +69,8 @@ Routine Description:
     //
     // DriverObject->MajorFunction [IRP_MJ_DEVICE_CONTROL] = KbFilter_IoCtl;
 
-    DriverObject->DriverUnload = KbFilter_Unload;
-    DriverObject->DriverExtension->AddDevice = KbFilter_AddDevice;
+    DriverObject->DriverUnload = &KbFilter_Unload;
+    DriverObject->DriverExtension->AddDevice = &KbFilter_AddDevice;
 
     return STATUS_SUCCESS;
 }
@@ -141,7 +141,10 @@ KbFilter_AddDevice(
         }
         while(!NT_SUCCESS(St));
 
-        DbgPrint("%s\n", devExt->HardwareId);
+        if(devExt->HardwareId)
+        {
+            DbgPrint("%ls\n", devExt->HardwareId);
+        }
     }
 
     device->Flags |= (DO_BUFFERED_IO | DO_POWER_PAGABLE);
@@ -275,6 +278,8 @@ Considerations:
 {
     PIO_STACK_LOCATION irpStack = IoGetCurrentIrpStackLocation(Irp);
 
+    PAGED_CODE();
+
     //
     // Pass the IRP to the target
     //
@@ -328,6 +333,8 @@ Return Value:
     PCONNECT_DATA                   connectData;
     NTSTATUS                        status = STATUS_SUCCESS;
 
+    PAGED_CODE();
+
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     Irp->IoStatus.Information = 0;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -367,7 +374,7 @@ Return Value:
         // to the system, KbFilter_ServiceCallback will be called
         //
         connectData->ClassDeviceObject = devExt->Self;
-        connectData->ClassService = KbFilter_ServiceCallback;
+        connectData->ClassService = &KbFilter_ServiceCallback;
 
         break;
 
