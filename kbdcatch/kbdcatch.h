@@ -34,6 +34,9 @@ Revision History:
 #undef ExAllocatePool
 #define ExAllocatePool(type, size) \
             ExAllocatePoolWithTag (type, size, KBFILTER_POOL_TAG)
+#undef ExFreePool
+#define ExFreePool(ptr) \
+            ExFreePoolWithTag(ptr, KBFILTER_POOL_TAG)
 
 #if DBG
 
