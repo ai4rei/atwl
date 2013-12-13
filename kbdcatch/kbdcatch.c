@@ -830,11 +830,9 @@ Return Value:
 
     if(devExt->KnownDeviceIndex!=KBDC_UNKNOWN_DEVICE_INDEX)
     {
-        DbgPrint("Input from '%s': %lu\n", g_KnownDevices[devExt->KnownDeviceIndex].FriendlyName, devExt->KnownDeviceIndex);
-    }
-    else
-    {
-        DbgPrint("Input from alien device: %lu\n", devExt->KnownDeviceIndex);
+        /* drop packets of known devices */
+        InputDataStart = InputDataEnd;
+        InputDataConsumed[0] = 0;
     }
 
     (*(PSERVICE_CALLBACK_ROUTINE) devExt->UpperConnectData.ClassService)(
