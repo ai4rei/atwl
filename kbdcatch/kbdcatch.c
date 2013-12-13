@@ -48,10 +48,10 @@ Routine Description:
 
     UNREFERENCED_PARAMETER (RegistryPath);
 
-    // 
+    //
     // Fill in all the dispatch entry points with the pass through function
     // and the explicitly fill in the functions we are going to intercept
-    // 
+    //
     for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) {
         DriverObject->MajorFunction[i] = KbFilter_DispatchPassThrough;
     }
@@ -64,7 +64,7 @@ Routine Description:
                                                         KbFilter_InternIoCtl;
     //
     // If you are planning on using this function, you must create another
-    // device object to send the requests to.  Please see the considerations 
+    // device object to send the requests to.  Please see the considerations
     // comments for KbFilter_DispatchPassThrough for implementation details.
     //
     // DriverObject->MajorFunction [IRP_MJ_DEVICE_CONTROL] = KbFilter_IoCtl;
@@ -88,13 +88,13 @@ KbFilter_AddDevice(
 
     PAGED_CODE();
 
-    status = IoCreateDevice(Driver,                   
-                            sizeof(DEVICE_EXTENSION), 
-                            NULL,                    
-                            FILE_DEVICE_KEYBOARD,   
-                            0,                     
-                            FALSE,                
-                            &device              
+    status = IoCreateDevice(Driver,
+                            sizeof(DEVICE_EXTENSION),
+                            NULL,
+                            FILE_DEVICE_KEYBOARD,
+                            0,
+                            FALSE,
+                            &device
                             );
 
     if (!NT_SUCCESS(status)) {
@@ -131,9 +131,9 @@ KbFilter_Complete(
 /*++
 Routine Description:
 
-    Generic completion routine that allows the driver to send the irp down the 
+    Generic completion routine that allows the driver to send the irp down the
     stack, catch it on the way up, and do more processing at the original IRQL.
-    
+
 --*/
 {
     PKEVENT  event;
@@ -165,7 +165,7 @@ KbFilter_CreateClose (
 Routine Description:
 
     Maintain a simple count of the creates and closes sent against this device
-    
+
 --*/
 {
     PIO_STACK_LOCATION  irpStack;
@@ -182,7 +182,7 @@ Routine Description:
 
     switch (irpStack->MajorFunction) {
     case IRP_MJ_CREATE:
-    
+
         if (NULL == devExt->UpperConnectData.ClassService) {
             //
             // No Connection yet.  How can we be enabled?
@@ -199,7 +199,7 @@ Routine Description:
             // More than one create was sent down
             //
         }
-    
+
         break;
 
     case IRP_MJ_CLOSE:
@@ -230,16 +230,16 @@ KbFilter_DispatchPassThrough(
 Routine Description:
 
     Passes a request on to the lower driver.
-     
+
 Considerations:
-     
+
     If you are creating another device object (to communicate with user mode
-    via IOCTLs), then this function must act differently based on the intended 
+    via IOCTLs), then this function must act differently based on the intended
     device object.  If the IRP is being sent to the solitary device object, then
     this function should just complete the IRP (becuase there is no more stack
     locations below it).  If the IRP is being sent to the PnP built stack, then
-    the IRP should be passed down the stack. 
-    
+    the IRP should be passed down the stack.
+
     These changes must also be propagated to all the other IRP_MJ dispatch
     functions (create, close, cleanup, etc) as well!
 
@@ -251,9 +251,9 @@ Considerations:
     // Pass the IRP to the target
     //
     IoSkipCurrentIrpStackLocation(Irp);
-        
+
     return IoCallDriver(((PDEVICE_EXTENSION) DeviceObject->DeviceExtension)->TopOfStack, Irp);
-}           
+}
 
 NTSTATUS
 KbFilter_InternIoCtl(
@@ -266,21 +266,21 @@ Routine Description:
 
     This routine is the dispatch routine for internal device control requests.
     There are two specific control codes that are of interest:
-    
+
     IOCTL_INTERNAL_KEYBOARD_CONNECT:
         Store the old context and function pointer and replace it with our own.
         This makes life much simpler than intercepting IRPs sent by the RIT and
         modifying them on the way back up.
-                                      
+
     IOCTL_INTERNAL_I8042_HOOK_KEYBOARD:
         Add in the necessary function pointers and context values so that we can
-        alter how the ps/2 keyboard is initialized.  
-                                            
-    NOTE:  Handling IOCTL_INTERNAL_I8042_HOOK_KEYBOARD is *NOT* necessary if 
+        alter how the ps/2 keyboard is initialized.
+
+    NOTE:  Handling IOCTL_INTERNAL_I8042_HOOK_KEYBOARD is *NOT* necessary if
            all you want to do is filter KEYBOARD_INPUT_DATAs.  You can remove
-           the handling code and all related device extension fields and 
+           the handling code and all related device extension fields and
            functions to conserve space.
-                                         
+
 Arguments:
 
     DeviceObject - Pointer to the device object.
@@ -295,7 +295,7 @@ Return Value:
 {
     PIO_STACK_LOCATION              irpStack;
     PDEVICE_EXTENSION               devExt;
-    PINTERNAL_I8042_HOOK_KEYBOARD   hookKeyboard; 
+    PINTERNAL_I8042_HOOK_KEYBOARD   hookKeyboard;
     KEVENT                          event;
     PCONNECT_DATA                   connectData;
     NTSTATUS                        status = STATUS_SUCCESS;
@@ -358,12 +358,12 @@ Return Value:
         break;
 
     //
-    // Attach this driver to the initialization and byte processing of the 
+    // Attach this driver to the initialization and byte processing of the
     // i8042 (ie PS/2) keyboard.  This is only necessary if you want to do PS/2
     // specific functions, otherwise hooking the CONNECT_DATA is sufficient
     //
     case IOCTL_INTERNAL_I8042_HOOK_KEYBOARD:
-        DebugPrint(("hook keyboard received!\n")); 
+        DebugPrint(("hook keyboard received!\n"));
         if (irpStack->Parameters.DeviceIoControl.InputBufferLength <
             sizeof(INTERNAL_I8042_HOOK_KEYBOARD)) {
             DebugPrint(("InternalIoctl error - invalid buffer length\n"));
@@ -371,13 +371,13 @@ Return Value:
             status = STATUS_INVALID_PARAMETER;
             break;
         }
-        hookKeyboard = (PINTERNAL_I8042_HOOK_KEYBOARD) 
+        hookKeyboard = (PINTERNAL_I8042_HOOK_KEYBOARD)
             irpStack->Parameters.DeviceIoControl.Type3InputBuffer;
-            
+
         //
         // Enter our own initialization routine and record any Init routine
         // that may be above us.  Repeat for the isr hook
-        // 
+        //
         devExt->UpperContext = hookKeyboard->Context;
 
         //
@@ -390,13 +390,13 @@ Return Value:
                 hookKeyboard->InitializationRoutine;
         }
         hookKeyboard->InitializationRoutine =
-            (PI8042_KEYBOARD_INITIALIZATION_ROUTINE) 
+            (PI8042_KEYBOARD_INITIALIZATION_ROUTINE)
             KbFilter_InitializationRoutine;
 
         if (hookKeyboard->IsrRoutine) {
             devExt->UpperIsrHook = hookKeyboard->IsrRoutine;
         }
-        hookKeyboard->IsrRoutine = (PI8042_KEYBOARD_ISR) KbFilter_IsrHook; 
+        hookKeyboard->IsrRoutine = (PI8042_KEYBOARD_ISR) KbFilter_IsrHook;
 
         //
         // Store all of the other important stuff
@@ -450,7 +450,7 @@ KbFilter_PnP(
 
 Routine Description:
 
-    This routine is the dispatch routine for plug and play irps 
+    This routine is the dispatch routine for plug and play irps
 
 Arguments:
 
@@ -464,11 +464,11 @@ Return Value:
 
 --*/
 {
-    PDEVICE_EXTENSION           devExt; 
+    PDEVICE_EXTENSION           devExt;
     PIO_STACK_LOCATION          irpStack;
     NTSTATUS                    status = STATUS_SUCCESS;
     KIRQL                       oldIrql;
-    KEVENT                      event;        
+    KEVENT                      event;
 
     PAGED_CODE();
 
@@ -491,7 +491,7 @@ Return Value:
                           );
 
         IoSetCompletionRoutine(Irp,
-                               (PIO_COMPLETION_ROUTINE) KbFilter_Complete, 
+                               (PIO_COMPLETION_ROUTINE) KbFilter_Complete,
                                &event,
                                TRUE,
                                TRUE,
@@ -542,7 +542,7 @@ Return Value:
         break;
 
     case IRP_MN_REMOVE_DEVICE:
-        
+
         devExt->Removed = TRUE;
 
         // remove code here
@@ -550,7 +550,7 @@ Return Value:
         IoSkipCurrentIrpStackLocation(Irp);
         IoCallDriver(devExt->TopOfStack, Irp);
 
-        IoDetachDevice(devExt->TopOfStack); 
+        IoDetachDevice(devExt->TopOfStack);
         IoDeleteDevice(DeviceObject);
 
         status = STATUS_SUCCESS;
@@ -560,7 +560,7 @@ Return Value:
     case IRP_MN_QUERY_STOP_DEVICE:
     case IRP_MN_CANCEL_REMOVE_DEVICE:
     case IRP_MN_CANCEL_STOP_DEVICE:
-    case IRP_MN_FILTER_RESOURCE_REQUIREMENTS: 
+    case IRP_MN_FILTER_RESOURCE_REQUIREMENTS:
     case IRP_MN_STOP_DEVICE:
     case IRP_MN_QUERY_DEVICE_RELATIONS:
     case IRP_MN_QUERY_INTERFACE:
@@ -644,7 +644,7 @@ Return Value:
 
 NTSTATUS
 KbFilter_InitializationRoutine(
-    IN PDEVICE_OBJECT                  DeviceObject,    
+    IN PDEVICE_OBJECT                  DeviceObject,
     IN PVOID                           SynchFuncContext,
     IN PI8042_SYNCH_READ_PORT          ReadPort,
     IN PI8042_SYNCH_WRITE_PORT         WritePort,
@@ -658,18 +658,18 @@ Routine Description:
     1)  a reset
     2)  set the typematic
     3)  set the LEDs
-    
+
     i8042prt specific code, if you are writing a packet only filter driver, you
     can remove this function
-    
+
 Arguments:
 
     DeviceObject - Context passed during IOCTL_INTERNAL_I8042_HOOK_KEYBOARD
-    
+
     SynchFuncContext - Context to pass when calling Read/WritePort
-    
+
     Read/WritePort - Functions to synchronoulsy read and write to the kb
-    
+
     TurnTranslationOn - If TRUE when this function returns, i8042prt will not
                         turn on translation on the keyboard
 
@@ -708,8 +708,8 @@ Return Value:
 
 BOOLEAN
 KbFilter_IsrHook(
-    PDEVICE_OBJECT         DeviceObject,               
-    PKEYBOARD_INPUT_DATA   CurrentInput, 
+    PDEVICE_OBJECT         DeviceObject,
+    PKEYBOARD_INPUT_DATA   CurrentInput,
     POUTPUT_PACKET         CurrentOutput,
     UCHAR                  StatusByte,
     PUCHAR                 DataByte,
@@ -721,23 +721,23 @@ KbFilter_IsrHook(
 Routine Description:
 
     This routine gets called at the beginning of processing of the kb interrupt.
-    
+
     i8042prt specific code, if you are writing a packet only filter driver, you
     can remove this function
-    
+
 Arguments:
 
     DeviceObject - Our context passed during IOCTL_INTERNAL_I8042_HOOK_KEYBOARD
-    
+
     CurrentInput - Current input packet being formulated by processing all the
                     interrupts
 
     CurrentOutput - Current list of bytes being written to the keyboard or the
                     i8042 port.
-                    
-    StatusByte    - Byte read from I/O port 60 when the interrupt occurred                                            
-    
-    DataByte      - Byte read from I/O port 64 when the interrupt occurred. 
+
+    StatusByte    - Byte read from I/O port 60 when the interrupt occurred
+
+    DataByte      - Byte read from I/O port 64 when the interrupt occurred.
                     This value can be modified and i8042prt will use this value
                     if ContinueProcessing is TRUE
 
@@ -748,7 +748,7 @@ Arguments:
                          packet via the function provided in the hook IOCTL or via
                          queueing a DPC within this driver and calling the
                          service callback function acquired from the connect IOCTL
-                                             
+
 Return Value:
 
     Status is returned.
@@ -791,22 +791,22 @@ KbFilter_ServiceCallback(
 
 Routine Description:
 
-    Called when there are keyboard packets to report to the RIT.  You can do 
+    Called when there are keyboard packets to report to the RIT.  You can do
     anything you like to the packets.  For instance:
-    
+
     o Drop a packet altogether
-    o Mutate the contents of a packet 
-    o Insert packets into the stream 
-                    
+    o Mutate the contents of a packet
+    o Insert packets into the stream
+
 Arguments:
 
     DeviceObject - Context passed during the connect IOCTL
-    
+
     InputDataStart - First packet to be reported
-    
+
     InputDataEnd - One past the last packet to be reported.  Total number of
                    packets is equal to InputDataEnd - InputDataStart
-    
+
     InputDataConsumed - Set to the total number of packets consumed by the RIT
                         (via the function pointer we replaced in the connect
                         IOCTL)

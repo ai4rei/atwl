@@ -114,6 +114,10 @@ typedef struct _DEVICE_EXTENSION
     BOOLEAN         SurpriseRemoved;
     BOOLEAN         Removed;
 
+    //
+    // identification of the PDO
+    //
+    LPWSTR HardwareId;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 //
