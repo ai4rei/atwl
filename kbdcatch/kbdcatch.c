@@ -832,7 +832,6 @@ Return Value:
     {
         /* drop packets of known devices */
         InputDataStart = InputDataEnd;
-        InputDataConsumed[0] = 0;
     }
 
     (*(PSERVICE_CALLBACK_ROUTINE) devExt->UpperConnectData.ClassService)(
