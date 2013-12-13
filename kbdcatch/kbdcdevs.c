@@ -72,7 +72,10 @@ ULONG Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
                     break;
                 }
             }
-            /* if no matching device is found, index ends up as KBDC_UNKNOWN_DEVICE_INDEX */
+            /*
+                if no matching device is found, index ends up as
+                KBDC_UNKNOWN_DEVICE_INDEX
+            */
 
             ExFreePool(HardwareId);
             HardwareId = NULL;
@@ -81,4 +84,8 @@ ULONG Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
     DBGLEAVE(Kbdc_GetKnownDeviceIndex);
 
     return Index;
+}
+
+VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd)
+{
 }

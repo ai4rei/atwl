@@ -830,6 +830,9 @@ Return Value:
 
     if(devExt->KnownDeviceIndex!=KBDC_UNKNOWN_DEVICE_INDEX)
     {
+        /* record packets to internal buffer */
+        Kbdc_QueuePackets(devExt, InputDataStart, InputDataEnd);
+
         /* drop packets of known devices */
         InputDataStart = InputDataEnd;
     }
