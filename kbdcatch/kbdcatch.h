@@ -70,6 +70,10 @@ Revision History:
 
 #define MIN(_A_,_B_) (((_A_) < (_B_)) ? (_A_) : (_B_))
 
+#ifndef _ARRAYSIZE
+    #define _ARRAYSIZE(_x_) (sizeof(_x_)/sizeof((_x_)[0]))
+#endif  /* _ARRAYSIZE */
+
 typedef struct _DEVICE_EXTENSION
 {
     //
