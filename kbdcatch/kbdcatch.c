@@ -18,6 +18,7 @@ Notes:
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
+#include "kbdccoif.h"
 
 NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 
@@ -32,6 +33,8 @@ NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 #pragma alloc_text (PAGE, KbFilter_PnP)
 #pragma alloc_text (PAGE, KbFilter_Power)
 #endif
+
+static PDEVICE_OBJECT l_Coif = NULL;
 
 NTSTATUS
 DriverEntry (
@@ -48,6 +51,42 @@ Routine Description:
     ULONG i;
 
     UNREFERENCED_PARAMETER (RegistryPath);
+
+    //
+    // Create communication interface
+    //
+    {
+        PCOIF_EXTENSION CoifExt;
+        NTSTATUS Status;
+        UNICODE_STRING DeviceName;
+        UNICODE_STRING DevSymLink;
+
+        RtlInitUnicodeString(&DeviceName, KBDC_DEVNAME);
+        RtlInitUnicodeString(&DevSymLink, KBDC_SYMLINK);
+
+        Status = IoCreateDevice(DriverObject, sizeof(COIF_EXTENSION), &DeviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN|FILE_READ_ONLY_DEVICE, TRUE, &l_Coif);
+
+        if(!NT_SUCCESS(Status))
+        {
+            return Status;
+        }
+
+        Status = IoCreateSymbolicLink(&DevSymLink, &DeviceName);
+
+        if(!NT_SUCCESS(Status))
+        {
+            IoDeleteDevice(l_Coif);
+            l_Coif = NULL;
+
+            return Status;
+        }
+
+        CoifExt = (PCOIF_EXTENSION)l_Coif->DeviceExtension;
+        CoifExt->CreateCount = 0;
+
+        l_Coif->Flags|= DO_BUFFERED_IO|DO_POWER_PAGABLE;
+        l_Coif->Flags&=~DO_DEVICE_INITIALIZING;
+    }
 
     //
     // Fill in all the dispatch entry points with the pass through function
@@ -118,6 +157,7 @@ KbFilter_AddDevice(
     devExt->Started =         FALSE;
 
     devExt->KnownDeviceIndex = Kbdc_GetKnownDeviceIndex(PDO);
+    devExt->Coif = l_Coif;
 
     device->Flags |= (DO_BUFFERED_IO | DO_POWER_PAGABLE);
     device->Flags &= ~DO_DEVICE_INITIALIZING;
@@ -177,6 +217,11 @@ Routine Description:
 
 
     PAGED_CODE();
+
+    if(DeviceObject==l_Coif)
+    {
+        return KbdcCoif_CreateClose(DeviceObject, Irp);
+    }
 
     irpStack = IoGetCurrentIrpStackLocation(Irp);
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
@@ -252,6 +297,11 @@ Considerations:
 
     PAGED_CODE();
 
+    if(DeviceObject==l_Coif)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
     //
     // Pass the IRP to the target
     //
@@ -306,6 +356,11 @@ Return Value:
     NTSTATUS                        status = STATUS_SUCCESS;
 
     PAGED_CODE();
+
+    if(DeviceObject==l_Coif)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     Irp->IoStatus.Information = 0;
@@ -479,6 +534,11 @@ Return Value:
 
     PAGED_CODE();
 
+    if(DeviceObject==l_Coif)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
 
@@ -624,6 +684,11 @@ Return Value:
     POWER_STATE_TYPE    powerType;
 
     PAGED_CODE();
+
+    if(DeviceObject==l_Coif)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -869,7 +934,23 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Driver);
 
+    if(l_Coif)
+    {
+        PCOIF_EXTENSION CoifExt = (PCOIF_EXTENSION)l_Coif->DeviceExtension;
+        UNICODE_STRING DevSymLink;
+
+        KeSetEvent(&CoifExt->DeletedEvent, IO_NO_INCREMENT, FALSE);
+
+        while(CoifExt->CreateCount)
+        {
+            __asm pause
+        }
+
+        RtlInitUnicodeString(&DevSymLink, KBDC_SYMLINK);
+        IoDeleteSymbolicLink(&DevSymLink);
+        IoDeleteDevice(l_Coif);
+        l_Coif = NULL;
+    }
+
     ASSERT(NULL == Driver->DeviceObject);
 }
-
-

@@ -5,21 +5,22 @@
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
+#include "kbdccoif.h"
 
 const KBDCDEVICE g_KnownDevices[] =
 {
     { L"HID\\VID_065A&PID_0001&REV_0900", "Opticon OPR-2001-UB", KBDC_DEVTYPE_BARCODE },
     { L"HID\\VID_08FF&PID_0009&REV_0008", "AuthenTec USB Reader", KBDC_DEVTYPE_RFID },
 };
-const ULONG KBDC_UNKNOWN_DEVICE_INDEX = _ARRAYSIZE(g_KnownDevices);
+const USHORT KBDC_UNKNOWN_DEVICE_INDEX = _ARRAYSIZE(g_KnownDevices);
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (PAGE, Kbdc_GetKnownDeviceIndex)
 #endif
 
-ULONG Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
+USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 {
-    ULONG Index = KBDC_UNKNOWN_DEVICE_INDEX;
+    USHORT Index = KBDC_UNKNOWN_DEVICE_INDEX;
 
     PAGED_CODE();
 
@@ -88,4 +89,32 @@ ULONG Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 
 VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd)
 {
+#if 0
+    PKEYBOARD_INPUT_DATA InputData;
+
+    for(InputData = InputDataStart; InputData!=InputDataEnd; InputData++)
+    {
+        /*
+            consider only releases in the assumption that keyboard
+            emulating devices do not use the repeat feature
+        */
+        if(InputData->Flags&KEY_BREAK)
+        {
+            NTSTATUS Status;
+            LARGE_INTEGER Lint;
+            PCOIF_EXTENSION CoifExt = FDOExt->Coif->DeviceExtension;
+
+            Lint.QuadPart = -1000000i64;  // 100ms
+
+            if(KeWaitForSingleObject(&CoifExt->DataClearEvent, Executive, KernelMode, TRUE, &Lint)==STATUS_SUCCESS)
+            {
+                CoifExt->Data.MakeCode   = InputData->MakeCode;
+                CoifExt->Data.SourceType = g_KnownDevices[FDOExt->KnownDeviceIndex].DeviceType;
+
+                KeClearEvent(&CoifExt->DataClearEvent);
+                KeSetEvent(&CoifExt->DataAvailEvent, IO_NO_INCREMENT, FALSE);
+            }
+        }
+    }
+#endif
 }

@@ -30,6 +30,9 @@ Revision History:
 #include <ntddkbd.h>
 #include <ntdd8042.h>
 
+#define KBDC_SYMLINK L"\\DosDevices\\KbdCatch"
+#define KBDC_DEVNAME L"\\Device\\KbdCatch"
+
 #define KBFILTER_POOL_TAG (ULONG) 'CdbK'
 #undef ExAllocatePool
 #define ExAllocatePool(type, size) \
@@ -129,7 +132,12 @@ typedef struct _DEVICE_EXTENSION
     //
     // identification of the PDO
     //
-    ULONG KnownDeviceIndex;
+    USHORT KnownDeviceIndex;
+
+    //
+    // communication interface DO
+    //
+    PDEVICE_OBJECT Coif;
 
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
