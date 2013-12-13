@@ -142,9 +142,10 @@ typedef struct _DEVICE_EXTENSION
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 //
-// OACR
+// OACR/PreFast
 //
 
+#ifdef _PREFAST_
 DRIVER_INITIALIZE       DriverEntry;
 DRIVER_ADD_DEVICE       KbFilter_AddDevice;
 DRIVER_DISPATCH         KbFilter_CreateClose;
@@ -155,6 +156,7 @@ DRIVER_DISPATCH         KbFilter_PnP;
 DRIVER_DISPATCH         KbFilter_Power;
 DRIVER_UNLOAD           KbFilter_Unload;
 IO_COMPLETION_ROUTINE   KbFilter_Complete;
+#endif  /* _PREFAST_ */
 
 //
 // Prototypes
