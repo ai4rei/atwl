@@ -3,4 +3,5 @@ TARGETPATH=obj
 TARGETTYPE=DRIVER
 
 SOURCES=kbdcatch.c \
+        kbdcdevs.c \
         kbdcatch.rc
