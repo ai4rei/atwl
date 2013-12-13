@@ -116,6 +116,34 @@ KbFilter_AddDevice(
     devExt->Removed =         FALSE;
     devExt->Started =         FALSE;
 
+    {
+        NTSTATUS St;
+        ULONG ulSize = 0;
+
+        devExt->HardwareId = NULL;
+
+        do
+        {
+            ulSize+= 1024;
+
+            if(devExt->HardwareId)
+            {
+                ExFreePool(devExt->HardwareId);
+                devExt->HardwareId = NULL;
+            }
+
+            if((devExt->HardwareId = ExAllocatePool(PagedPool, ulSize))==NULL)
+            {
+                break;
+            }
+
+            St = IoGetDeviceProperty(PDO, DevicePropertyHardwareID, ulSize, devExt->HardwareId, &ulSize);
+        }
+        while(!NT_SUCCESS(St));
+
+        DbgPrint("%s\n", devExt->HardwareId);
+    }
+
     device->Flags |= (DO_BUFFERED_IO | DO_POWER_PAGABLE);
     device->Flags &= ~DO_DEVICE_INITIALIZING;
 
@@ -546,7 +574,14 @@ Return Value:
         devExt->Removed = TRUE;
 
         // remove code here
-        
+        {
+            if(devExt->HardwareId)
+            {
+                ExFreePool(devExt->HardwareId);
+                devExt->HardwareId = NULL;
+            }
+        }
+
         IoSkipCurrentIrpStackLocation(Irp);
         IoCallDriver(devExt->TopOfStack, Irp);
 
