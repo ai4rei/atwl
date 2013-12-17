@@ -4,6 +4,7 @@
 //
 // -----------------------------------------------------------------
 
+#include <stdio.h>
 #include <windows.h>
 #include <commctrl.h>
 
@@ -12,6 +13,7 @@
 #include <dlgtempl.h>
 #include <macaddr.h>
 #include <md5.h>
+#include <memory.h>
 #include <xf_binhex.h>
 
 #include "bgskin.h"
@@ -466,6 +468,20 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return TRUE;
 }
 
+static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)
+{// consider the following: we have no memory
+    char szMessage[1024];
+
+    snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %lu bytes of memory.", lpMoi->luWantAlloc);
+
+    if(MessageBox(NULL, szMessage, l_szAppTitle, MB_RETRYCANCEL|MB_ICONSTOP|MB_SYSTEMMODAL)==IDRETRY)
+    {
+        return MEMORY_OOM_RETRY;
+    }
+
+    return MEMORY_OOM_DEFAULT;
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
     char szErrMsg[256];
@@ -473,6 +489,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     unsigned long luDlgBufSize = sizeof(ucDlgBuf);
     DLGTEMPLATEINFO DlgTi;
     HANDLE hMutex = NULL;
+
+    // memory
+    Memory_SetStatusInfo();
+    Memory_AddOptionBits(MEMORY_OPT_EXCEPTIO|MEMORY_OPT_STOPNULL|MEMORY_OPT_YIELDLCK);
+    Memory_SetOOMHandler(&OnOOM, NULL);
 
     // global window title
     LoadStringA(hInstance, IDS_TITLE, l_szAppTitle, __ARRAYSIZE(l_szAppTitle));
@@ -520,6 +541,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
         MessageBox(NULL, szErrMsg, l_szAppTitle, MB_OK|MB_ICONSTOP);
     }
+
+    // memory again
+    AssertHere(!Memory_GetStatusLeak());
 
     return 0;
 }
