@@ -272,11 +272,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 if(bCheckSave)
                 {
-                    ConfigGetStr("UserName", szBuffer, __ARRAYSIZE(szBuffer));
+                    const char* lpszUserName = ConfigGetStr("UserName");
 
-                    if(szBuffer[0])
+                    if(lpszUserName[0])
                     {
-                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szBuffer);
+                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), lpszUserName);
                         SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
                         bSetFocus = FALSE;
                     }
@@ -311,15 +311,13 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case IDB_REPLAY:
                 {
                     char szExePath[MAX_PATH];
-                    char szExeName[MAX_PATH];
-                    char szExeType[16];
+                    const char* lpszExeName = ConfigGetStr("ExeName");
+                    const char* lpszExeType = ConfigGetStr("ExeType");
 
-                    ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
-                    ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
-                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), szExeName);
+                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
 
                     // Replay mode
-                    InvokeProcess(hWnd, szExePath, "-t:Replay %s", szExeType);
+                    InvokeProcess(hWnd, szExePath, "-t:Replay %s", lpszExeType);
 
                     //EndDialog(hWnd, 1);
                     break;
@@ -329,10 +327,10 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     char szUserName[24];
                     char szPassWord[24];
                     char szExePath[MAX_PATH];
-                    char szExeName[MAX_PATH];
-                    char szExeType[16];
                     char szMiscInfo[128] = { 0 };
                     char szBuffer[4096];
+                    const char* lpszExeName;
+                    const char* lpszExeType;
                     BOOL bCheckSave;
                     HINSTANCE hInstance = GetModuleHandleA(NULL);
 
@@ -371,9 +369,9 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         ConfigSetStr("UserName", NULL);
                     }
 
-                    ConfigGetStr("ExeName", szExeName, __ARRAYSIZE(szExeName));
-                    ConfigGetStr("ExeType", szExeType, __ARRAYSIZE(szExeType));
-                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), szExeName);
+                    lpszExeName = ConfigGetStr("ExeName");
+                    lpszExeType = ConfigGetStr("ExeType");
+                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
 
                     // miscellaneous information for the server
                     if(ConfigGetInt("MiscInfo"))
@@ -406,11 +404,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         MD5_String(szPassWord, ucHash);
                         XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), ucHash, __ARRAYSIZE(ucHash));
 
-                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, szExeType);
+                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
                     }
                     else
                     {// Plaintext
-                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, szExeType);
+                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
                     }
 
                     // get rid of the password after it has been used

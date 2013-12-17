@@ -7,119 +7,22 @@
 #include <windows.h>
 
 #include <btypes.h>
+#include <kvdb.h>
+#include <kvdb/win32ini.h>
 
 #include "config.h"
 #include "rocred.h"
-
-typedef enum CONFIGDEFAULTVALUETYPE
-{
-    CDVT_STR,
-    CDVT_NUM,
-}
-CONFIGDEFAULTVALUETYPE;
-
-typedef union CONFIGDEFAULTVALUEUNION
-{
-    const char* lpszField;
-    int nField;
-}
-CONFIGDEFAULTVALUEUNION;
-typedef const CONFIGDEFAULTVALUEUNION* LPCCONFIGDEFAULTVALUEUNION;
-
-typedef struct CONFIGDEFAULTVALUE
-{
-    const char* lpszKey;
-    CONFIGDEFAULTVALUETYPE nType;
-    CONFIGDEFAULTVALUEUNION Value;
-}
-CONFIGDEFAULTVALUE;
-typedef const CONFIGDEFAULTVALUE* LPCCONFIGDEFAULTVALUE;
-
-#define NUM(x) ((const char*)x)
-
-static const CONFIGDEFAULTVALUE l_DefaultValues[] =
-{
-    { "CheckSave",                  CDVT_NUM, FALSE   },
-    { "UserName",                   CDVT_STR, ""      },
-    { "ExeName",                    CDVT_STR, ""      },
-    { "ExeType",                    CDVT_STR, "1rag1" },
-    { "HashMD5",                    CDVT_NUM, FALSE   },
-    { "SecondInstance",             CDVT_NUM, FALSE   },
-    { "PolicyNoCheckSave",          CDVT_NUM, FALSE   },
-    { "PolicyNoReplay",             CDVT_NUM, FALSE   },
-    { "PolicyNoTrayIcon",           CDVT_NUM, FALSE   },
-    { "PolicyNoSessionPassword",    CDVT_NUM, FALSE   },
-    { "FontSize",                   CDVT_NUM, NUM(9)  },
-    { "MiscInfo",                   CDVT_NUM, 0       },
-    { "_MiscInfoLastAgreed",        CDVT_NUM, 0       },
-    { "IDS_USERNAME.X",             CDVT_NUM, 0       },
-    { "IDS_USERNAME.Y",             CDVT_NUM, 0       },
-    { "IDS_USERNAME.W",             CDVT_NUM, 0       },
-    { "IDS_USERNAME.H",             CDVT_NUM, 0       },
-    { "IDC_USERNAME.X",             CDVT_NUM, 0       },
-    { "IDC_USERNAME.Y",             CDVT_NUM, 0       },
-    { "IDC_USERNAME.W",             CDVT_NUM, 0       },
-    { "IDC_USERNAME.H",             CDVT_NUM, 0       },
-    { "IDS_PASSWORD.X",             CDVT_NUM, 0       },
-    { "IDS_PASSWORD.Y",             CDVT_NUM, 0       },
-    { "IDS_PASSWORD.W",             CDVT_NUM, 0       },
-    { "IDS_PASSWORD.H",             CDVT_NUM, 0       },
-    { "IDC_PASSWORD.X",             CDVT_NUM, 0       },
-    { "IDC_PASSWORD.Y",             CDVT_NUM, 0       },
-    { "IDC_PASSWORD.W",             CDVT_NUM, 0       },
-    { "IDC_PASSWORD.H",             CDVT_NUM, 0       },
-    { "IDC_CHECKSAVE.X",            CDVT_NUM, 0       },
-    { "IDC_CHECKSAVE.Y",            CDVT_NUM, 0       },
-    { "IDC_CHECKSAVE.W",            CDVT_NUM, 0       },
-    { "IDC_CHECKSAVE.H",            CDVT_NUM, 0       },
-    { "IDB_REPLAY.X",               CDVT_NUM, 0       },
-    { "IDB_REPLAY.Y",               CDVT_NUM, 0       },
-    { "IDB_REPLAY.W",               CDVT_NUM, 0       },
-    { "IDB_REPLAY.H",               CDVT_NUM, 0       },
-    { "IDOK.X",                     CDVT_NUM, 0       },
-    { "IDOK.Y",                     CDVT_NUM, 0       },
-    { "IDOK.W",                     CDVT_NUM, 0       },
-    { "IDOK.H",                     CDVT_NUM, 0       },
-    { "IDCANCEL.X",                 CDVT_NUM, 0       },
-    { "IDCANCEL.Y",                 CDVT_NUM, 0       },
-    { "IDCANCEL.W",                 CDVT_NUM, 0       },
-    { "IDCANCEL.H",                 CDVT_NUM, 0       },
-};
+#include "rsrcio.h"
 
 static char l_szIniFile[MAX_PATH] = { 0 };
-static char l_szMbdFile[MAX_PATH] = { 0 };
-static HANDLE l_hMbd;
+static KVDB l_ConfigDB = { 0 };
 
 #define CONFIG_MAIN_SECTION "ROCred"
 
-static LPCCONFIGDEFAULTVALUEUNION __stdcall Config_P_GetDefault(const char* lpszKey, CONFIGDEFAULTVALUETYPE nType)
-{
-    unsigned long luIdx;
-    LPCCONFIGDEFAULTVALUE lpDv;
-
-    for(luIdx = 0; luIdx<__ARRAYSIZE(l_DefaultValues); luIdx++)
-    {
-        lpDv = &l_DefaultValues[luIdx];
-
-        if(lpDv->nType!=nType)
-        {
-            continue;
-        }
-
-        if(lstrcmpiA(lpDv->lpszKey, lpszKey))
-        {
-            continue;
-        }
-
-        break;
-    }
-
-    return luIdx==__ARRAYSIZE(l_DefaultValues) ? NULL /* crash softly */ : &lpDv->Value;
-}
-
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
 {
-    WritePrivateProfileStringA(CONFIG_MAIN_SECTION, lpszKey, lpszValue, l_szIniFile);
+    KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey, lpszValue);
+    KvSave(&l_ConfigDB, l_szIniFile);
 }
 
 void __stdcall ConfigSetInt(const char* lpszKey, int nValue)
@@ -138,30 +41,14 @@ void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
-void __stdcall ConfigGetStr(const char* lpszKey, char* lpszBuffer, unsigned long luBufferSize)
+const char* __stdcall ConfigGetStr(const char* lpszKey)
 {
-    char szDefault[1024];
-
-    lstrcpynA(szDefault, Config_P_GetDefault(lpszKey, CDVT_STR)->lpszField, __ARRAYSIZE(szDefault));
-
-    if(l_szMbdFile[0] && lpszKey[0]!='_')
-    {
-        GetPrivateProfileStringA(CONFIG_MAIN_SECTION, lpszKey, szDefault, szDefault, __ARRAYSIZE(szDefault), l_szMbdFile);
-    }
-
-    GetPrivateProfileStringA(CONFIG_MAIN_SECTION, lpszKey, szDefault, lpszBuffer, luBufferSize, l_szIniFile);
+    return KvKeyGetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey);
 }
 
 int __stdcall ConfigGetInt(const char* lpszKey)
 {
-    int nDefault = Config_P_GetDefault(lpszKey, CDVT_NUM)->nField;
-
-    if(l_szMbdFile[0] && lpszKey[0]!='_')
-    {
-        nDefault = GetPrivateProfileIntA(CONFIG_MAIN_SECTION, lpszKey, nDefault, l_szMbdFile);
-    }
-
-    return GetPrivateProfileIntA(CONFIG_MAIN_SECTION, lpszKey, nDefault, l_szIniFile);
+    return atoi(ConfigGetStr(lpszKey));
 }
 
 unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
@@ -226,51 +113,77 @@ bool __stdcall ConfigSave(void)
     return bSuccess;
 }
 
+static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* lpszSection, LPKVDBKEY Key, const char* lpszKey, void* lpContext)
+{
+    if(lpszKey[0]=='_')
+    {
+        KvKeyDelete(NULL, NULL, NULL, Key, NULL);
+    }
+
+    return true;
+}
+
+static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* lpszSection, void* lpContext)
+{
+    KvForEachKey(NULL, Section, NULL, &Config_P_FoilEachKey, NULL);
+    return true;
+}
+
 bool __stdcall ConfigInit(void)
 {
+    bool bSuccess = true;
+    char szMbdFile[MAX_PATH];
+    const void* lpData;
     unsigned long luLen, luWritten;
-    HINSTANCE hInstance = GetModuleHandleA(NULL);
-    HGLOBAL hConf;
-    HRSRC hInfo;
+    HANDLE hFile;
 
-    // embedded/admin configuration
-    if((hInfo = FindResourceA(hInstance, "CONFIG", MAKEINTRESOURCE(RT_RCDATA)))!=NULL)
+    // set defaults
+    KvInit(&l_ConfigDB, &g_Win32PrivateProfileAdapter);
+    KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, "ExeType", "1rag");
+    KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, "FontSize", "9");
+
+    // load embedded/admin configuration
+    if(ResourceFetch(NULL, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", &lpData, &luLen))
     {
-        if((hConf = LoadResource(hInstance, hInfo))!=NULL)
+        char szTmpPath[MAX_PATH];
+        unsigned int uUniq = 0;
+
+        GetTempPathA(__ARRAYSIZE(szTmpPath), szTmpPath);
+
+        do
         {
-            const void* lpData = LockResource(hConf);
-            char szTmpPath[MAX_PATH];
-            unsigned int uUniq = 0;
+            wsprintfA(szMbdFile, "%s\\~rcd%04x.ini", szTmpPath, uUniq++);
 
-            GetTempPathA(__ARRAYSIZE(szTmpPath), szTmpPath);
+            hFile = CreateFileA(szMbdFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_TEMPORARY|FILE_FLAG_WRITE_THROUGH, NULL);
+        }
+        while(hFile==INVALID_HANDLE_VALUE && GetLastError()==ERROR_FILE_EXISTS && uUniq<=0xFFFF);
 
-            do
+        if(hFile!=INVALID_HANDLE_VALUE)
+        {
+            if(WriteFile(hFile, lpData, luLen, &luWritten, NULL))
             {
-                wsprintfA(l_szMbdFile, "%s\\~rcd%04x.ini", szTmpPath, uUniq++);
+                CloseHandle(hFile);
 
-                // BUG: Keeping the file open for the sake of delete
-                //      on close will prevent GetPrivateProfile* on
-                //      Windows 9x, because of exclusive access.
-                l_hMbd = CreateFileA(l_szMbdFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_WRITE_THROUGH, NULL);
-            }
-            while(l_hMbd==INVALID_HANDLE_VALUE && GetLastError()==ERROR_FILE_EXISTS && uUniq<=0xFFFF);
+                KvLoad(&l_ConfigDB, szMbdFile);
 
-            if(l_hMbd!=INVALID_HANDLE_VALUE)
-            {
-                if(!WriteFile(l_hMbd, lpData, SizeofResource(hInstance, hInfo), &luWritten, NULL))
-                {
-                    // clean up the evidence if we failed
-                    CloseHandle(l_hMbd);
-                    l_szMbdFile[0] = 0;
-                }
+                // foil attempts to override protected defaults
+                KvForEachSection(&l_ConfigDB, &Config_P_FoilEachSection, NULL);
             }
             else
             {
-                l_szMbdFile[0] = 0;
+                bSuccess = false;
+                CloseHandle(hFile);
             }
+
+            // clean up the evidence
+            DeleteFileA(szMbdFile);
+        }
+        else
+        {
+            bSuccess = false;
         }
 
-        if(!l_szMbdFile[0])
+        if(!bSuccess)
         {
             // something bad happened
             return false;
@@ -278,20 +191,14 @@ bool __stdcall ConfigInit(void)
     }
 
     // external/user configuration
-    GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
-    luLen = lstrlenA(l_szIniFile);
+    luLen = GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
     lstrcpyA((luLen>4 && l_szIniFile[luLen-4]=='.') ? &l_szIniFile[luLen-4] : &l_szIniFile[luLen], ".ini");
+    KvLoad(&l_ConfigDB, l_szIniFile);
 
     return true;
 }
 
 void __stdcall ConfigQuit(void)
 {
-    l_szIniFile[0] = 0;
-
-    if(l_szMbdFile[0])
-    {
-        CloseHandle(l_hMbd);
-        l_szMbdFile[0] = 0;
-    }
+    KvFree(&l_ConfigDB);
 }
