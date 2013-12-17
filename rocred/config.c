@@ -82,19 +82,9 @@ bool __stdcall ConfigSave(void)
                 if(CopyFileA(szSrcName, szDstName, FALSE))
                 {
                     // persist as resource
-                    if((hUpdate = BeginUpdateResource(szDstName, FALSE))!=NULL)
+                    if(ResourceStore(szDstName, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", lpData, luLen))
                     {
-                        if(UpdateResource(hUpdate, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", 0, lpData, luLen))
-                        {
-                            if(EndUpdateResource(hUpdate, FALSE))
-                            {
-                                bSuccess = true;
-                            }
-                        }
-                        else
-                        {
-                            EndUpdateResource(hUpdate, TRUE);
-                        }
+                        bSuccess = true;
                     }
 
                     if(!bSuccess)
@@ -141,6 +131,7 @@ bool __stdcall ConfigInit(void)
     KvInit(&l_ConfigDB, &g_Win32PrivateProfileAdapter);
     KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, "ExeType", "1rag");
     KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, "FontSize", "9");
+    KvDirty(&l_ConfigDB, false);
 
     // load embedded/admin configuration
     if(ResourceFetch(NULL, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", &lpData, &luLen))
