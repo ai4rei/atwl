@@ -7,6 +7,9 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+typedef bool (__stdcall* LPFNFOREACHSECTION)(const char* lpszSection, void* lpContext);
+
+void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext);
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue);
 void __stdcall ConfigSetInt(const char* lpszKey, int nValue);
 void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue);

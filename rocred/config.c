@@ -14,10 +14,30 @@
 #include "rocred.h"
 #include "rsrcio.h"
 
+struct LPFOREACHSECTIONCONTEXT
+{
+    LPFNFOREACHSECTION Func;
+    void* lpContext;
+};
+
 static char l_szIniFile[MAX_PATH] = { 0 };
 static KVDB l_ConfigDB = { 0 };
 
 #define CONFIG_MAIN_SECTION "ROCred"
+
+static bool __stdcall Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* lpszSection, void* lpContext)
+{
+    struct LPFOREACHSECTIONCONTEXT* lpCtx = (struct LPFOREACHSECTIONCONTEXT*)lpContext;
+
+    return lpCtx->Func(lpszSection, lpCtx->lpContext);
+}
+
+void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext)
+{
+    struct LPFOREACHSECTIONCONTEXT Ctx = { Func, lpContext };
+
+    KvForEachSectionMatch(&l_ConfigDB, lpszMatch, Config_P_ForEachSection, &Ctx);
+}
 
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
 {
@@ -74,7 +94,6 @@ bool __stdcall ConfigSave(void)
             {
                 char szSrcName[MAX_PATH];
                 char szDstName[MAX_PATH];
-                HANDLE hUpdate;
 
                 GetModuleFileNameA(NULL, szSrcName, __ARRAYSIZE(szSrcName));
                 wsprintfA(szDstName, "%s.embed.exe", szSrcName);
