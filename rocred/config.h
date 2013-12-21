@@ -13,6 +13,9 @@ void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTI
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue);
 void __stdcall ConfigSetInt(const char* lpszKey, int nValue);
 void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue);
+const char* __stdcall ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey);
+int __stdcall ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey);
+unsigned int __stdcall ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey);
 const char* __stdcall ConfigGetStr(const char* lpszKey);
 int __stdcall ConfigGetInt(const char* lpszKey);
 unsigned int __stdcall ConfigGetIntU(const char* lpszKey);

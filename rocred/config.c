@@ -61,19 +61,34 @@ void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
+const char* __stdcall ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey)
+{
+    return KvKeyGetStrValue(&l_ConfigDB, NULL, lpszSection, NULL, lpszKey);
+}
+
+int __stdcall ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey)
+{
+    return atoi(ConfigGetStrFromSection(lpszSection, lpszKey));
+}
+
+unsigned int __stdcall ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey)
+{
+    return ConfigGetIntFromSection(lpszSection, lpszKey);
+}
+
 const char* __stdcall ConfigGetStr(const char* lpszKey)
 {
-    return KvKeyGetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey);
+    return ConfigGetStrFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
 int __stdcall ConfigGetInt(const char* lpszKey)
 {
-    return atoi(ConfigGetStr(lpszKey));
+    return ConfigGetIntFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
 unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
 {
-    return ConfigGetInt(lpszKey);
+    return ConfigGetIntUFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
 bool __stdcall ConfigSave(void)
