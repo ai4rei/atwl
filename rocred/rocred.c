@@ -57,6 +57,11 @@ static const UINT l_uMiscInfoOptName[] =
 
 static char l_szAppTitle[1024] = { 0 };
 
+int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
+{
+    return MessageBoxA(hWnd, lpszText, l_szAppTitle, dwFlags);
+}
+
 static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
 {
     char szBuffer[256*3+128];
@@ -87,7 +92,7 @@ static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
 
     wsprintfA(szBuffer, "%s%s\r\n\r\n%s", szPrefix, szInfo, szSuffix);
 
-    if(MessageBoxA(hWnd, szBuffer, l_szAppTitle, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)==IDYES)
+    if(MsgBox(hWnd, szBuffer, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)==IDYES)
     {
         ConfigSetInt("_MiscInfoLastAgreed", nMiscInfo);
         return true;
@@ -190,7 +195,7 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
         FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szError, __ARRAYSIZE(szError), NULL);
         LoadStringA(GetModuleHandle(NULL), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
         wsprintfA(szMessage, szFormat, lpszApplication, szBuffer, szError);
-        MessageBoxA(hWnd, szMessage, l_szAppTitle, MB_ICONSTOP|MB_OK);
+        MsgBox(hWnd, szMessage, MB_ICONSTOP|MB_OK);
     }
 }
 
@@ -304,7 +309,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:
             if(HIWORD(wParam)!=1  && HIWORD(wParam)!=0)
             {
-                ;
+                return FALSE;
             }
             else switch(LOWORD(wParam))
             {
@@ -339,7 +344,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if(lstrlenA(szUserName)<4)
                     {
                         LoadStringA(hInstance, szUserName[0] ? IDS_USER_SHRT : IDS_USER_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONINFORMATION);
+                        MsgBox(hWnd, szBuffer, MB_OK|MB_ICONINFORMATION);
                         break;
                     }
 
@@ -348,7 +353,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if(lstrlenA(szPassWord)<4)
                     {
                         LoadStringA(hInstance, szPassWord[0] ? IDS_PASS_SHRT : IDS_PASS_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                        MessageBox(hWnd, szBuffer, l_szAppTitle, MB_OK|MB_ICONINFORMATION);
+                        MsgBox(hWnd, szBuffer, MB_OK|MB_ICONINFORMATION);
                         break;
                     }
 
@@ -472,7 +477,7 @@ static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)
 
     snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %lu bytes of memory.", lpMoi->luWantAlloc);
 
-    if(MessageBox(NULL, szMessage, l_szAppTitle, MB_RETRYCANCEL|MB_ICONSTOP|MB_SYSTEMMODAL)==IDRETRY)
+    if(MsgBox(NULL, szMessage, MB_RETRYCANCEL|MB_ICONSTOP|MB_SYSTEMMODAL)==IDRETRY)
     {
         return MEMORY_OOM_RETRY;
     }
@@ -509,11 +514,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                     {
                         if(ConfigSave())
                         {
-                            MessageBox(NULL, "Configuration was successfully embedded.", l_szAppTitle, MB_OK|MB_ICONINFORMATION);
+                            MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
                         }
                         else
                         {
-                            MessageBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", l_szAppTitle, MB_OK|MB_ICONSTOP);
+                            MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
                         }
                     }
                 }
@@ -537,7 +542,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     else
     {
         LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
-        MessageBox(NULL, szErrMsg, l_szAppTitle, MB_OK|MB_ICONSTOP);
+        MsgBox(NULL, szErrMsg, MB_OK|MB_ICONSTOP);
     }
 
     // memory again

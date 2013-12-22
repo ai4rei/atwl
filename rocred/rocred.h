@@ -31,4 +31,6 @@
 #define IDS_MISCINFO_PROMPT_SUFFIX      1015
 #define IDS_MISCINFO_OPT_MACADDRESS     1016
 
+int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags);
+
 #endif  /* _ROCRED_H_ */
