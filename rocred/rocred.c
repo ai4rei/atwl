@@ -9,6 +9,7 @@
 #include <commctrl.h>
 
 #include <btypes.h>
+#include <cstr.h>
 #include <dlgabout.h>
 #include <dlgtempl.h>
 #include <macaddr.h>
@@ -17,6 +18,7 @@
 #include <xf_binhex.h>
 
 #include "bgskin.h"
+#include "button.h"
 #include "config.h"
 #include "rocred.h"
 
@@ -238,6 +240,50 @@ static void __stdcall AppMutexRelease(HANDLE* lphMutex)
     }
 }
 
+static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContext)
+{
+    const char* lpszName = lpszSection+15;  // skip "ROCred.Buttons."
+    HWND hWnd = (HWND)lpContext;
+
+    if(ButtonCheckName(lpszName))
+    {
+        char szBuffer[4096];  // STRINGTABLE limit, which is probably more than you will ever need
+        const char* lpszDisplayName;
+        unsigned int uBtnId = ButtonGetId(lpszName);
+        RECT rcBtn;
+
+        rcBtn.left   = ConfigGetIntFromSection(lpszSection, "X");
+        rcBtn.top    = ConfigGetIntFromSection(lpszSection, "Y");
+        rcBtn.right  = ConfigGetIntFromSection(lpszSection, "W");
+        rcBtn.bottom = ConfigGetIntFromSection(lpszSection, "H");
+
+        MapDialogRect(hWnd, &rcBtn);
+
+        lpszDisplayName = ConfigGetStrFromSection(lpszSection, "DisplayName");
+
+        if(lpszDisplayName[0]=='#')
+        {
+            LoadStringA(GetModuleHandle(NULL), lstrtoulA(lpszDisplayName+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
+            lpszDisplayName = szBuffer;
+        }
+
+        if(CreateWindowA(WC_BUTTON, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, rcBtn.left, rcBtn.top, rcBtn.right /* width */, rcBtn.bottom /* height */, hWnd, (HMENU)(IDB_CUSTOM_BASE+uBtnId), GetModuleHandle(NULL), NULL))
+        {
+            SendMessage(GetDlgItem(hWnd, IDB_CUSTOM_BASE+uBtnId), WM_SETFONT, SendMessage(hWnd, WM_GETFONT, 0, 0), MAKELPARAM(TRUE, 0));
+        }
+        else
+        {
+            MessageBox(NULL, "Failed to create button.", lpszName, MB_ICONSTOP|MB_OK);
+        }
+    }
+    else
+    {
+        MessageBoxA(NULL, "Invalid button identifier.", lpszSection, MB_ICONSTOP|MB_OK);
+    }
+
+    return true;  // next
+}
+
 static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
@@ -247,8 +293,6 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             char szBuffer[4096];
             BOOL bCheckSave, bSetFocus = TRUE;
             HINSTANCE hInstance = GetModuleHandleA(NULL);
-
-            BgSkinOnCreate(hWnd);
 
             SendMessage(hWnd, WM_SETICON, ICON_BIG,
                 (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
@@ -303,6 +347,12 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
                 SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
             }
+
+            // load custom buttons if any
+            ConfigForEachSectionMatch("ROCred.Buttons.", &CreateCustomButton, hWnd);
+
+            // apply available skins
+            BgSkinInit(hWnd);
 
             return bSetFocus;
         }
@@ -425,6 +475,13 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case IDCANCEL:
                     EndDialog(hWnd, 0);
                     break;
+                default:
+                    if(ButtonAction(hWnd, LOWORD(wParam)-IDB_CUSTOM_BASE))
+                    {
+                        break;
+                    }
+
+                    return FALSE;
             }
             break;
         case WM_ERASEBKGND:
@@ -462,6 +519,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             };
 
             DlgAbout(&Dai);
+            break;
+        }
+        case WM_DESTROY:
+        {
+            BgSkinFree();
             break;
         }
         default:
@@ -504,37 +566,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     // start up
     if(ConfigInit())
     {
-        if(BgSkinInit())
+        if(AppMutexAcquire(&hMutex))
         {
-            if(AppMutexAcquire(&hMutex))
+            if(lpszCmdLine[0]=='/')
             {
-                if(lpszCmdLine[0]=='/')
+                if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
                 {
-                    if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
+                    if(ConfigSave())
                     {
-                        if(ConfigSave())
-                        {
-                            MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
-                        }
-                        else
-                        {
-                            MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
-                        }
+                        MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
+                    }
+                    else
+                    {
+                        MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
                     }
                 }
-                else
-                {
-                    CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
-                    DlgTi.huFontSize = ConfigGetInt("FontSize");
-                    AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
-                    //InitCommonControls();
-                    DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
-                }
-
-                AppMutexRelease(&hMutex);
+            }
+            else
+            {
+                CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
+                DlgTi.huFontSize = ConfigGetInt("FontSize");
+                AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
+                //InitCommonControls();
+                DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+                ButtonFree();
             }
 
-            BgSkinQuit();
+            AppMutexRelease(&hMutex);
         }
 
         ConfigQuit();

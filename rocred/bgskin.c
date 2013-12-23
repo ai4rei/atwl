@@ -5,59 +5,47 @@
 // -----------------------------------------------------------------
 
 #include <windows.h>
+#include <commctrl.h>
 
 #include <btypes.h>
+#include <bvector.h>
+#include <cstr.h>
+#include <memory.h>
 #include <regionui.h>
+#include <w32uxt.h>
 
 #include "bgskin.h"
+#include "button.h"
 #include "config.h"
 #include "rocred.h"
-
-// uxtheme.dll specific
-#ifndef WM_THEMECHANGED
-    #define WM_THEMECHANGED 0x031A
-#endif  /* WM_THEMECHANGED */
-typedef void (WINAPI* LPFNSETTHEMEAPPPROPERTIES)(DWORD dwFlags);
-// end uxtheme.dll
-
-typedef struct BGSKINBATCHINFO
-{
-    UINT uID;
-    const char* lpszName;
-}
-BGSKINBATCHINFO,* LPBGSKINBATCHINFO;
-typedef const BGSKINBATCHINFO* LPCBGSKINBATCHINFO;
 
 typedef struct BUTTONSKININFO
 {
     UINT uID;
-    const char* lpszName;
     HBITMAP hbmLook;
 }
 BUTTONSKININFO,* LPBUTTONSKININFO;
 typedef const BUTTONSKININFO* LPCBUTTONSKININFO;
 
-#define BGSKINBATCHINIT(x) { x, #x }
-#define BUTTONSKININIT(x,name) { x, name }
-
-static const BGSKINBATCHINFO l_BatchInfo[] =
-{
-    BGSKINBATCHINIT(IDS_USERNAME),
-    BGSKINBATCHINIT(IDC_USERNAME),
-    BGSKINBATCHINIT(IDS_PASSWORD),
-    BGSKINBATCHINIT(IDC_PASSWORD),
-    BGSKINBATCHINIT(IDC_CHECKSAVE),
-    BGSKINBATCHINIT(IDB_REPLAY),
-    BGSKINBATCHINIT(IDOK),
-    BGSKINBATCHINIT(IDCANCEL),
-};
-static BUTTONSKININFO l_ButtonSkinInfo[] =
-{
-    BUTTONSKININIT(IDB_REPLAY, "btnreplay"),
-    BUTTONSKININIT(IDOK, "btnstart"),
-    BUTTONSKININIT(IDCANCEL, "btnclose"),
-};
 static HBITMAP l_hbmBackground = NULL;
+static struct bvector* l_SkinDB = NULL;  // id -> LPBGSKININFO
+
+static const char* __stdcall BgSkin_P_ButtonId2Name(UINT uId)
+{
+    switch(uId)
+    {
+        C2N(IDOK);
+        C2N(IDCANCEL);
+        C2N(IDS_USERNAME);
+        C2N(IDC_USERNAME);
+        C2N(IDS_PASSWORD);
+        C2N(IDC_PASSWORD);
+        C2N(IDC_CHECKSAVE);
+        C2N(IDB_REPLAY);
+    }
+
+    return NULL;
+}
 
 static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
 {
@@ -75,23 +63,21 @@ static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
     return ucIndex;
 }
 
-static bool __stdcall BgSkin_P_QueryButtonSkinInfo(UINT uID, LPBUTTONSKININFO* lppBsi)
+static HBITMAP __stdcall BgSkin_P_GetSkin(UINT uID)
 {
     unsigned long luIdx;
 
-    for(luIdx = 0; luIdx<__ARRAYSIZE(l_ButtonSkinInfo); luIdx++)
+    for(luIdx = 0; luIdx<l_SkinDB->size(l_SkinDB); luIdx++)
     {
-        if(l_ButtonSkinInfo[luIdx].uID==uID)
-        {
-            lppBsi[0] = &l_ButtonSkinInfo[luIdx];
+        LPBUTTONSKININFO lpBsi = (LPBUTTONSKININFO)(l_SkinDB->at(l_SkinDB, luIdx)[0]);
 
-            return true;
+        if(lpBsi->uID==uID)
+        {
+            return lpBsi->hbmLook;
         }
     }
 
-    lppBsi[0] = NULL;
-
-    return false;
+    return NULL;
 }
 
 static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
@@ -111,113 +97,6 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const cha
 static bool __stdcall BgSkin_P_IsActive(void)
 {
     return (bool)(l_hbmBackground!=NULL);
-}
-
-static void __stdcall BgSkin_P_DisableVisualStyles(HWND hWnd)
-{
-    LPFNSETTHEMEAPPPROPERTIES SetThemeAppProperties = NULL;
-    HMODULE hDll = LoadLibraryA("uxtheme.dll");
-
-    if(hDll)
-    {
-        if((SetThemeAppProperties = (LPFNSETTHEMEAPPPROPERTIES)GetProcAddress(hDll, "SetThemeAppProperties"))!=NULL)
-        {
-            // disable visual styles
-            SetThemeAppProperties(0x1 /* STAP_ALLOW_NONCLIENT */);
-            SendMessage(hWnd, WM_THEMECHANGED, 0, 0);
-        }
-
-        FreeLibrary(hDll);
-    }
-}
-
-void __stdcall BgSkinOnCreate(HWND hWnd)
-{
-    char szName[32];
-    int nX, nY, nW, nH;
-    unsigned long luIdx;
-    BITMAP bmBG;
-    HRGN hRGN;
-    RECT rcWnd, rcWA;
-
-    if(BgSkin_P_IsActive())
-    {
-        if(GetObject(l_hbmBackground, sizeof(bmBG), &bmBG))
-        {
-            // set window size to bitmap size and get rid of
-            // non-client elements while being at it
-            SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX);
-            SetWindowPos(hWnd, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
-
-            // center window
-            GetWindowRect(hWnd, &rcWnd);
-            SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWA, 0);
-            OffsetRect(&rcWA, ((rcWA.right-rcWA.left)-(rcWnd.right-rcWnd.left))/2, ((rcWA.bottom-rcWA.top)-(rcWnd.bottom-rcWnd.top))/2);
-            SetWindowPos(hWnd, NULL, rcWA.left, rcWA.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-
-            // window size for base window region (origin transform)
-            GetWindowRect(hWnd, &rcWnd);
-            rcWnd.right-= rcWnd.left;
-            rcWnd.bottom-= rcWnd.top;
-            rcWnd.left = rcWnd.top = 0;
-
-            // set up region
-            if((hRGN = CreateRectRgnIndirect(&rcWnd))!=NULL)
-            {
-                if(MaskRegionFromBitmap(hRGN, l_hbmBackground, RGB(255, 0, 255)))
-                {
-                    SetWindowRgn(hWnd, hRGN, TRUE);
-                    hRGN = NULL;  // system took ownership
-                }
-                else
-                {
-                    DeleteObject(hRGN);
-                }
-            }
-        }
-
-        // load child control metrics
-        for(luIdx = 0; luIdx<__ARRAYSIZE(l_BatchInfo); luIdx++)
-        {
-            LPBUTTONSKININFO lpBsi;
-            LPCBGSKINBATCHINFO lpBbi = &l_BatchInfo[luIdx];
-            HWND hChild = GetDlgItem(hWnd, lpBbi->uID);
-
-            wsprintfA(szName, "%s.X", lpBbi->lpszName);
-            nX = ConfigGetInt(szName);
-
-            wsprintfA(szName, "%s.Y", lpBbi->lpszName);
-            nY = ConfigGetInt(szName);
-
-            wsprintfA(szName, "%s.W", lpBbi->lpszName);
-            nW = ConfigGetInt(szName);
-
-            wsprintfA(szName, "%s.H", lpBbi->lpszName);
-            nH = ConfigGetInt(szName);
-
-            SetWindowPos(hChild, NULL, nX, nY, nW, nH, SWP_NOOWNERZORDER|SWP_NOZORDER);
-
-            // disable client area visual styles to prevent glitches
-            BgSkin_P_DisableVisualStyles(hChild);
-
-            // is this a button? load skin for it, too!
-            if(BgSkin_P_QueryButtonSkinInfo(lpBbi->uID, &lpBsi))
-            {
-                char szFileName[64];
-
-                wsprintfA(szFileName, "%s.bmp", lpBsi->lpszName);
-
-                if((lpBsi->hbmLook = BgSkin_P_LoadBitmap(szFileName, lpBbi->lpszName))!=NULL && GetObject(lpBsi->hbmLook, sizeof(bmBG), &bmBG))
-                {
-                    // switch button to use skins
-                    SetWindowLongPtr(hChild, GWL_STYLE, GetWindowLongPtr(hChild, GWL_STYLE)|BS_OWNERDRAW);
-
-                    // set size to the bitmap
-                    SetWindowPos(hChild, NULL, 0, 0, bmBG.bmWidth/3, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
-                }
-            }
-        }
-    }
 }
 
 bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
@@ -271,16 +150,16 @@ BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC)
 
 bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
 {
+    HBITMAP hbmLook;
     HDC hdcBitmap;
-    LPBUTTONSKININFO lpBsi;
 
-    if(BgSkin_P_QueryButtonSkinInfo(uID, &lpBsi) && lpBsi->hbmLook)
+    if((hbmLook = BgSkin_P_GetSkin(uID))!=NULL)
     {
         if((hdcBitmap = CreateCompatibleDC(lpDis->hDC))!=NULL)
         {
             int nWidth = lpDis->rcItem.right-lpDis->rcItem.left;
             int nHeight = lpDis->rcItem.bottom-lpDis->rcItem.top;
-            HGDIOBJ hGdiObj = SelectObject(hdcBitmap, lpBsi->hbmLook);
+            HGDIOBJ hGdiObj = SelectObject(hdcBitmap, hbmLook);
 
             BitBlt(lpDis->hDC, lpDis->rcItem.left, lpDis->rcItem.top, nWidth, nHeight, hdcBitmap, lpDis->rcItem.left+BgSkin_P_ButtonState2Index(lpDis->itemState)*nWidth, lpDis->rcItem.top, SRCCOPY);
 
@@ -293,24 +172,169 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
     return false;
 }
 
-bool __stdcall BgSkinInit(void)
+static void __cdecl BgSkin_P_ReleaseSkinInfo(void* lpPtr)
 {
+    LPBUTTONSKININFO lpBsi = (LPBUTTONSKININFO)lpPtr;
+
+    if(lpBsi->hbmLook)
+    {
+        DeleteObject(lpBsi->hbmLook);
+    }
+
+    Memory_FreeEx(&lpBsi);
+}
+
+static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
+{
+    char szFileName[MAX_PATH];
+    HBITMAP hbmLook;
+
+    wsprintfA(szFileName, "%s.bmp", lpszName);
+    lstrtolowerA(szFileName);
+
+    hbmLook = BgSkin_P_LoadBitmap(szFileName, lpszName);
+
+    if(hbmLook)
+    {
+        LPBUTTONSKININFO lpBsi = Memory_Alloc(sizeof(lpBsi[0]));
+
+        lpBsi->uID     = uBtnId;
+        lpBsi->hbmLook = hbmLook;
+
+        l_SkinDB->push_back(l_SkinDB, lpBsi);
+    }
+}
+
+bool __stdcall BgSkinInit(HWND hWnd)
+{
+    BITMAP bmBG;
+    HRGN hRGN;
+    HWND hChildWnd = NULL;
+    RECT rcWnd, rcWA;
+
     l_hbmBackground = BgSkin_P_LoadBitmap("bgskin.bmp", "BGSKIN");
+
+    if(l_hbmBackground)
+    {
+        if(GetObject(l_hbmBackground, sizeof(bmBG), &bmBG))
+        {
+            // set window size to bitmap size and get rid of
+            // non-client elements while being at it
+            SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX);
+            SetWindowPos(hWnd, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
+
+            // center window
+            GetWindowRect(hWnd, &rcWnd);
+            SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWA, 0);
+            OffsetRect(&rcWA, ((rcWA.right-rcWA.left)-(rcWnd.right-rcWnd.left))/2, ((rcWA.bottom-rcWA.top)-(rcWnd.bottom-rcWnd.top))/2);
+            SetWindowPos(hWnd, NULL, rcWA.left, rcWA.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
+            // window size for base window region (origin transform)
+            GetWindowRect(hWnd, &rcWnd);
+            rcWnd.right-= rcWnd.left;
+            rcWnd.bottom-= rcWnd.top;
+            rcWnd.left = rcWnd.top = 0;
+
+            // set up region
+            if((hRGN = CreateRectRgnIndirect(&rcWnd))!=NULL)
+            {
+                if(MaskRegionFromBitmap(hRGN, l_hbmBackground, RGB(255, 0, 255)))
+                {
+                    SetWindowRgn(hWnd, hRGN, TRUE);
+                    hRGN = NULL;  // system took ownership
+                }
+                else
+                {
+                    DeleteObject(hRGN);
+                }
+            }
+        }
+
+        l_SkinDB = bvector_alloc(16, &memory_alloc, &memory_free);
+        l_SkinDB->set_releaser(l_SkinDB, &BgSkin_P_ReleaseSkinInfo);
+
+        // process all child windows
+        while((hChildWnd = FindWindowExA(hWnd, hChildWnd, NULL, NULL))!=NULL)
+        {
+            const char* lpszName;
+            unsigned int uBtnId = GetDlgCtrlID(hChildWnd);
+            int nX, nY, nW, nH;
+            HBITMAP hbmLook;
+
+            lpszName = BgSkin_P_ButtonId2Name(uBtnId);
+
+            // disable visual styles to prevent glitches
+            W32UxTheme_DisableVisualStyle(hChildWnd);
+
+            if(lpszName)
+            {// fixed control
+                char szKeyName[64];
+
+                switch(uBtnId)
+                {// button
+                    case IDB_REPLAY: BgSkin_P_RegisterButtonSkin(uBtnId, "BTNREPLAY"); break;
+                    case IDOK:       BgSkin_P_RegisterButtonSkin(uBtnId, "BTNSTART"); break;
+                    case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
+                }
+
+                wsprintfA(szKeyName, "%s.X", lpszName); nX = ConfigGetInt(szKeyName);
+                wsprintfA(szKeyName, "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
+                wsprintfA(szKeyName, "%s.W", lpszName); nW = ConfigGetInt(szKeyName);
+                wsprintfA(szKeyName, "%s.H", lpszName); nH = ConfigGetInt(szKeyName);
+
+                if((hbmLook = BgSkin_P_GetSkin(uBtnId))!=NULL && GetObject(hbmLook, sizeof(bmBG), &bmBG))
+                {// take W/H from skin in pixels
+                    nW = bmBG.bmWidth/3;
+                    nH = bmBG.bmHeight;
+
+                    // switch button to use skins
+                    SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)|BS_OWNERDRAW);
+                }
+
+                // set size
+                SetWindowPos(hChildWnd, NULL, nX, nY, nW, nH, SWP_NOZORDER);
+                continue;
+            }
+
+            lpszName = ButtonGetName(uBtnId-IDB_CUSTOM_BASE);
+
+            if(lpszName)
+            {// custom button
+                BgSkin_P_RegisterButtonSkin(uBtnId, lpszName);
+
+                if((hbmLook = BgSkin_P_GetSkin(uBtnId))!=NULL && GetObject(hbmLook, sizeof(bmBG), &bmBG))
+                {// custom buttons change if they are skinned
+                    char szSectionName[MAX_PATH];
+
+                    wsprintfA(szSectionName, "ROCred.Buttons.%s", lpszName);  // FIXME: only button.c should (have to) know this!
+
+                    nX = ConfigGetIntFromSection(szSectionName, "X");
+                    nY = ConfigGetIntFromSection(szSectionName, "Y");
+                    nW = bmBG.bmWidth/3;
+                    nH = bmBG.bmHeight;
+
+                    // switch button to use skins
+                    SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)|BS_OWNERDRAW);
+
+                    // set size
+                    SetWindowPos(hChildWnd, NULL, nX, nY, nW, nH, SWP_NOZORDER);
+                }
+                continue;
+            }
+
+            // anything else
+        }
+    }
 
     return true;
 }
 
-void __stdcall BgSkinQuit(void)
+void __stdcall BgSkinFree(void)
 {
-    unsigned long luIdx;
-
-    for(luIdx = 0; luIdx<__ARRAYSIZE(l_ButtonSkinInfo); luIdx++)
+    if(l_SkinDB)
     {
-        if(l_ButtonSkinInfo[luIdx].hbmLook)
-        {
-            DeleteObject(l_ButtonSkinInfo[luIdx].hbmLook);
-            l_ButtonSkinInfo[luIdx].hbmLook = NULL;
-        }
+        l_SkinDB->destroy(l_SkinDB);
+        l_SkinDB = NULL;
     }
 
     if(l_hbmBackground)

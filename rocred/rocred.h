@@ -7,13 +7,14 @@
 #ifndef _ROCRED_H_
 #define _ROCRED_H_
 
-#define APP_VERSION "1.6.0.0"
-#define APP_VERSIONINFO_VERSION 1,6,0,0
+#define APP_VERSION "1.7.0.0"
+#define APP_VERSIONINFO_VERSION 1,7,0,0
 
 #define IDC_USERNAME                    101
 #define IDC_PASSWORD                    102
 #define IDC_CHECKSAVE                   103
 #define IDB_REPLAY                      104
+#define IDB_CUSTOM_BASE                 200
 #define IDS_USERNAME                    1001
 #define IDS_PASSWORD                    1002
 #define IDS_CHECKSAVE                   1003
