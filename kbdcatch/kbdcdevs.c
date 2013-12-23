@@ -10,6 +10,7 @@ const KBDCDEVICE g_KnownDevices[] =
 {
     { L"HID\\VID_065A&PID_0001&REV_0900", "Opticon OPR-2001-UB", KBDC_DEVTYPE_BARCODE },
     { L"HID\\VID_08FF&PID_0009&REV_0008", "AuthenTec USB Reader", KBDC_DEVTYPE_RFID },
+    { L"HID\\VID_04D9&PID_1702&REV_0101&MI_00", "Evolve KeyLight LK-606", KBDC_DEVTYPE_UNKNOWN },  /* actually, it's a keyboard */
 };
 const USHORT KBDC_UNKNOWN_DEVICE_INDEX = _ARRAYSIZE(g_KnownDevices);
 
