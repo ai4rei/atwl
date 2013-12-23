@@ -41,7 +41,14 @@ void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTI
 
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
 {
-    KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey, lpszValue);
+    if(lpszValue)
+    {
+        KvKeySetStrValue(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey, lpszValue);
+    }
+    else
+    {
+        KvKeyDelete(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey);
+    }
     KvSave(&l_ConfigDB, l_szIniFile);
 }
 
