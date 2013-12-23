@@ -8,6 +8,7 @@
 
 typedef enum KBDCDEVICETYPE
 {
+    KBDC_DEVTYPE_UNKNOWN, /* debug and devices that do not fit */
     KBDC_DEVTYPE_BARCODE,
     KBDC_DEVTYPE_RFID,
 }

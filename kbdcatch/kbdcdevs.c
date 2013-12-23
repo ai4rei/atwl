@@ -5,7 +5,6 @@
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
-#include "kbdccoif.h"
 
 const KBDCDEVICE g_KnownDevices[] =
 {
@@ -89,7 +88,6 @@ USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 
 VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd)
 {
-#if 0
     PKEYBOARD_INPUT_DATA InputData;
 
     for(InputData = InputDataStart; InputData!=InputDataEnd; InputData++)
@@ -100,21 +98,11 @@ VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA Inpu
         */
         if(InputData->Flags&KEY_BREAK)
         {
-            NTSTATUS Status;
-            LARGE_INTEGER Lint;
-            PCOIF_EXTENSION CoifExt = FDOExt->Coif->DeviceExtension;
-
-            Lint.QuadPart = -1000000i64;  // 100ms
-
-            if(KeWaitForSingleObject(&CoifExt->DataClearEvent, Executive, KernelMode, TRUE, &Lint)==STATUS_SUCCESS)
-            {
-                CoifExt->Data.MakeCode   = InputData->MakeCode;
-                CoifExt->Data.SourceType = g_KnownDevices[FDOExt->KnownDeviceIndex].DeviceType;
-
-                KeClearEvent(&CoifExt->DataClearEvent);
-                KeSetEvent(&CoifExt->DataAvailEvent, IO_NO_INCREMENT, FALSE);
-            }
+            /*
+                TODO: Queue key presses into local buffer and look
+                for an Irp in the IrpQueue to feed it with once the
+                ENTER key is pressed
+            */
         }
     }
-#endif
 }

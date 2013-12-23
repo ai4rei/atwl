@@ -18,7 +18,6 @@ Notes:
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
-#include "kbdccoif.h"
 
 NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 
@@ -34,7 +33,9 @@ NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 #pragma alloc_text (PAGE, KbFilter_Power)
 #endif
 
+#if 0
 static PDEVICE_OBJECT l_Coif = NULL;
+#endif
 
 NTSTATUS
 DriverEntry (
@@ -52,6 +53,7 @@ Routine Description:
 
     UNREFERENCED_PARAMETER (RegistryPath);
 
+#if 0
     //
     // Create communication interface
     //
@@ -87,6 +89,7 @@ Routine Description:
         l_Coif->Flags|= DO_BUFFERED_IO|DO_POWER_PAGABLE;
         l_Coif->Flags&=~DO_DEVICE_INITIALIZING;
     }
+#endif
 
     //
     // Fill in all the dispatch entry points with the pass through function
@@ -157,7 +160,9 @@ KbFilter_AddDevice(
     devExt->Started =         FALSE;
 
     devExt->KnownDeviceIndex = Kbdc_GetKnownDeviceIndex(PDO);
+#if 0
     devExt->Coif = l_Coif;
+#endif
 
     device->Flags |= (DO_BUFFERED_IO | DO_POWER_PAGABLE);
     device->Flags &= ~DO_DEVICE_INITIALIZING;
@@ -218,10 +223,12 @@ Routine Description:
 
     PAGED_CODE();
 
+#if 0
     if(DeviceObject==l_Coif)
     {
         return KbdcCoif_CreateClose(DeviceObject, Irp);
     }
+#endif
 
     irpStack = IoGetCurrentIrpStackLocation(Irp);
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
@@ -297,10 +304,12 @@ Considerations:
 
     PAGED_CODE();
 
+#if 0
     if(DeviceObject==l_Coif)
     {
         return STATUS_NOT_IMPLEMENTED;
     }
+#endif
 
     //
     // Pass the IRP to the target
@@ -357,10 +366,12 @@ Return Value:
 
     PAGED_CODE();
 
+#if 0
     if(DeviceObject==l_Coif)
     {
         return STATUS_NOT_IMPLEMENTED;
     }
+#endif
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     Irp->IoStatus.Information = 0;
@@ -534,10 +545,12 @@ Return Value:
 
     PAGED_CODE();
 
+#if 0
     if(DeviceObject==l_Coif)
     {
         return STATUS_NOT_IMPLEMENTED;
     }
+#endif
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -685,10 +698,12 @@ Return Value:
 
     PAGED_CODE();
 
+#if 0
     if(DeviceObject==l_Coif)
     {
         return STATUS_NOT_IMPLEMENTED;
     }
+#endif
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -934,6 +949,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(Driver);
 
+#if 0
     if(l_Coif)
     {
         PCOIF_EXTENSION CoifExt = (PCOIF_EXTENSION)l_Coif->DeviceExtension;
@@ -951,6 +967,7 @@ Return Value:
         IoDeleteDevice(l_Coif);
         l_Coif = NULL;
     }
+#endif
 
     ASSERT(NULL == Driver->DeviceObject);
 }
