@@ -68,6 +68,8 @@ VOID Kbdc_CreateOutputDevice(IN PDRIVER_OBJECT DriverObject)
 
 VOID Kbdc_DestroyOutputDevice(IN PDRIVER_OBJECT DriverObject)
 {/* PASSIVE_LEVEL */
+    PAGED_CODE();
+
     DBGENTER(Kbdc_DestroyOutputDevice);
     {
         if(l_OutputDevice)
