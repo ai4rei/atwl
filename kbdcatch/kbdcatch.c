@@ -925,5 +925,5 @@ Return Value:
 
     Kbdc_DestroyOutputDevice(DriverObject);
 
-    ASSERT(NULL == Driver->DeviceObject);
+    ASSERT(NULL == DriverObject->DeviceObject);
 }
