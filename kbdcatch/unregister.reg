@@ -1,0 +1,6 @@
+REGEDIT4
+
+[-HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\kbdcatch]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E96B-E325-11CE-BFC1-08002BE10318}]
+"UpperFilters"=hex(7):6b,62,64,63,6c,61,73,73,00,00
