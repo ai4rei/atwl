@@ -18,6 +18,7 @@ Notes:
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
+#include "kbdcodev.h"
 
 NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 
@@ -31,10 +32,7 @@ NTSTATUS DriverEntry (PDRIVER_OBJECT, PUNICODE_STRING);
 #pragma alloc_text (PAGE, KbFilter_DispatchPassThrough)
 #pragma alloc_text (PAGE, KbFilter_PnP)
 #pragma alloc_text (PAGE, KbFilter_Power)
-#endif
-
-#if 0
-static PDEVICE_OBJECT l_Coif = NULL;
+#pragma alloc_text (PAGE, KbFilter_Dispatch)
 #endif
 
 NTSTATUS
@@ -53,58 +51,21 @@ Routine Description:
 
     UNREFERENCED_PARAMETER (RegistryPath);
 
-#if 0
     //
-    // Create communication interface
+    // Create output communication interface.
+    // Since we mess with the keyboard, we MUST NOT fail, otherwise
+    // we make the keyboard inoperable.
     //
-    {
-        PCOIF_EXTENSION CoifExt;
-        NTSTATUS Status;
-        UNICODE_STRING DeviceName;
-        UNICODE_STRING DevSymLink;
-
-        RtlInitUnicodeString(&DeviceName, KBDC_DEVNAME);
-        RtlInitUnicodeString(&DevSymLink, KBDC_SYMLINK);
-
-        Status = IoCreateDevice(DriverObject, sizeof(COIF_EXTENSION), &DeviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN|FILE_READ_ONLY_DEVICE, TRUE, &l_Coif);
-
-        if(!NT_SUCCESS(Status))
-        {
-            return Status;
-        }
-
-        Status = IoCreateSymbolicLink(&DevSymLink, &DeviceName);
-
-        if(!NT_SUCCESS(Status))
-        {
-            IoDeleteDevice(l_Coif);
-            l_Coif = NULL;
-
-            return Status;
-        }
-
-        CoifExt = (PCOIF_EXTENSION)l_Coif->DeviceExtension;
-        CoifExt->CreateCount = 0;
-
-        l_Coif->Flags|= DO_BUFFERED_IO|DO_POWER_PAGABLE;
-        l_Coif->Flags&=~DO_DEVICE_INITIALIZING;
-    }
-#endif
+    Kbdc_CreateOutputDevice(DriverObject);
 
     //
-    // Fill in all the dispatch entry points with the pass through function
-    // and the explicitly fill in the functions we are going to intercept
+    // Fill in all the dispatch entry points with the main dispatcher
+    // that will handle all decisions.
     //
     for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) {
-        DriverObject->MajorFunction[i] = &KbFilter_DispatchPassThrough;
+        DriverObject->MajorFunction[i] = &KbFilter_Dispatch;
     }
 
-    DriverObject->MajorFunction [IRP_MJ_CREATE] =
-    DriverObject->MajorFunction [IRP_MJ_CLOSE] =        &KbFilter_CreateClose;
-    DriverObject->MajorFunction [IRP_MJ_PNP] =          &KbFilter_PnP;
-    DriverObject->MajorFunction [IRP_MJ_POWER] =        &KbFilter_Power;
-    DriverObject->MajorFunction [IRP_MJ_INTERNAL_DEVICE_CONTROL] =
-                                                        &KbFilter_InternIoCtl;
     //
     // If you are planning on using this function, you must create another
     // device object to send the requests to.  Please see the considerations
@@ -125,7 +86,6 @@ KbFilter_AddDevice(
     )
 {
     PDEVICE_EXTENSION        devExt;
-    IO_ERROR_LOG_PACKET      errorLogEntry;
     PDEVICE_OBJECT           device;
     NTSTATUS                 status = STATUS_SUCCESS;
 
@@ -160,9 +120,6 @@ KbFilter_AddDevice(
     devExt->Started =         FALSE;
 
     devExt->KnownDeviceIndex = Kbdc_GetKnownDeviceIndex(PDO);
-#if 0
-    devExt->Coif = l_Coif;
-#endif
 
     device->Flags |= (DO_BUFFERED_IO | DO_POWER_PAGABLE);
     device->Flags &= ~DO_DEVICE_INITIALIZING;
@@ -222,13 +179,6 @@ Routine Description:
 
 
     PAGED_CODE();
-
-#if 0
-    if(DeviceObject==l_Coif)
-    {
-        return KbdcCoif_CreateClose(DeviceObject, Irp);
-    }
-#endif
 
     irpStack = IoGetCurrentIrpStackLocation(Irp);
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
@@ -304,13 +254,6 @@ Considerations:
 
     PAGED_CODE();
 
-#if 0
-    if(DeviceObject==l_Coif)
-    {
-        return STATUS_NOT_IMPLEMENTED;
-    }
-#endif
-
     //
     // Pass the IRP to the target
     //
@@ -360,18 +303,10 @@ Return Value:
     PIO_STACK_LOCATION              irpStack;
     PDEVICE_EXTENSION               devExt;
     PINTERNAL_I8042_HOOK_KEYBOARD   hookKeyboard;
-    KEVENT                          event;
     PCONNECT_DATA                   connectData;
     NTSTATUS                        status = STATUS_SUCCESS;
 
     PAGED_CODE();
-
-#if 0
-    if(DeviceObject==l_Coif)
-    {
-        return STATUS_NOT_IMPLEMENTED;
-    }
-#endif
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     Irp->IoStatus.Information = 0;
@@ -540,17 +475,9 @@ Return Value:
     PDEVICE_EXTENSION           devExt;
     PIO_STACK_LOCATION          irpStack;
     NTSTATUS                    status = STATUS_SUCCESS;
-    KIRQL                       oldIrql;
     KEVENT                      event;
 
     PAGED_CODE();
-
-#if 0
-    if(DeviceObject==l_Coif)
-    {
-        return STATUS_NOT_IMPLEMENTED;
-    }
-#endif
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -698,13 +625,6 @@ Return Value:
 
     PAGED_CODE();
 
-#if 0
-    if(DeviceObject==l_Coif)
-    {
-        return STATUS_NOT_IMPLEMENTED;
-    }
-#endif
-
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
 
@@ -727,6 +647,62 @@ Return Value:
     PoStartNextPowerIrp(Irp);
     IoSkipCurrentIrpStackLocation(Irp);
     return PoCallDriver(devExt->TopOfStack, Irp);
+}
+
+NTSTATUS KbFilter_Dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+/*++
+
+Routine Description:
+
+    This routine is the dispatch routine for irps. First it asks the
+    output device, whether the irp is intended for it and if not,
+    passes it to the respective dispatch function.
+
+Arguments:
+
+    DeviceObject - Pointer to the device object.
+
+    Irp - Pointer to the request packet.
+
+Return Value:
+
+    Status is returned.
+
+--*/
+{
+    NTSTATUS Status;
+    PIO_STACK_LOCATION Isl;
+
+    PAGED_CODE();
+
+    if(Kbdc_IsOutputDeviceIrp(DeviceObject, Irp, &Status))
+    {
+        return Status;
+    }
+
+    Isl = IoGetCurrentIrpStackLocation(Irp);
+
+    switch(Isl->MajorFunction)
+    {
+        case IRP_MJ_CREATE:
+        case IRP_MJ_CLOSE:
+            Status = KbFilter_CreateClose(DeviceObject, Irp);
+            break;
+        case IRP_MJ_PNP:
+            Status = KbFilter_PnP(DeviceObject, Irp);
+            break;
+        case IRP_MJ_POWER:
+            Status = KbFilter_Power(DeviceObject, Irp);
+            break;
+        case IRP_MJ_INTERNAL_DEVICE_CONTROL:
+            Status = KbFilter_InternIoCtl(DeviceObject, Irp);
+            break;
+        default:
+            Status = KbFilter_DispatchPassThrough(DeviceObject, Irp);
+            break;
+    }
+
+    return Status;
 }
 
 NTSTATUS
@@ -926,7 +902,7 @@ Return Value:
 
 VOID
 KbFilter_Unload(
-   IN PDRIVER_OBJECT Driver
+   IN PDRIVER_OBJECT DriverObject
    )
 /*++
 
@@ -947,27 +923,7 @@ Return Value:
 {
     PAGED_CODE();
 
-    UNREFERENCED_PARAMETER(Driver);
-
-#if 0
-    if(l_Coif)
-    {
-        PCOIF_EXTENSION CoifExt = (PCOIF_EXTENSION)l_Coif->DeviceExtension;
-        UNICODE_STRING DevSymLink;
-
-        KeSetEvent(&CoifExt->DeletedEvent, IO_NO_INCREMENT, FALSE);
-
-        while(CoifExt->CreateCount)
-        {
-            __asm pause
-        }
-
-        RtlInitUnicodeString(&DevSymLink, KBDC_SYMLINK);
-        IoDeleteSymbolicLink(&DevSymLink);
-        IoDeleteDevice(l_Coif);
-        l_Coif = NULL;
-    }
-#endif
+    Kbdc_DestroyOutputDevice(DriverObject);
 
     ASSERT(NULL == Driver->DeviceObject);
 }

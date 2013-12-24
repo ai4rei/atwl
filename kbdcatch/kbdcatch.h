@@ -37,9 +37,6 @@ Revision History:
 #undef ExAllocatePool
 #define ExAllocatePool(type, size) \
             ExAllocatePoolWithTag (type, size, KBFILTER_POOL_TAG)
-#undef ExFreePool
-#define ExFreePool(ptr) \
-            ExFreePoolWithTag(ptr, KBFILTER_POOL_TAG)
 
 #if DBG
 
@@ -138,11 +135,6 @@ typedef struct _DEVICE_EXTENSION
     //
     USHORT KnownDeviceIndex;
 
-    //
-    // communication interface DO
-    //
-    PDEVICE_OBJECT Coif;
-
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 //
@@ -158,6 +150,7 @@ DRIVER_DISPATCH         KbFilter_InternIoCtl;
 //DRIVER_DISPATCH         KbFilter_IoCtl;
 DRIVER_DISPATCH         KbFilter_PnP;
 DRIVER_DISPATCH         KbFilter_Power;
+DRIVER_DISPATCH         KbFilter_Dispatch;
 DRIVER_UNLOAD           KbFilter_Unload;
 IO_COMPLETION_ROUTINE   KbFilter_Complete;
 #endif  /* _PREFAST_ */
@@ -207,6 +200,8 @@ KbFilter_Power (
     IN PDEVICE_OBJECT DeviceObject,
     IN PIRP Irp
     );
+
+NTSTATUS KbFilter_Dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
 
 NTSTATUS
 KbFilter_InitializationRoutine(

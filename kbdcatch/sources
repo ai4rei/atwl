@@ -4,5 +4,5 @@ TARGETTYPE=DRIVER
 
 SOURCES=kbdcatch.c \
         kbdcdevs.c \
-        kbdccoif.c \
+        kbdcodev.c \
         kbdcatch.rc
