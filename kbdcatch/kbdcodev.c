@@ -101,7 +101,7 @@ BOOLEAN Kbdc_IsOutputDeviceIrp(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, OUT 
 
     DBGENTER(Kbdc_IsOutputDeviceIrp);
     {
-        if(DeviceObject==l_OutputDevice)
+        if(l_OutputDevice && DeviceObject==l_OutputDevice)
         {
             PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
 
