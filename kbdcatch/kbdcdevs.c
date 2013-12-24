@@ -89,21 +89,25 @@ USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 
 VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd)
 {
-    PKEYBOARD_INPUT_DATA InputData;
-
-    for(InputData = InputDataStart; InputData!=InputDataEnd; InputData++)
+    DBGENTER(Kbdc_QueuePackets);
     {
-        /*
-            consider only releases in the assumption that keyboard
-            emulating devices do not use the repeat feature
-        */
-        if(InputData->Flags&KEY_BREAK)
+        PKEYBOARD_INPUT_DATA InputData;
+
+        for(InputData = InputDataStart; InputData!=InputDataEnd; InputData++)
         {
             /*
-                TODO: Queue key presses into local buffer and look
-                for an Irp in the IrpQueue to feed it with once the
-                ENTER key is pressed
+                consider only releases in the assumption that keyboard
+                emulating devices do not use the repeat feature
             */
+            if(InputData->Flags&KEY_BREAK)
+            {
+                /*
+                    TODO: Queue key presses into local buffer and look
+                    for an Irp in the IrpQueue to feed it with once the
+                    ENTER key is pressed
+                */
+            }
         }
     }
+    DBGLEAVE(Kbdc_QueuePackets);
 }
