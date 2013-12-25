@@ -94,7 +94,7 @@ VOID Kbdc_DestroyOutputDevice(IN PDRIVER_OBJECT DriverObject)
 }
 
 BOOLEAN Kbdc_IsOutputDeviceIrp(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, OUT PNTSTATUS Status)
-{/* DISPATCH_LEVEL */
+{/* PASSIVE_LEVEL~DISPATCH_LEVEL */
     BOOLEAN IrpHandled = FALSE;
 
     PAGED_CODE();

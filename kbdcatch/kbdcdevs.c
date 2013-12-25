@@ -88,7 +88,7 @@ USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 }
 
 VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd)
-{
+{/* DISPATCH_LEVEL */
     DBGENTER(Kbdc_QueuePackets);
     {
         PKEYBOARD_INPUT_DATA InputData;
