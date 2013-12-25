@@ -60,9 +60,13 @@ Routine Description:
 
     //
     // Fill in all the dispatch entry points with the main dispatcher
-    // that will handle all decisions.
+    // that will handle all decisions. Note, IRP_MJ_MAXIMUM_FUNCTION
+    // must be INCLUSIVE, since it specifies the PNP MJ. So without
+    // this damn = the whole driver ceases to work if you do not
+    // specify MJ PNP explicitely (as it was before). This is also
+    // a way how to waste two days on debugging alone.
     //
-    for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) {
+    for (i = 0; i <= IRP_MJ_MAXIMUM_FUNCTION; i++) {
         DriverObject->MajorFunction[i] = &KbFilter_Dispatch;
     }
 
