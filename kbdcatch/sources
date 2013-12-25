@@ -1,6 +1,7 @@
 TARGETNAME=kbdcatch
 TARGETPATH=obj
 TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
 
 SOURCES=kbdcatch.c \
         kbdcdevs.c \
