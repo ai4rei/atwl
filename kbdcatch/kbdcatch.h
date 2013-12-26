@@ -25,9 +25,9 @@ Revision History:
 #ifndef KBFILTER_H
 #define KBFILTER_H
 
-#include "ntddk.h"
+#include <wdm.h>
+
 #include "kbdmou.h"
-#include <ntddkbd.h>
 #include <ntdd8042.h>
 
 #define KBDC_SYMLINK L"\\DosDevices\\KbdCatch"
