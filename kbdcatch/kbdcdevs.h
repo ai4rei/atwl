@@ -14,14 +14,6 @@ typedef enum KBDCDEVICETYPE
 }
 KBDCDEVICETYPE;
 
-typedef struct KBDCDATA
-{
-    USHORT MakeCode;
-    USHORT SourceType;
-}
-KBDCDATA,* LPKBDCDATA;
-typedef const KBDCDATA* LPCKBDCDATA;
-
 typedef struct KBDCDEVICE
 {
     LPCWSTR HardwareId;
@@ -35,6 +27,5 @@ extern const KBDCDEVICE g_KnownDevices[];
 extern const USHORT KBDC_UNKNOWN_DEVICE_INDEX;
 
 USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO);
-VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA InputDataStart, IN PKEYBOARD_INPUT_DATA InputDataEnd);
 
 #endif  /* _KBDCDEVS_H_ */
