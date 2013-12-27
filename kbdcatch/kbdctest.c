@@ -31,7 +31,7 @@ int __cdecl main(int nArgc, char** lppszArgv)
         {
             printf(" success, %u bytes (%s):\n", dwRead, (dwRead%sizeof(Kid[0])) ? "ERR" : "OK");
 
-            for(dwIdx = 0; dwRead/sizeof(Kid[0]); dwIdx++)
+            for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
             {
                 printf("- UnitId: %u, MakeCode: %u, Flags: %u, Reserved: %u, ExtraInfo: %u\n",
                     Kid[dwIdx].UnitId,
