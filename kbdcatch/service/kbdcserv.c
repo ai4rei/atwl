@@ -30,8 +30,37 @@ typedef struct _KBDCSERVSTATE
     BOOLEAN ServiceMode;
     BOOLEAN ServiceCreate;
     BOOLEAN ServiceDelete;
+    struct _KBDCSERVKEYSTATE
+    {
+        UBIT_T(ALT,2);
+        UBIT_T(CTRL,2);
+        UBIT_T(SHIFT,2);
+        UBIT_T(CAPSLOCK,1);
+        UBIT_T(NUMLOCK,1);
+        UBIT_T(SCROLLLOCK,1);
+    }
+    KeyState;
 }
 KBDCSERVSTATE,* PKBDCSERVSTATE;
+
+CONST BYTE l_ScanCodeToAsciiN[] =
+{/* English Keyboard Layout (normal) */
+    000, 000, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 000,'\t',  /* 00~15 */
+    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']','\n', 000, 'a', 's',  /* 16~31 */
+    'd', 'f', 'g', 'h', 'j', 'k', 'l', ';','\'', '`', 000,'\\', 'z', 'x', 'c', 'v',  /* 32~47 */
+    'b', 'n', 'm', ',', '.', '/', 000, '*', 000, ' ', 000, 000, 000, 000, 000, 000,  /* 48~63 */
+    000, 000, 000, 000, 000, 000, 000, '7', '8', '9', '-', '4', '5', '6', '+', '1',  /* 64~79 */
+    '2', '3', '0', '.', 000, 000,'\\', 000, 000, 000, 000, 000, 000, 000, 000, 000,  /* 80~95 */
+};
+CONST BYTE l_ScanCodeToAsciiS[] =
+{/* English Keyboard Layout (shift) */
+    000, 000, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 000,'\t',  /* 00~15 */
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}','\n', 000, 'A', 'S',  /* 16~31 */
+    'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 000, '|', 'Z', 'X', 'C', 'V',  /* 32~47 */
+    'B', 'N', 'M', '<', '>', '?', 000, '*', 000, ' ', 000, 000, 000, 000, 000, 000,  /* 48~63 */
+    000, 000, 000, 000, 000, 000, 000, '7', '8', '9', '-', '4', '5', '6', '+', '1',  /* 64~79 */
+    '2', '3', '0', '.', 000, 000, '|', 000, 000, 000, 000, 000, 000, 000, 000, 000,  /* 80~95 */
+};
 
 KBDCSERVSTATE l_State = { 0 };
 
@@ -80,7 +109,129 @@ VOID __WDECL KbdcServReportStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, D
 
 VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
 {
-    KbdcPrint(("KbdcServProcessPacket: %u %u %u %u\n", pKid->DeviceType, pKid->MakeCode, pKid->Flags, pKid->Reserved));
+    /*
+        translate scancodes into characters
+        (English Keyboard Layout)
+    */
+    switch(pKid->MakeCode)
+    {
+        case 29:  /* LCTRL (1)/RCTRL (2) */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                l_State.KeyState.CTRL&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+            }
+            else
+            {
+                l_State.KeyState.CTRL|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+            }
+            break;
+        case 42:  /* LSHIFT (1) */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                l_State.KeyState.SHIFT&=~0x1;
+            }
+            else
+            {
+                l_State.KeyState.SHIFT|= 0x1;
+            }
+            break;
+        case 54:  /* RSHIFT (2) */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                l_State.KeyState.SHIFT&=~0x2;
+            }
+            else
+            {
+                l_State.KeyState.SHIFT|= 0x2;
+            }
+            break;
+        case 56:  /* LALT (1)/RALT (2) */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                l_State.KeyState.ALT&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+            }
+            else
+            {
+                l_State.KeyState.ALT|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+            }
+            break;
+        case 58:  /* CAPS LOCK */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                ;
+            }
+            else
+            {
+                l_State.KeyState.CAPSLOCK = !l_State.KeyState.CAPSLOCK;
+            }
+            break;
+        case 69:  /* NUM LOCK */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                ;
+            }
+            else
+            {
+                l_State.KeyState.NUMLOCK = !l_State.KeyState.NUMLOCK;
+            }
+            break;
+        case 70:  /* SCROLL LOCK */
+            if(pKid->Flags&KIDF_BREAK)
+            {
+                ;
+            }
+            else
+            {
+                l_State.KeyState.SCROLLLOCK = !l_State.KeyState.SCROLLLOCK;
+            }
+            break;
+        default:
+        {
+            BYTE ucChar = 0;
+
+            if(l_State.KeyState.SHIFT)
+            {/* shift */
+                if(pKid->MakeCode<__ARRAYSIZE(l_ScanCodeToAsciiS))
+                {
+                    ucChar = l_ScanCodeToAsciiS[pKid->MakeCode];
+
+                    if(l_State.KeyState.CAPSLOCK && ucChar>='A' && ucChar<='Z')
+                    {
+                        ucChar^= 0x20;  /* lowercase */
+                    }
+                }
+            }
+            else
+            {/* normal */
+                if(pKid->MakeCode<__ARRAYSIZE(l_ScanCodeToAsciiN))
+                {
+                    ucChar = l_ScanCodeToAsciiN[pKid->MakeCode];
+
+                    if(l_State.KeyState.CAPSLOCK && ucChar>='a' && ucChar<='z')
+                    {
+                        ucChar^= 0x20;  /* uppercase */
+                    }
+                }
+            }
+
+            if(pKid->Flags&KIDF_BREAK)
+            {/* released */
+                ;
+            }
+            else
+            {/* pressed / repeat */
+                KbdcPrint(("KbdcServProcessPacket: %u %u %u %u >%c< [%c] [%c] [%c]\n",
+                    pKid->DeviceType, pKid->MakeCode, pKid->Flags, pKid->Reserved,
+                    ucChar ? ucChar : '?',
+                    l_State.KeyState.NUMLOCK ? '*' : ' ',
+                    l_State.KeyState.CAPSLOCK ? '*' : ' ',
+                    l_State.KeyState.SCROLLLOCK ? '*' : ' '));
+
+                /* TODO: send / broadcast */
+            }
+            break;
+        }
+    }
 }
 
 UINT __WDECL KbdcServMain(VOID)

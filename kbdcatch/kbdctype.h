@@ -14,6 +14,16 @@ typedef enum _KBDCDEVICETYPE
 }
 KBDCDEVICETYPE;
 
+typedef enum _KBDCINPUTDATAFLAGS
+{
+    KIDF_BREAK           = 0x01,
+    KIDF_E0              = 0x02,
+    KIDF_E1              = 0x04,
+    KIDF_TERMSRV_SET_LED = 0x08,
+    KIDF_TERMSRV_SHADOW  = 0x10,
+}
+KBDCINPUTDATAFLAGS;
+
 typedef struct _KBDCINPUTDATA
 {
     USHORT DeviceType;  /* KBDCDEVICETYPE */
