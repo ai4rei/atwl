@@ -30,8 +30,11 @@ Revision History:
 #include "kbdmou.h"
 #include <ntdd8042.h>
 
+#include "irpque.h"
+
 #define KBDC_SYMLINK L"\\DosDevices\\KbdCatch"
 #define KBDC_DEVNAME L"\\Device\\KbdCatch"
+#define KBDC_BUFSIZE 100
 
 #define KBFILTER_POOL_TAG (ULONG) 'CdbK'
 #undef ExAllocatePool

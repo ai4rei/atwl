@@ -8,7 +8,7 @@ SET LNOPT=/OPT:REF /OPT:ICF C:\NTDDK\libfre\i386\wdm.lib
 IF "%1"=="debug" SET CLOPT=/Od /DDBG /DDEBUG /D_DEBUG
 IF "%1"=="debug" SET LNOPT=/OPT:NOREF /OPT:NOICF C:\NTDDK\libchk\i386\wdm.lib
 RC /Fokbdcatch.res kbdcatch.rc
-CL /nologo /c /W3 %CLOPT% /Gz /DWIN32 /D_WIN32 /D_X86_ /IC:\NTDDK\inc /IC:\NTDDK\inc\ddk kbdcatch.c kbdcdevs.c kbdcodev.c
+CL /nologo /c /W3 %CLOPT% /Gz /DWIN32 /D_WIN32 /D_X86_ /IC:\NTDDK\inc /IC:\NTDDK\inc\ddk kbdcatch.c kbdcdevs.c kbdcodev.c irpque.c
 LINK /NOLOGO %LNOPT% /ENTRY:DriverEntry@8 /MACHINE:IX86 /NODEFAULTLIB /RELEASE /SUBSYSTEM:NATIVE,1.0 /OUT:kbdcatch.sys *.obj kbdcatch.res
 REM /DRIVER:WDM
 REM - Sets DllFlags to 0x2000 (WDM Driver)
