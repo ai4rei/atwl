@@ -9,3 +9,7 @@
 
 #include <rc_mfsta.rc>
 #include <rc_vinfa.rc>
+
+LANGUAGE LANG_NEUTRAL,SUBLANG_NEUTRAL
+
+1 ICON DISCARDABLE "kbdcserv.ico"
