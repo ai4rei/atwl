@@ -7,7 +7,9 @@
 
 #include "irpque.h"
 
+#ifdef _PREFAST_
 DRIVER_CANCEL IrpQueueCancelRoutine;
+#endif  /* _PREFAST_ */
 
 PIRPQUEUE DriverDeviceIrpQueue(IN PDEVICE_OBJECT DeviceObject);
 
