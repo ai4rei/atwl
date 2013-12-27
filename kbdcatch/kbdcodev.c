@@ -310,7 +310,7 @@ static NTSTATUS Kbdc_P_OutputDeviceDispatchRead(IN PDEVICE_OBJECT DeviceObject, 
 
             if(NT_SUCCESS(Status))
             {/* queued */
-                return STATUS_PENDING;
+                Status = STATUS_PENDING;
             }
         }
         else
