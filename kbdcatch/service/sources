@@ -1,0 +1,6 @@
+TARGETNAME=kbdcserv
+TARGETPATH=obj
+TARGETTYPE=PROGRAM
+
+SOURCES=kbdcserv.c \
+        kbdcserv.rc
