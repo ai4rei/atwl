@@ -27,7 +27,7 @@ typedef struct _OUTPUT_DEVICE_EXTENSION
     /*
         buffer for keyboard packets
     */
-    PKEYBOARD_INPUT_DATA Kid[KBDC_BUFSIZE];
+    KEYBOARD_INPUT_DATA Kid[KBDC_BUFSIZE];
 
     /*
         entries currently in buffer
