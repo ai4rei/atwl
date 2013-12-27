@@ -43,6 +43,7 @@ USHORT Kbdc_GetKnownDeviceIndex(IN PDEVICE_OBJECT PDO)
 
             if((HardwareId = ExAllocatePool(PagedPool, ulSize))==NULL)
             {
+                DBGERROR(ExAllocatePool, Kbdc_GetKnownDeviceIndex, STATUS_INSUFFICIENT_RESOURCES);
                 break;
             }
 

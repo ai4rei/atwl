@@ -57,7 +57,7 @@ OUTPUT_DEVICE_EXTENSION,* POUTPUT_DEVICE_EXTENSION;
 PDEVICE_OBJECT l_OutputDevice = NULL;
 
 PIRPQUEUE DriverDeviceIrpQueue(IN PDEVICE_OBJECT DeviceObject)
-{
+{/* DISPATCH_LEVEL */
     PIRPQUEUE IrpQueue = NULL;
 
     DBGENTER(DriverDeviceIrpQueue);
@@ -107,9 +107,17 @@ VOID Kbdc_CreateOutputDevice(IN PDRIVER_OBJECT DriverObject)
                 l_OutputDevice = OutputDevice;
                 return;
             }
+            else
+            {
+                DBGERROR(IoCreateSymbolicLink, Kbdc_CreateOutputDevice, Status);
+            }
 
             IoDeleteDevice(OutputDevice);
             OutputDevice = NULL;
+        }
+        else
+        {
+            DBGERROR(IoCreateDevice, Kbdc_CreateOutputDevice, Status);
         }
     }
     DBGLEAVE(Kbdc_CreateOutputDevice);
@@ -169,6 +177,7 @@ static NTSTATUS Kbdc_P_OutputDeviceDispatchCreate(IN PDEVICE_OBJECT DeviceObject
 
         if(InterlockedIncrement(&OutDevExt->CreateCount)!=1)
         {/* exclusive use */
+            TRAP();
             InterlockedDecrement(&OutDevExt->CreateCount);
             Status = STATUS_INVALID_DEVICE_STATE;
         }
