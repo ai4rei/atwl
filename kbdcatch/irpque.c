@@ -7,6 +7,8 @@
 
 #include "irpque.h"
 
+DRIVER_CANCEL IrpQueueCancelRoutine;
+
 PIRPQUEUE DriverDeviceIrpQueue(IN PDEVICE_OBJECT DeviceObject);
 
 static VOID IrpQueueCancelRoutine(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)

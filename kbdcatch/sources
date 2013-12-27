@@ -6,4 +6,5 @@ DRIVERTYPE=WDM
 SOURCES=kbdcatch.c \
         kbdcdevs.c \
         kbdcodev.c \
+        irpque.c \
         kbdcatch.rc
