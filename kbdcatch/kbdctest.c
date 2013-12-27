@@ -25,7 +25,7 @@ int __cdecl main(int nArgc, char** lppszArgv)
 
             for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
             {
-                printf("- Type: %u, MakeCode: %u, Flags: %u, Reserved: %u, ExtraInfo: %u\n",
+                printf("- Type: %u, MakeCode: %u, Flags: %u, Reserved: %u\n",
                     Kid[dwIdx].DeviceType,
                     Kid[dwIdx].MakeCode,
                     Kid[dwIdx].Flags,
