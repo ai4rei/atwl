@@ -161,139 +161,154 @@ VOID Kbdc_DestroyOutputDevice(IN PDRIVER_OBJECT DriverObject)
 static NTSTATUS Kbdc_P_OutputDeviceDispatchCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     NTSTATUS Status = STATUS_UNSUCCESSFUL;
-    PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
-    POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
-    if(InterlockedIncrement(&OutDevExt->CreateCount)!=1)
-    {/* exclusive use */
-        InterlockedDecrement(&OutDevExt->CreateCount);
-        Status = STATUS_INVALID_DEVICE_STATE;
-    }
-    else
+    DBGENTER(Kbdc_P_OutputDeviceDispatchCreate);
     {
-        Status = STATUS_SUCCESS;
-    }
+        PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
+        POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
-    Irp->IoStatus.Status = Status;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        if(InterlockedIncrement(&OutDevExt->CreateCount)!=1)
+        {/* exclusive use */
+            InterlockedDecrement(&OutDevExt->CreateCount);
+            Status = STATUS_INVALID_DEVICE_STATE;
+        }
+        else
+        {
+            Status = STATUS_SUCCESS;
+        }
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    }
+    DBGLEAVE(Kbdc_P_OutputDeviceDispatchCreate);
 
     return Status;
 }
 
 static NTSTATUS Kbdc_P_OutputDeviceDispatchClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-    KIRQL PrevIrql;
     NTSTATUS Status = STATUS_UNSUCCESSFUL;
-    POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
-    InterlockedDecrement(&OutDevExt->CreateCount);
-
-    /*
-        cancel pending irps (though there should not be any)
-    */
-    for(;;)
+    DBGENTER(Kbdc_P_OutputDeviceDispatchClose);
     {
-        PIRP ReadIrp = IrpQueueDequeue(&OutDevExt->IrpQueue);
+        KIRQL PrevIrql;
+        POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
-        if(!ReadIrp)
-        {
-            break;
-        }
-
-        ReadIrp->IoStatus.Status = STATUS_CANCELLED;
-        ReadIrp->IoStatus.Information = 0;
-        IoCompleteRequest(ReadIrp, IO_NO_INCREMENT);
-    }
-
-    KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
+        InterlockedDecrement(&OutDevExt->CreateCount);
 
         /*
-            reset the queue
+            cancel pending irps (though there should not be any)
         */
-        OutDevExt->KidCount = 0;
+        for(;;)
+        {
+            PIRP ReadIrp = IrpQueueDequeue(&OutDevExt->IrpQueue);
 
-    KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+            if(!ReadIrp)
+            {
+                break;
+            }
 
-    Status = STATUS_SUCCESS;
+            ReadIrp->IoStatus.Status = STATUS_CANCELLED;
+            ReadIrp->IoStatus.Information = 0;
+            IoCompleteRequest(ReadIrp, IO_NO_INCREMENT);
+        }
 
-    Irp->IoStatus.Status = Status;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
+
+            /*
+                reset the queue
+            */
+            OutDevExt->KidCount = 0;
+
+        KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+
+        Status = STATUS_SUCCESS;
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    }
+    DBGLEAVE(Kbdc_P_OutputDeviceDispatchClose);
 
     return Status;
 }
 
 static NTSTATUS Kbdc_P_OutputDeviceDispatchRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-    KIRQL PrevIrql;
     NTSTATUS Status = STATUS_UNSUCCESSFUL;
-    PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
-    POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
-    ULONG ReadCount = 0, ReadAvail = Isl->Parameters.Read.Length/sizeof(OutDevExt->Kid[0]);
 
-    if(!Isl->Parameters.Read.Length)
-    {/* there is no desire to read anything */
-        Status = STATUS_SUCCESS;
-    }
-    else
+    DBGENTER(Kbdc_P_OutputDeviceDispatchRead);
     {
-        KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
+        KIRQL PrevIrql;
+        PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
+        POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
+        ULONG ReadCount = 0, ReadAvail = Isl->Parameters.Read.Length/sizeof(OutDevExt->Kid[0]);
 
-            for(;;)
-            {
-                ReadCount = OutDevExt->KidCount;
+        if(!Isl->Parameters.Read.Length)
+        {/* there is no desire to read anything */
+            Status = STATUS_SUCCESS;
+        }
+        else
+        {
+            KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
 
-                if(!ReadCount)
-                {/* nothing to offer, queue */
-                    Status = STATUS_PENDING;
-                    break;
-                }
-
-                ReadCount = ReadCount>ReadAvail ? ReadAvail : ReadCount;
-
-                if(!ReadCount)
-                {/* too small buffer */
-                    Status = STATUS_BUFFER_OVERFLOW;
-                    break;
-                }
-
-                /*
-                    copy data to user-mode
-                */
-                RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &OutDevExt->Kid[0], ReadCount*sizeof(OutDevExt->Kid[0]));
-
-                /*
-                    shift remaining entries
-                */
-                if(ReadCount<OutDevExt->KidCount)
+                for(;;)
                 {
-                    RtlCopyMemory(&OutDevExt->Kid[0], &OutDevExt->Kid[ReadCount], (OutDevExt->KidCount-ReadCount)*sizeof(OutDevExt->Kid[0]));
+                    ReadCount = OutDevExt->KidCount;
+
+                    if(!ReadCount)
+                    {/* nothing to offer, queue */
+                        Status = STATUS_PENDING;
+                        break;
+                    }
+
+                    ReadCount = ReadCount>ReadAvail ? ReadAvail : ReadCount;
+
+                    if(!ReadCount)
+                    {/* too small buffer */
+                        Status = STATUS_BUFFER_OVERFLOW;
+                        break;
+                    }
+
+                    /*
+                        copy data to user-mode
+                    */
+                    RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &OutDevExt->Kid[0], ReadCount*sizeof(OutDevExt->Kid[0]));
+
+                    /*
+                        shift remaining entries
+                    */
+                    if(ReadCount<OutDevExt->KidCount)
+                    {
+                        RtlCopyMemory(&OutDevExt->Kid[0], &OutDevExt->Kid[ReadCount], (OutDevExt->KidCount-ReadCount)*sizeof(OutDevExt->Kid[0]));
+                    }
+
+                    OutDevExt->KidCount-= ReadCount;
+                    Status = STATUS_SUCCESS;
+                    break;
                 }
 
-                OutDevExt->KidCount-= ReadCount;
-                Status = STATUS_SUCCESS;
-                break;
+            KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+        }
+
+        if(Status==STATUS_PENDING)
+        {
+            Status = IrpQueueEnqueue(&OutDevExt->IrpQueue, Irp);
+
+            if(NT_SUCCESS(Status))
+            {/* queued */
+                return STATUS_PENDING;
             }
-
-        KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
-    }
-
-    if(Status==STATUS_PENDING)
-    {
-        Status = IrpQueueEnqueue(&OutDevExt->IrpQueue, Irp);
-
-        if(NT_SUCCESS(Status))
-        {/* queued */
-            return STATUS_PENDING;
+        }
+        else
+        {
+            Irp->IoStatus.Status = Status;
+            Irp->IoStatus.Information = ReadCount*sizeof(OutDevExt->Kid[0]);
+            IoCompleteRequest(Irp, IO_NO_INCREMENT);
         }
     }
-    else
-    {
-        Irp->IoStatus.Status = Status;
-        Irp->IoStatus.Information = ReadCount*sizeof(OutDevExt->Kid[0]);
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
-    }
+    DBGLEAVE(Kbdc_P_OutputDeviceDispatchRead);
 
     return Status;
 }
