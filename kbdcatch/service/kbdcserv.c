@@ -348,19 +348,31 @@ VOID __WDECL KbdcServEnter(VOID)
         {
             if(l_State.ServiceMode)
             {
-                SERVICE_TABLE_ENTRY ServiceDispatchTable[] =
-                {
-                    { KBDCSERV_NAME, &KbdcServStart },
-                    { NULL, NULL }
-                };
+                l_State.hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-                if(StartServiceCtrlDispatcherA(ServiceDispatchTable))
+                if(l_State.hExitEvent)
                 {
-                    uExitCode = EXIT_SUCCESS;
+                    SERVICE_TABLE_ENTRY ServiceDispatchTable[] =
+                    {
+                        { KBDCSERV_NAME, &KbdcServStart },
+                        { NULL, NULL }
+                    };
+
+                    if(StartServiceCtrlDispatcherA(ServiceDispatchTable))
+                    {
+                        uExitCode = EXIT_SUCCESS;
+                    }
+                    else
+                    {
+                        KbdcPrint(("Failed to connect to SCM (code=%#x).\n", GetLastError()));
+                    }
+
+                    CloseHandle(l_State.hExitEvent);
+                    l_State.hExitEvent = NULL;
                 }
                 else
                 {
-                    KbdcPrint(("Failed to connect to SCM (code=%#x).\n", GetLastError()));
+                    KbdcPrint(("Failed to create exit event (code=%#x).\n", GetLastError()));
                 }
             }
             else if(l_State.ServiceCreate)
