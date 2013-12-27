@@ -223,14 +223,17 @@ static NTSTATUS Kbdc_P_OutputDeviceDispatchClose(IN PDEVICE_OBJECT DeviceObject,
             IoCompleteRequest(ReadIrp, IO_NO_INCREMENT);
         }
 
-        KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
+        if(OutDevExt->KidCount)
+        {
+            KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
 
-            /*
-                reset the queue
-            */
-            OutDevExt->KidCount = 0;
+                /*
+                    reset the queue
+                */
+                OutDevExt->KidCount = 0;
 
-        KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+            KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+        }
 
         Status = STATUS_SUCCESS;
 
@@ -322,6 +325,39 @@ static NTSTATUS Kbdc_P_OutputDeviceDispatchRead(IN PDEVICE_OBJECT DeviceObject, 
     return Status;
 }
 
+static NTSTATUS Kbdc_P_OutputDeviceDispatchFlushBuffers(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+{
+    NTSTATUS Status = STATUS_UNSUCCESSFUL;
+
+    DBGENTER(Kbdc_P_OutputDeviceDispatchFlushBuffers);
+    {
+        KIRQL PrevIrql;
+        PIO_STACK_LOCATION Isl = IoGetCurrentIrpStackLocation(Irp);
+        POUTPUT_DEVICE_EXTENSION OutDevExt = (POUTPUT_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
+
+        if(OutDevExt->KidCount)
+        {
+            KeAcquireSpinLock(&OutDevExt->KidSpinLock, &PrevIrql);
+
+                /*
+                    reset the queue
+                */
+                OutDevExt->KidCount = 0;
+
+            KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
+        }
+
+        Status = STATUS_SUCCESS;
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    }
+    DBGLEAVE(Kbdc_P_OutputDeviceDispatchFlushBuffers);
+
+    return Status;
+}
+
 BOOLEAN Kbdc_IsOutputDeviceIrp(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, OUT PNTSTATUS Status)
 {/* PASSIVE_LEVEL~DISPATCH_LEVEL */
     BOOLEAN IrpHandled = FALSE;
@@ -344,6 +380,9 @@ BOOLEAN Kbdc_IsOutputDeviceIrp(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, OUT 
                     break;
                 case IRP_MJ_READ:
                     Status[0] = Kbdc_P_OutputDeviceDispatchRead(DeviceObject, Irp);
+                    break;
+                case IRP_MJ_FLUSH_BUFFERS:
+                    Status[0] = Kbdc_P_OutputDeviceDispatchFlushBuffers(DeviceObject, Irp);
                     break;
                 default:
                     Status[0] = Irp->IoStatus.Status;
