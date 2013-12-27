@@ -5,6 +5,7 @@
 
 #include "kbdcatch.h"
 #include "kbdcodev.h"
+#include "kbdctype.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (INIT, Kbdc_CreateOutputDevice)
@@ -27,7 +28,7 @@ typedef struct _OUTPUT_DEVICE_EXTENSION
     /*
         buffer for keyboard packets
     */
-    KEYBOARD_INPUT_DATA Kid[KBDC_BUFSIZE];
+    KBDCINPUTDATA Kid[KBDC_BUFSIZE];
 
     /*
         entries currently in buffer
@@ -430,8 +431,11 @@ VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA Inpu
 
                         /*
                             enqueue
+                            NOTE: KBDCINPUTDATA is a subset of
+                            KEYBOARD_INPUT_DATA, so copying is fine.
                         */
                         RtlCopyMemory(&OutDevExt->Kid[OutDevExt->KidCount], InputData, sizeof(OutDevExt->Kid[0]));
+                        OutDevExt->Kid[OutDevExt->KidCount].DeviceType = FDOExt->KnownDeviceIndex; /* UnitId -> DeviceType */
                         OutDevExt->KidCount++;
 
                     KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
