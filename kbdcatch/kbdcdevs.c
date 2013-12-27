@@ -5,6 +5,7 @@
 
 #include "kbdcatch.h"
 #include "kbdcdevs.h"
+#include "kbdctype.h"
 
 const KBDCDEVICE g_KnownDevices[] =
 {

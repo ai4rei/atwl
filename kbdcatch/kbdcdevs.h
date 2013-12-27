@@ -6,14 +6,6 @@
 #ifndef _KBDCDEVS_H_
 #define _KBDCDEVS_H_
 
-typedef enum KBDCDEVICETYPE
-{
-    KBDC_DEVTYPE_UNKNOWN, /* debug and devices that do not fit */
-    KBDC_DEVTYPE_BARCODE,
-    KBDC_DEVTYPE_RFID,
-}
-KBDCDEVICETYPE;
-
 typedef struct KBDCDEVICE
 {
     LPCWSTR HardwareId;

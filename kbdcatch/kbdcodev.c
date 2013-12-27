@@ -4,6 +4,7 @@
 // ---------------------------------------------------------------*/
 
 #include "kbdcatch.h"
+#include "kbdcdevs.h"
 #include "kbdcodev.h"
 #include "kbdctype.h"
 
