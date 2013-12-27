@@ -435,7 +435,7 @@ VOID Kbdc_QueuePackets(IN PDEVICE_EXTENSION FDOExt, IN PKEYBOARD_INPUT_DATA Inpu
                             KEYBOARD_INPUT_DATA, so copying is fine.
                         */
                         RtlCopyMemory(&OutDevExt->Kid[OutDevExt->KidCount], InputData, sizeof(OutDevExt->Kid[0]));
-                        OutDevExt->Kid[OutDevExt->KidCount].DeviceType = FDOExt->KnownDeviceIndex; /* UnitId -> DeviceType */
+                        OutDevExt->Kid[OutDevExt->KidCount].DeviceType = g_KnownDevices[FDOExt->KnownDeviceIndex].DeviceType; /* UnitId -> DeviceType */
                         OutDevExt->KidCount++;
 
                     KeReleaseSpinLock(&OutDevExt->KidSpinLock, PrevIrql);
