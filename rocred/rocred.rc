@@ -12,78 +12,15 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 1 ICON DISCARDABLE "app-1002.ico"
 2 ICON DISCARDABLE "app-1002s.ico"
 
-1 VERSIONINFO
-FILEVERSION APP_VERSIONINFO_VERSION
-PRODUCTVERSION APP_VERSIONINFO_VERSION
-FILEOS 0x4
-FILETYPE 0x1
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "00000000"
-        BEGIN
-            VALUE "CompanyName", "Ai4rei/AN"
-            VALUE "FileDescription", "Minimalist Client Launcher"
-            VALUE "FileVersion", APP_VERSION
-            VALUE "InternalName", "ROCred"
-            VALUE "LegalCopyright", "© 2012-2013 Ai4rei/AN"
-            VALUE "OriginalFilename", "ROCRED.EXE"
-            VALUE "ProductName", "RO Credentials"
-            VALUE "ProductVersion", APP_VERSION
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x0000 0x0000
-    END
-END
+#define APP_PRODUCTNAME "RO Credentials"
+#define APP_DESCRIPTION "Minimalist Client Launcher"
+#define APP_HAS_UI
+#define APP_COPYYEAR "2012-2013"
+#define APP_INTERNALNAME "ROCred"
+#define APP_ORIGINALNAME "rocred.exe"
 
-1 24 DISCARDABLE
-BEGIN
-    "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>\n"
-    "<assembly\n"
-    "    xmlns=""urn:schemas-microsoft-com:asm.v1""\n"
-    "    manifestVersion=""1.0"">\n"
-    "    <assemblyIdentity\n"
-    "        name=""ROCred""\n"
-    "        processorArchitecture=""x86""\n"
-    "        version="APP_VERSION"\n"
-    "        type=""win32"" />\n"
-    "    <description>Minimalist Client Launcher</description>\n"
-    "    <dependency>\n"
-    "        <dependentAssembly>\n"
-    "            <assemblyIdentity\n"
-    "                type=""win32""\n"
-    "                name=""Microsoft.Windows.Common-Controls""\n"
-    "                version=""6.0.0.0""\n"
-    "                processorArchitecture=""x86""\n"
-    "                publicKeyToken=""6595b64144ccf1df""\n"
-    "                language=""*"" />\n"
-    "        </dependentAssembly>\n"
-    "    </dependency>\n"
-    "    <trustInfo xmlns=""urn:schemas-microsoft-com:asm.v2"">\n"
-    "        <security>\n"
-    "            <requestedPrivileges>\n"
-    "                <requestedExecutionLevel\n"
-    "                    level=""asInvoker""\n"
-    "                    uiAccess=""false"" />\n"
-    "            </requestedPrivileges>\n"
-    "        </security>\n"
-    "    </trustInfo>\n"
-    "    <compatibility xmlns=""urn:schemas-microsoft-com:compatibility.v1"">\n"
-    "        <application>\n"
-    "            <!-- Windows Vista -->\n"
-    "            <supportedOS Id=""{e2011457-1546-43c5-a5fe-008deee3d3f0}""/>\n"
-    "            <!-- Windows 7 -->\n"
-    "            <supportedOS Id=""{35138b9a-5d96-4fbd-8e2d-a2440225f93a}""/>\n"
-    "            <!-- Windows 8 -->\n"
-    "            <supportedOS Id=""{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}""/>\n"
-    "            <!-- Windows 8.1 -->\n"
-    "            <supportedOS Id=""{1f676c76-80e1-4239-95bb-83d0f6d0da78}""/>\n"
-    "        </application>\n"
-    "    </compatibility>\n"
-    "</assembly>"
-END
+#include <rc_vinfo.rc>
+#include <rc_mfsta.rc>
 
 // You may adjust these to the language you are translating to. See
 // http://msdn.microsoft.com/en-us/library/dd318693(VS.85).aspx for
