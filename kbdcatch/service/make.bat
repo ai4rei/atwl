@@ -9,7 +9,7 @@ IF "%1"=="debug" SET CLDEF=/DDBG /DDEBUG /D_DEBUG
 IF "%1"=="debug" SET CLOPT=/Od %CLDEF%
 IF "%1"=="debug" SET LNOPT=/OPT:NOREF /OPT:NOICF
 RC %CLDEF% /I..\..\..\snippets kbdcserv.rc
-FOR %%i IN (bvargs bvdebug cstr memory) DO CL /nologo /c /W3 %CLOPT% /DWINDOWS /D_MBCS ..\..\..\snippets\%%i.c
+FOR %%i IN (bvargs bvdebug bvsque cstr memory) DO CL /nologo /c /W3 %CLOPT% /DWINDOWS /D_MBCS ..\..\..\snippets\%%i.c
 CL /nologo /c /W3 %CLOPT% /D_MBCS /I..\..\..\snippets kbdcserv.c
 LINK /NOLOGO %LNOPT% /RELEASE /SUBSYSTEM:CONSOLE /ENTRY:KbdcServEnter /OUT:KBDCSERV.EXE *.obj kbdcserv.res kernel32.lib user32.lib advapi32.lib
 :END
