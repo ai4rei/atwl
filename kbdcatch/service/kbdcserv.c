@@ -19,12 +19,33 @@
     #define KbdcPrint(_x_)
 #endif  /* _DEBUG */
 
+#pragma pack(push,1)
 typedef struct _SERVICEDATA
 {
     SERVICE_STATUS Status;
     SERVICE_STATUS_HANDLE StatusHandle;
 }
 SERVICEDATA,* PSERVICEDATA;
+
+typedef struct _KBDCSERVKEYSTATE
+{
+    UBIT_T(ALT,2);
+    UBIT_T(CTRL,2);
+    UBIT_T(SHIFT,2);
+    UBIT_T(CAPSLOCK,1);
+    UBIT_T(NUMLOCK,1);
+    UBIT_T(SCROLLLOCK,1);
+}
+KBDCSERVKEYSTATE,* LPKBDCSERVKEYSTATE;
+
+typedef struct _KBDCSERVDEVICESTATE
+{
+    KBDCSERVKEYSTATE KeyState;
+    USHORT DeviceType;
+    BYTE CharBuffer[KBDCSERV_SIZE];
+    ULONG CharBufferLength;
+}
+KBDCSERVDEVICESTATE,* LPKBDCSERVDEVICESTATE;
 
 typedef struct _KBDCSERVSTATE
 {
@@ -33,22 +54,12 @@ typedef struct _KBDCSERVSTATE
     BOOLEAN ServiceMode;
     BOOLEAN ServiceCreate;
     BOOLEAN ServiceDelete;
-    struct _KBDCSERVKEYSTATE
-    {
-        UBIT_T(ALT,2);
-        UBIT_T(CTRL,2);
-        UBIT_T(SHIFT,2);
-        UBIT_T(CAPSLOCK,1);
-        UBIT_T(NUMLOCK,1);
-        UBIT_T(SCROLLLOCK,1);
-    }
-    KeyState;
-    BYTE CharBuffer[KBDCSERV_SIZE];
-    ULONG CharBufferLength;
+    KBDCSERVDEVICESTATE DevState[KBDC_DEVTYPE_MAX];
     BVSQUE PipeQueue;
     CRITICAL_SECTION PipeCS;
 }
 KBDCSERVSTATE,* PKBDCSERVSTATE;
+#pragma pack(pop)
 
 CONST BYTE l_ScanCodeToAsciiN[] =
 {/* English Keyboard Layout (normal) */
@@ -229,7 +240,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
     return 0;
 }
 
-VOID __WDECL KbdcServBroadcastPacket(VOID)
+VOID __WDECL KbdcServBroadcastPacket(LPKBDCSERVDEVICESTATE pDS)
 {
     size_t uIdx;
 
@@ -241,7 +252,7 @@ VOID __WDECL KbdcServBroadcastPacket(VOID)
         HANDLE hPipe = BVSQueAt(&l_State.PipeQueue, uIdx)[0];
         OVERLAPPED Ovl = { 0, 0, 0, 0, NULL };
 
-        if(!WriteFile(hPipe, l_State.CharBuffer, l_State.CharBufferLength, &dwRead, &Ovl))
+        if(!WriteFile(hPipe, &pDS->DeviceType, sizeof(pDS->DeviceType)+pDS->CharBufferLength, &dwRead, &Ovl))
         {
             if(GetLastError()!=ERROR_IO_PENDING)
             {
@@ -262,6 +273,8 @@ VOID __WDECL KbdcServBroadcastPacket(VOID)
 
 VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
 {
+    LPKBDCSERVDEVICESTATE pDS = &l_State.DevState[pKid->DeviceType];
+
     /*
         translate scancodes into characters
         (English Keyboard Layout)
@@ -271,41 +284,41 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
         case 29:  /* LCTRL (1)/RCTRL (2) */
             if(pKid->Flags&KIDF_BREAK)
             {
-                l_State.KeyState.CTRL&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+                pDS->KeyState.CTRL&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
             }
             else
             {
-                l_State.KeyState.CTRL|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+                pDS->KeyState.CTRL|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
             }
             break;
         case 42:  /* LSHIFT (1) */
             if(pKid->Flags&KIDF_BREAK)
             {
-                l_State.KeyState.SHIFT&=~0x1;
+                pDS->KeyState.SHIFT&=~0x1;
             }
             else
             {
-                l_State.KeyState.SHIFT|= 0x1;
+                pDS->KeyState.SHIFT|= 0x1;
             }
             break;
         case 54:  /* RSHIFT (2) */
             if(pKid->Flags&KIDF_BREAK)
             {
-                l_State.KeyState.SHIFT&=~0x2;
+                pDS->KeyState.SHIFT&=~0x2;
             }
             else
             {
-                l_State.KeyState.SHIFT|= 0x2;
+                pDS->KeyState.SHIFT|= 0x2;
             }
             break;
         case 56:  /* LALT (1)/RALT (2) */
             if(pKid->Flags&KIDF_BREAK)
             {
-                l_State.KeyState.ALT&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+                pDS->KeyState.ALT&=~( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
             }
             else
             {
-                l_State.KeyState.ALT|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
+                pDS->KeyState.ALT|= ( (pKid->Flags&KIDF_E0) ? 0x2 : 0x1 );
             }
             break;
         case 58:  /* CAPS LOCK */
@@ -315,7 +328,7 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
             }
             else
             {
-                l_State.KeyState.CAPSLOCK = !l_State.KeyState.CAPSLOCK;
+                pDS->KeyState.CAPSLOCK = !pDS->KeyState.CAPSLOCK;
             }
             break;
         case 69:  /* NUM LOCK */
@@ -325,7 +338,7 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
             }
             else
             {
-                l_State.KeyState.NUMLOCK = !l_State.KeyState.NUMLOCK;
+                pDS->KeyState.NUMLOCK = !pDS->KeyState.NUMLOCK;
             }
             break;
         case 70:  /* SCROLL LOCK */
@@ -335,20 +348,20 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
             }
             else
             {
-                l_State.KeyState.SCROLLLOCK = !l_State.KeyState.SCROLLLOCK;
+                pDS->KeyState.SCROLLLOCK = !pDS->KeyState.SCROLLLOCK;
             }
             break;
         default:
         {
             BYTE ucChar = 0;
 
-            if(l_State.KeyState.SHIFT)
+            if(pDS->KeyState.SHIFT)
             {/* shift */
                 if(pKid->MakeCode<__ARRAYSIZE(l_ScanCodeToAsciiS))
                 {
                     ucChar = l_ScanCodeToAsciiS[pKid->MakeCode];
 
-                    if(l_State.KeyState.CAPSLOCK && ucChar>='A' && ucChar<='Z')
+                    if(pDS->KeyState.CAPSLOCK && ucChar>='A' && ucChar<='Z')
                     {
                         ucChar^= 0x20;  /* lowercase */
                     }
@@ -360,7 +373,7 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
                 {
                     ucChar = l_ScanCodeToAsciiN[pKid->MakeCode];
 
-                    if(l_State.KeyState.CAPSLOCK && ucChar>='a' && ucChar<='z')
+                    if(pDS->KeyState.CAPSLOCK && ucChar>='a' && ucChar<='z')
                     {
                         ucChar^= 0x20;  /* uppercase */
                     }
@@ -373,20 +386,26 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
             }
             else if(ucChar)
             {/* pressed / repeat */
-                l_State.CharBuffer[l_State.CharBufferLength++] = ucChar;
+                pDS->CharBuffer[pDS->CharBufferLength++] = ucChar;
 
-                if(ucChar=='\n' || l_State.CharBufferLength>=__ARRAYSIZE(l_State.CharBuffer))
+                if(ucChar=='\n')
                 {
-                    KbdcPrint(("KbdcServProcessPacket: [%c] [%c] [%c] [%c] [%c] [%c]\n",
-                        l_State.KeyState.SHIFT ? '+' : ' ',
-                        l_State.KeyState.CTRL ? '^' : ' ',
-                        l_State.KeyState.ALT ? '!' : ' ',
-                        l_State.KeyState.NUMLOCK ? '*' : ' ',
-                        l_State.KeyState.CAPSLOCK ? '*' : ' ',
-                        l_State.KeyState.SCROLLLOCK ? '*' : ' '));
+                    KbdcPrint(("KbdcServProcessPacket: %d = [%c] [%c] [%c] [%c] [%c] [%c]\n",
+                        pKid->DeviceType,
+                        pDS->KeyState.SHIFT ? '+' : ' ',
+                        pDS->KeyState.CTRL ? '^' : ' ',
+                        pDS->KeyState.ALT ? '!' : ' ',
+                        pDS->KeyState.NUMLOCK ? '*' : ' ',
+                        pDS->KeyState.CAPSLOCK ? '*' : ' ',
+                        pDS->KeyState.SCROLLLOCK ? '*' : ' '));
 
-                    KbdcServBroadcastPacket();
-                    l_State.CharBufferLength = 0;
+                    KbdcServBroadcastPacket(pDS);
+                    pDS->CharBufferLength = 0;
+                }
+                else if(pDS->CharBufferLength>=__ARRAYSIZE(pDS->CharBuffer))
+                {/* overflow, discard */
+                    KbdcPrint(("KbdcServProcessPacket: Buffer for device %d full, discarding data.\n", pKid->DeviceType));
+                    pDS->CharBufferLength = 0;
                 }
             }
             break;
@@ -414,12 +433,19 @@ UINT __WDECL KbdcServMain(VOID)
                 HANDLE Pipe[KBDCSERV_PIPESIZE];
                 KBDCINPUTDATA Kid[KBDCSERV_SIZE];
                 OVERLAPPED Ovl;
+                USHORT huDevType;
 
                 /* remaining stuff that cannot fail */
                 InitializeCriticalSection(&l_State.PipeCS);
                 BVSQueInit(&l_State.PipeQueue, Pipe, sizeof(Pipe));
-                ResumeThread(hThread);
 
+                /* initialize pipe buffer prefix fields */
+                for(huDevType = 0; huDevType<__ARRAYSIZE(l_State.DevState); huDevType++)
+                {
+                    l_State.DevState[huDevType].DeviceType = huDevType;
+                }
+
+                ResumeThread(hThread);
                 KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
                 for(;;)
