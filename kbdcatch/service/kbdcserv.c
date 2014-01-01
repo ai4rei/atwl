@@ -371,15 +371,16 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
             {/* released */
                 ;
             }
-            else
+            else if(ucChar)
             {/* pressed / repeat */
                 l_State.CharBuffer[l_State.CharBufferLength++] = ucChar;
 
-                if(ucChar=='\n')
+                if(ucChar=='\n' || l_State.CharBufferLength>=__ARRAYSIZE(l_State.CharBuffer))
                 {
-                    KbdcPrint(("KbdcServProcessPacket: %u %u %u %u >%.*s< [%c] [%c] [%c]\n",
-                        pKid->DeviceType, pKid->MakeCode, pKid->Flags, pKid->Reserved,
-                        l_State.CharBufferLength-1, l_State.CharBuffer,
+                    KbdcPrint(("KbdcServProcessPacket: [%c] [%c] [%c] [%c] [%c] [%c]\n",
+                        l_State.KeyState.SHIFT ? '+' : ' ',
+                        l_State.KeyState.CTRL ? '^' : ' ',
+                        l_State.KeyState.ALT ? '!' : ' ',
                         l_State.KeyState.NUMLOCK ? '*' : ' ',
                         l_State.KeyState.CAPSLOCK ? '*' : ' ',
                         l_State.KeyState.SCROLLLOCK ? '*' : ' '));
