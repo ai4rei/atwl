@@ -186,6 +186,8 @@ BOOL __WDECL KbdcConnectPipe(HANDLE hPipe)
 
 DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 {
+    KbdcPrint(("Pipe manager thread started.\n"));
+
     for(;;)
     {
         HANDLE hPipe = CreateNamedPipe(KBDCSERV_PIPENAME, PIPE_ACCESS_OUTBOUND|FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, KBDCSERV_SIZE, 0, 0, NULL);
@@ -195,6 +197,8 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
             KbdcPrint(("CreateNamedPipe failed (code=%#x).\n", GetLastError()));
             return EXIT_FAILURE;
         }
+
+        KbdcPrint(("Waiting for pipe %p to connect...\n", hPipe));
 
         if(!KbdcConnectPipe(hPipe))
         {
@@ -206,7 +210,11 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         {
             break;
         }
+
+        KbdcPrint(("Pipe %p connected.\n", hPipe));
     }
+
+    KbdcPrint(("Stopping pipe manager thread...\n"));
 
     while(BVSQueLength(&l_State.PipeQueue))
     {
@@ -217,6 +225,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         CloseHandle(hPipe);
     }
 
+    KbdcPrint(("Pipe manager thread stopped.\n"));
     return 0;
 }
 
@@ -241,8 +250,11 @@ VOID __WDECL KbdcServBroadcastPacket(VOID)
                 DisconnectNamedPipe(hPipe);
                 CloseHandle(hPipe);
                 uIdx--;
+                continue;
             }
         }
+
+        KbdcPrint(("Pipe %p schuduled to write packet.\n", hPipe));
     }
 
     LeaveCriticalSection(&l_State.PipeCS);
