@@ -8,8 +8,8 @@
 #define VER_INTERNALNAME_STR        "KBDCATCH"
 
 #define VER_ORIGINALFILENAME_STR    "kbdcatch.sys"
-#define VER_LEGALCOPYRIGHT_YEARS    "2013"
-#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) Ai4rei/AN 2013"
+#define VER_LEGALCOPYRIGHT_YEARS    "2013-2014"
+#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) Ai4rei/AN 2013-2014"
 #define VER_FILEVERSION             1,0,0,0
 #define VER_FILEVERSION_STR         "1.0.0"
 #define VER_LANGNEUTRAL
