@@ -3,7 +3,7 @@ Option Explicit
 
 ' ------------------------------------------------------------------
 ' AutoCAD DWG2PDF Automation
-' (c) 2012-2013 Ai4rei/AN
+' (c) 2012-2014 Ai4rei/AN
 '
 ' This work is licensed under a
 ' Creative Commons BY-SA 3.0 Unported License
@@ -11,25 +11,75 @@ Option Explicit
 '
 ' ------------------------------------------------------------------
 
-Private Declare Function KrnHlp_FindFirstChange Lib "krnhlp.dll" (ByVal lpDirectory As String) As Long
-Private Declare Function KrnHlp_FindNextChange Lib "krnhlp.dll" (ByVal hChange As Long) As Long
-Private Declare Function KrnHlp_FindCloseChange Lib "krnhlp.dll" (ByVal hChange As Long) As Long
-Private Declare Function KrnHlp_TestExclusiveWrite Lib "krnhlp.dll" (ByVal lpszFile As String) As Long
+Private Const GENERIC_WRITE = &H40000000
+Private Const CREATE_ALWAYS = &H2
+Private Const FILE_ATTRIBUTE_NORMAL = &H80
+Private Const INVALID_HANDLE_VALUE = &HFFFFFFFF
 
-Private m_Init As Boolean ' signals, that AutoCAD must be restarted on next chance
-Private m_Quit As Boolean ' signals, that the application must quit
+Private Declare Function CloseHandle Lib "kernel32.dll" (ByVal hHandle As Long) As Long
+Private Declare Function CreateFile Lib "kernel32.dll" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
 
-Private Sub MakePDF(oFile As Object)
-    Dim myIdx As Integer
-    Dim myMin As Variant
-    Dim myMax As Variant
-    Dim oConfig As Object 'AcadPlotConfiguration
+Private Declare Sub DWG2PDF_ProcessFiles Lib "dwg2pdf.dll" (ByVal lpszDirectory As String, ByVal lpfnCallback As Long, ByVal nContext As Long)
+
+Enum MAKEPDFSTATUS
+    MPS_SUCCESS = 0    ' No error
+    MPS_GENERAL = 1    ' General unexpected error, typically solved by restarting the instance
+    MPS_OPENFAILED = 2 ' File could not be opened for whatever reason
+    MPS_SAVEFAILED = 3 ' PDF file could not be written for whatever reason
+End Enum
+
+Private Sub Display(sMsg As String)
+    MsgBox sMsg, vbInformation, App.ProductName
+End Sub
+
+Private Sub MakeCookie(sName As String)
+    Dim hFile As Long
+    Let hFile = CreateFile(sName & "." & Chr(160), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+
+    If hFile <> INVALID_HANDLE_VALUE Then
+        CloseHandle hFile
+    End If
+End Sub
+
+Private Function GetBasePath(sFilePath As String)
+    Dim nIdx As Long
+    Let nIdx = InStrRev(sFilePath, "\")
+
+    If nIdx > 0 Then
+        GetBasePath = Left(sFilePath, nIdx - 1)
+    Else
+        GetBasePath = "."
+    End If
+End Function
+
+Private Function GetBaseName(sFilePath As String)
+    Dim nIdx As Long
+    Let nIdx = InStrRev(sFilePath, "\")
+
+    If nIdx > 0 Then
+        GetBaseName = Mid(sFilePath, nIdx + 1)
+    Else
+        GetBaseName = sFilePath
+    End If
+End Function
+
+Private Function MakePDF(oAcad As Object, sFileName As String) As MAKEPDFSTATUS
+    Dim nIdx As Integer
+    Dim vMin As Variant
+    Dim vMax As Variant
+    Dim oFile As Object   ' AcadDocument
+    Dim oConfig As Object ' AcadPlotConfiguration
+
+    On Error GoTo OpenFailed
+
+    Set oFile = oAcad.Documents.open(sFileName, True)
+    If oFile Is Nothing Then GoTo OpenFailed
 
     On Error GoTo TryAgain
 
     ' oFile.Application.ZoomExtents
-    myMin = oFile.GetVariable("EXTMIN")
-    myMax = oFile.GetVariable("EXTMAX")
+    vMin = oFile.GetVariable("EXTMIN")
+    vMax = oFile.GetVariable("EXTMAX")
     oFile.SetVariable "BACKGROUNDPLOT", CInt(0)
 
     While oFile.PlotConfigurations.Count > 0
@@ -42,24 +92,24 @@ Private Sub MakePDF(oFile As Object)
         .ConfigName = "DWG To PDF.pc3"
         ' .ModelType = True
         ' .Name = "Batch"
-        .PaperUnits = 1 'acMillimeters
+        .PaperUnits = 1                  ' acMillimeters
         .PlotHidden = False
-        .PlotRotation = 0 'ac0degrees
-        .PlotType = 1 'acExtents
+        .PlotRotation = 0                ' ac0degrees
+        .PlotType = 1                    ' acExtents
         .PlotViewportBorders = False
         .PlotViewportsFirst = True
         .PlotWithLineweights = True
         .PlotWithPlotStyles = True
         .ScaleLineweights = False
         .ShowPlotStyles = False
-        .StandardScale = 0 'acScaleToFit
+        .StandardScale = 0               ' acScaleToFit
         .RefreshPlotDeviceInfo
         .StyleSheet = "monochrome.ctb"
         .UseStandardScale = True
         .RefreshPlotDeviceInfo
     End With
 
-    If myMax(0) - myMin(0) > myMax(1) - myMin(1) Then
+    If vMax(0) - vMin(0) > vMax(1) - vMin(1) Then
         ' Landscape
         oConfig.CanonicalMediaName = "ISO_full_bleed_A4_(297.00_x_210.00_MM)"
     Else
@@ -68,107 +118,87 @@ Private Sub MakePDF(oFile As Object)
     End If
 
     oFile.ModelSpace.Layout.CopyFrom oConfig
-    oFile.Plot.PlotToFile Left(oFile.FullName, Len(oFile.FullName) - 4) & ".pdf"
-    Exit Sub
+
+    On Error GoTo SaveFailed
+
+    If Not oFile.Plot.PlotToFile(Left(oFile.FullName, Len(oFile.FullName) - 3) & "pdf") Then GoTo SaveFailed
+
+    On Error GoTo 0
+
+    MakePDF = MPS_SUCCESS
+
+DoExit:
+    If Not oFile Is Nothing Then
+        oFile.Close False
+    End If
+    Exit Function
+
+OpenFailed:
+    MakePDF = MPS_OPENFAILED
+    Resume DoExit
+    
+SaveFailed:
+    MakePDF = MPS_SAVEFAILED
+    Resume DoExit
+
 TryAgain:
-    On Error GoTo RestartIt
+    On Error GoTo ResetInstance
     Resume
-RestartIt:
-    m_Init = True
-End Sub
 
-Private Sub DoAllAcadObjects(oAcad As Object, ByVal myWorkPath As String)
-    Dim oFile As Object 'AcadDocument
-    Dim myFile As String
-    Dim myLExt As String
+ResetInstance:
+    MakePDF = MPS_GENERAL
+    Resume DoExit
+End Function
 
-    myWorkPath = myWorkPath & "\"
-    myFile = Dir(myWorkPath & "*.*", vbNormal)
-    Do While myFile <> ""
-        myLExt = LCase(Right(myFile, 4))
-
-        If myFile = ".quit" Then
-            m_Quit = True
-            Exit Sub
-        End If
-
-        If myLExt = ".dwg" Or myLExt = ".dxf" Then
-            If KrnHlp_TestExclusiveWrite(myWorkPath & myFile) Then
-                
-                On Error Resume Next
-                Set oFile = oAcad.Documents.Open(myWorkPath & myFile, True)
-                On Error GoTo 0
+Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As Long) As Long
+    Static oAcad As Object
     
-                If Not oFile Is Nothing Then
-                    MakePDF oFile
-                    oFile.Close False
-    
-                    On Error Resume Next
-                    Kill myWorkPath & myFile
-                    On Error GoTo 0
-    
-                    If m_Init Then
-                        Exit Do
-                    End If
-                End If
-            End If
-        End If
+    On Error Resume Next
 
-        DoEvents
-        myFile = Dir()
-    Loop
-End Sub
-
-Sub Main()
-    Dim hChange As Long
-    Dim oAcad As Object
-
-    ' are we provided with correct parameter?
-    If Dir$(Command$, vbDirectory) = "" Then
-        MsgBox "Usage: DWG2PDFS <directory>", , App.ProductName
-        Exit Sub
+    If oAcad Is Nothing Then Set oAcad = CreateObject("AutoCAD.Application")
+    If oAcad Is Nothing Then
+        Display "Failed to initialize AutoCAD COM."
+        
+        ' fatal failure
+        ForEachFileCallback = 0
+        Exit Function
+    ElseIf LCase(GetBaseName(sFilePath)) = ".quit" Then
+        oAcad.Quit
+        Set oAcad = Nothing
+        
+        ' intended quit
+        ForEachFileCallback = 0
+        Exit Function
     End If
 
-    ' signal (re)start of AutoCAD
-    m_Init = True
+    Dim sLExt As String
+    Let sLExt = LCase(Right(sFilePath, 4))
 
-    ' look for files
-    hChange = KrnHlp_FindFirstChange(Command$)
+    If sLExt = ".dwg" Or sLExt = ".dxf" Then
+        Select Case MakePDF(oAcad, sFilePath)
+            Case MPS_SUCCESS
+                Kill sFilePath
+            Case MPS_GENERAL
+                oAcad.Quit
+                Set oAcad = Nothing
+            Case MPS_OPENFAILED
+                MakeCookie GetBasePath(sFilePath) & "\" & GetBaseName(sFilePath) & " nelze otevrit"
+            Case MPS_SAVEFAILED
+                Dim sName As String
+                Let sName = GetBaseName(sFilePath)
+                MakeCookie GetBasePath(sFilePath) & "\" & Left(sName, Len(sName) - 3) & "pdf nelze ulozit"
+        End Select
+        DoEvents
+    End If
 
-    If hChange <> -1 Then
-        On Error Resume Next
+    ' continue
+    ForEachFileCallback = 1
+End Function
 
-        Do
-            If m_Init Then
-                m_Init = False
-
-                If Not oAcad Is Nothing Then
-                    ' quit previous instance if any
-                    oAcad.Quit
-                End If
-
-                Set oAcad = CreateObject("AutoCAD.Application")
-                
-                If oAcad Is Nothing Then
-                    ' check if we had a successful start
-                    MsgBox "Failed to initialize AutoCAD.", , App.ProductName
-                    Exit Do
-                End If
-            End If
-            
-            DoAllAcadObjects oAcad, Command$
-            DoEvents
-
-            If m_Quit Then
-                Exit Do
-            End If
-        Loop While KrnHlp_FindNextChange(hChange)
-
-        On Error GoTo 0
-
-        If Not oAcad Is Nothing Then
-            oAcad.Quit
-        End If
-        KrnHlp_FindCloseChange hChange
+Sub Main()
+    If Dir$(Command$, vbDirectory) <> "" Then
+        DWG2PDF_ProcessFiles Command$, AddressOf ForEachFileCallback, 0
+    Else
+        Display "Usage: DWG2PDF <working directory>"
     End If
 End Sub

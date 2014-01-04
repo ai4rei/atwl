@@ -1,0 +1,2 @@
+EXPORTS
+    DWG2PDF_ProcessFiles        PRIVATE

@@ -1,5 +1,0 @@
-EXPORTS
-    KrnHlp_FindFirstChange      PRIVATE
-    KrnHlp_FindNextChange       PRIVATE
-    KrnHlp_FindCloseChange      PRIVATE
-    KrnHlp_TestExclusiveWrite   PRIVATE

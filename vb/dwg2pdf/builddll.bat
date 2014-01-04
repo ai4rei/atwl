@@ -1,0 +1,1 @@
+@CL /nologo /W3 /O2x /GF /D_DLL /DSTRICT dwg2pdf.c /link /RELEASE /OPT:ICF /OPT:REF /OPT:NOWIN98 /NOENTRY /DEF:dwg2pdf.def /DLL /MACHINE:IX86 /SUBSYSTEM:WINDOWS /OUT:dwg2pdf.dll kernel32.lib user32.lib oleaut32.lib dwg2pdf.res
