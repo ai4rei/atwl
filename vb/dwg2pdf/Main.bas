@@ -14,6 +14,7 @@ Option Explicit
 Private Declare Function KrnHlp_FindFirstChange Lib "krnhlp.dll" (ByVal lpDirectory As String) As Long
 Private Declare Function KrnHlp_FindNextChange Lib "krnhlp.dll" (ByVal hChange As Long) As Long
 Private Declare Function KrnHlp_FindCloseChange Lib "krnhlp.dll" (ByVal hChange As Long) As Long
+Private Declare Function KrnHlp_TestExclusiveWrite Lib "krnhlp.dll" (ByVal lpszFile As String) As Long
 
 Private m_Init As Boolean ' signals, that AutoCAD must be restarted on next chance
 Private m_Quit As Boolean ' signals, that the application must quit
@@ -92,20 +93,23 @@ Private Sub DoAllAcadObjects(oAcad As Object, ByVal myWorkPath As String)
         End If
 
         If myLExt = ".dwg" Or myLExt = ".dxf" Then
-            On Error Resume Next
-            Set oFile = oAcad.Documents.Open(myWorkPath & myFile, True)
-            On Error GoTo 0
-
-            If Not oFile Is Nothing Then
-                MakePDF oFile
-                oFile.Close False
-
+            If KrnHlp_TestExclusiveWrite(myWorkPath & myFile) Then
+                
                 On Error Resume Next
-                Kill myWorkPath & myFile
+                Set oFile = oAcad.Documents.Open(myWorkPath & myFile, True)
                 On Error GoTo 0
-
-                If m_Init Then
-                    Exit Do
+    
+                If Not oFile Is Nothing Then
+                    MakePDF oFile
+                    oFile.Close False
+    
+                    On Error Resume Next
+                    Kill myWorkPath & myFile
+                    On Error GoTo 0
+    
+                    If m_Init Then
+                        Exit Do
+                    End If
                 End If
             End If
         End If
