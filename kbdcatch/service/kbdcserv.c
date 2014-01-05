@@ -201,7 +201,12 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 
     for(;;)
     {
-        HANDLE hPipe = CreateNamedPipe(KBDCSERV_PIPENAME, PIPE_ACCESS_OUTBOUND|FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, KBDCSERV_SIZE, 0, 0, NULL);
+        /*
+            Pipe is created as duplex, even though it is only out-
+            bound. This is because the client needs write access for
+            SetNamedPipeHandleState to switch into message mode.
+        */
+        HANDLE hPipe = CreateNamedPipe(KBDCSERV_PIPENAME, /*PIPE_ACCESS_OUTBOUND|*/PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, KBDCSERV_SIZE, 0, 0, NULL);
 
         if(hPipe==INVALID_HANDLE_VALUE)
         {
