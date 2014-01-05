@@ -455,74 +455,69 @@ UINT __WDECL KbdcServMain(VOID)
 
                 for(;;)
                 {
-                    for(;;)
+                    Ovl.Offset = Ovl.OffsetHigh = 0;
+                    Ovl.hEvent = hAvailEvent;
+
+                    if(!ReadFile(hFile, Kid, sizeof(Kid), &dwRead, &Ovl))
                     {
-                        Ovl.Offset = Ovl.OffsetHigh = 0;
-                        Ovl.hEvent = hAvailEvent;
-
-                        if(!ReadFile(hFile, Kid, sizeof(Kid), &dwRead, &Ovl))
+                        DWORD dwWait;
+                        HANDLE Events[] =
                         {
-                            DWORD dwWait;
-                            HANDLE Events[] =
-                            {
-                                hAvailEvent,
-                                l_State.hExitEvent,
-                            };
+                            hAvailEvent,
+                            l_State.hExitEvent,
+                        };
 
-                            if(GetLastError()!=ERROR_IO_PENDING)
-                            {
-                                KbdcPrint(("ReadFile failed (code=%#x).\n", GetLastError()));
-                                break;
-                            }
+                        if(GetLastError()!=ERROR_IO_PENDING)
+                        {
+                            KbdcPrint(("ReadFile failed (code=%#x).\n", GetLastError()));
+                            break;
+                        }
 
-                            dwWait = WaitForMultipleObjects(__ARRAYSIZE(Events), Events, FALSE, INFINITE);
+                        dwWait = WaitForMultipleObjects(__ARRAYSIZE(Events), Events, FALSE, INFINITE);
 
-                            if(dwWait==WAIT_FAILED)
+                        if(dwWait==WAIT_FAILED)
+                        {
+                            KbdcPrint(("WaitForMultipleObjects during ReadFile completion failed (code=%#x).\n", GetLastError()));
+                            CancelIo(hFile);
+                            break;
+                        }
+                        else if(dwWait==WAIT_OBJECT_0)
+                        {/* ReadFile complete */
+                            if(!GetOverlappedResult(hFile, &Ovl, &dwRead, FALSE))
                             {
-                                KbdcPrint(("WaitForMultipleObjects during ReadFile completion failed (code=%#x).\n", GetLastError()));
-                                CancelIo(hFile);
-                                break;
-                            }
-                            else if(dwWait==WAIT_OBJECT_0)
-                            {/* ReadFile complete */
-                                if(!GetOverlappedResult(hFile, &Ovl, &dwRead, FALSE))
-                                {
-                                    KbdcPrint(("GetOverlappedResult failed (code=%#x).\n", GetLastError()));
-                                    break;
-                                }
-                            }
-                            else if(dwWait==WAIT_OBJECT_0+1)
-                            {/* hExitEvent signaled */
-                                uExitCode = EXIT_SUCCESS;
-                                CancelIo(hFile);
-                                break;
-                            }
-                            else
-                            {
-                                KbdcPrint(("WaitForMultipleObjects returned unexcepted value %#x (code=%#x).\n", dwWait, GetLastError()));
-                                CancelIo(hFile);
+                                KbdcPrint(("GetOverlappedResult failed (code=%#x).\n", GetLastError()));
                                 break;
                             }
                         }
-
-                        if(dwRead%sizeof(Kid[0]))
-                        {
-                            KbdcPrint(("Received unexpected data size %u (%u, %u, %u).\n", dwRead, dwRead/sizeof(Kid[0]), dwRead%sizeof(Kid[0]), sizeof(Kid[0])));
-                        }
-
-                        for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
-                        {
-                            KbdcServProcessPacket(&Kid[dwIdx]);
-                        }
-
-                        if(WaitForSingleObject(l_State.hExitEvent, 0)==WAIT_OBJECT_0)
-                        {
+                        else if(dwWait==WAIT_OBJECT_0+1)
+                        {/* hExitEvent signaled */
                             uExitCode = EXIT_SUCCESS;
+                            CancelIo(hFile);
+                            break;
+                        }
+                        else
+                        {
+                            KbdcPrint(("WaitForMultipleObjects returned unexcepted value %#x (code=%#x).\n", dwWait, GetLastError()));
+                            CancelIo(hFile);
                             break;
                         }
                     }
 
-                    break;
+                    if(dwRead%sizeof(Kid[0]))
+                    {
+                        KbdcPrint(("Received unexpected data size %u (%u, %u, %u).\n", dwRead, dwRead/sizeof(Kid[0]), dwRead%sizeof(Kid[0]), sizeof(Kid[0])));
+                    }
+
+                    for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
+                    {
+                        KbdcServProcessPacket(&Kid[dwIdx]);
+                    }
+
+                    if(WaitForSingleObject(l_State.hExitEvent, 0)==WAIT_OBJECT_0)
+                    {
+                        uExitCode = EXIT_SUCCESS;
+                        break;
+                    }
                 }
 
                 SetEvent(l_State.hExitEvent);  /* ensure, that the thread exits */
