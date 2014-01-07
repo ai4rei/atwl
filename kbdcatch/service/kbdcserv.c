@@ -1,4 +1,6 @@
 #include <windows.h>
+#include <accctrl.h>
+#include <aclapi.h>
 
 #include <btypes.h>
 #include <bvargs.h>
@@ -195,67 +197,21 @@ BOOL __WDECL KbdcConnectPipe(HANDLE hPipe)
     return bSuccess;
 }
 
-BOOL __WDECL KbdcServCreateSecurityDescriptor(PACL* lppACL, PSECURITY_DESCRIPTOR* lppSD)
-{
-    EXPLICIT_ACCESS ExAcc = { 0 };
-    PACL pACL = NULL;
-    PSECURITY_DESCRIPTOR pSD;
-
-    lppACL[0] = NULL;
-    lppSD[0]  = NULL;
-
-    ExAcc.grfAccessPermissions = GENERIC_READ|GENERIC_WRITE|SYNCHRONIZE;
-    ExAcc.grfAccessMode = SET_ACCESS;
-    ExAcc.grfInheritance = NO_INHERITANCE;
-    ExAcc.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-    ExAcc.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-    ExAcc.Trustee.ptstrName = "S-1-1-0";  /* World */
-
-    if(SetEntriesInAcl(1, &ExAcc, NULL, &pACL)==ERROR_SUCCESS)
-    {
-        if((pSD = LocalAlloc(LMEM_FIXED, SECURITY_DESCRIPTOR_MIN_LENGTH))!=NULL)
-        {
-            if(InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION))
-            {
-                if(SetSecurityDescriptorDacl(pSD, TRUE, pAcl, FALSE))
-                {
-                    lppACL[0] = pACL;
-                    lppSD[0]  = pSD;
-
-                    return TRUE;
-                }
-            }
-
-            LocalFree(pSD);
-        }
-
-        LocalFree(pACL);
-    }
-
-    return FALSE;
-}
-
 DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 {
-    PACL pACL = NULL;
-    PSECURITY_DESCRIPTOR pSD = NULL;
-    SECURITY_ATTRIBUTES SA = { sizeof(SA) };
-
     KbdcPrint(("Pipe manager thread started.\n"));
-
-    if(KbdcServCreateSecurityDescriptor(&pACL, &pSD))
-    {
-        SA.lpSecurityDescriptor = pSD;
-    }
 
     for(;;)
     {
+        DWORD dwError;
+        EXPLICIT_ACCESS ExAcc = { 0 };
+        PACL pACL = NULL;
         /*
             Pipe is created as duplex, even though it is only out-
             bound. This is because the client needs write access for
             SetNamedPipeHandleState to switch into message mode.
         */
-        HANDLE hPipe = CreateNamedPipe(KBDCSERV_PIPENAME, /*PIPE_ACCESS_OUTBOUND|*/PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, KBDCSERV_SIZE, 0, 0, &SA);
+        HANDLE hPipe = CreateNamedPipe(KBDCSERV_PIPENAME, /*PIPE_ACCESS_OUTBOUND|*/PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED|WRITE_DAC, PIPE_TYPE_MESSAGE|PIPE_READMODE_MESSAGE|PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, KBDCSERV_SIZE, 0, 0, NULL);
 
         if(hPipe==INVALID_HANDLE_VALUE)
         {
@@ -263,6 +219,43 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
             return EXIT_FAILURE;
         }
 
+        /*
+            Enable access for lower integrity clients. Since we want
+            to service, when we are a service, don't we?
+        */
+        ExAcc.grfAccessPermissions = GENERIC_READ|GENERIC_WRITE|SYNCHRONIZE;
+        ExAcc.grfAccessMode = SET_ACCESS;
+        ExAcc.grfInheritance = NO_INHERITANCE;
+        ExAcc.Trustee.TrusteeForm = TRUSTEE_IS_NAME;
+        ExAcc.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+        ExAcc.Trustee.ptstrName = "Everyone";
+
+        if((dwError = GetSecurityInfo(hPipe, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pACL, NULL, NULL))!=ERROR_SUCCESS)
+        {
+            KbdcPrint(("GetSecurityInfo failed (code=%#x).\n", dwError));
+            return EXIT_FAILURE;
+        }
+
+        if((dwError = SetEntriesInAcl(1, &ExAcc, pACL, &pACL))!=ERROR_SUCCESS)
+        {
+            KbdcPrint(("SetEntriesInAcl failed (code=%#x).\n", dwError));
+            return EXIT_FAILURE;
+        }
+
+        if((dwError = SetSecurityInfo(hPipe, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pACL, NULL))!=ERROR_SUCCESS)
+        {
+            KbdcPrint(("SetSecurityInfo failed (code=%#x).\n", dwError));
+            return EXIT_FAILURE;
+        }
+
+        if(pACL)
+        {
+            LocalFree(pACL);
+        }
+
+        /*
+            Idle until someone connects.
+        */
         KbdcPrint(("Waiting for pipe %p to connect...\n", hPipe));
 
         if(!KbdcConnectPipe(hPipe))
