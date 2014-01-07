@@ -1,7 +1,5 @@
 @ECHO OFF
-IF EXIST *.obj DEL *.obj
-IF EXIST kbdcatch.res DEL kbdcatch.res
-IF EXIST kbdcatch.sys DEL kbdcatch.sys
+FOR %%i IN (*.obj kbdcatch.res kbdcatch.sys) DO IF EXIST %%i DEL %%i
 IF "%1"=="clean" GOTO END
 SET CLOPT=/O2x /GF /DNDEBUG
 SET LNOPT=/OPT:REF /OPT:ICF C:\NTDDK\libfre\i386\wdm.lib
