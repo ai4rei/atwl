@@ -283,16 +283,6 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         CloseHandle(hPipe);
     }
 
-    if(pSD)
-    {
-        LocalFree(pSD);
-    }
-
-    if(pACL)
-    {
-        LocalFree(pACL);
-    }
-
     KbdcPrint(("Pipe manager thread stopped.\n"));
     return 0;
 }
