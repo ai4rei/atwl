@@ -56,6 +56,7 @@ typedef struct _KBDCSERVSTATE
     BOOLEAN ServiceMode;
     BOOLEAN ServiceCreate;
     BOOLEAN ServiceDelete;
+    BOOLEAN SessionLocked;
     KBDCSERVDEVICESTATE DevState[KBDC_DEVTYPE_MAX];
     BVSQUE PipeQueue;
     CRITICAL_SECTION PipeCS;
@@ -291,6 +292,12 @@ VOID __WDECL KbdcServBroadcastPacket(LPKBDCSERVDEVICESTATE pDS)
 {
     size_t uIdx;
 
+    if(l_State.SessionLocked)
+    {
+        KbdcPrint(("KbdcServBroadcastPacket: Session locked, discarding packet.\n"));
+        return;
+    }
+
     EnterCriticalSection(&l_State.PipeCS);
 
     for(uIdx = 0; uIdx<BVSQueLength(&l_State.PipeQueue); uIdx++)
@@ -467,6 +474,7 @@ UINT __WDECL KbdcServMain(VOID)
 
     if(hAvailEvent)
     {
+        /* TODO: Allow late-load of driver */
         HANDLE hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
         if(hFile!=INVALID_HANDLE_VALUE)
@@ -601,7 +609,7 @@ BOOL CALLBACK KbdcServOnCtrl(DWORD dwCtrlType)
     return TRUE;
 }
 
-VOID CALLBACK KbdcServOnCtrlHan(DWORD dwControl)
+DWORD CALLBACK KbdcServOnCtrlHanEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
 {
     switch(dwControl)
     {
@@ -614,12 +622,35 @@ VOID CALLBACK KbdcServOnCtrlHan(DWORD dwControl)
         case SERVICE_CONTROL_SHUTDOWN:
             KbdcServOnCtrl(CTRL_SHUTDOWN_EVENT);
             break;
+        case SERVICE_CONTROL_SESSIONCHANGE:
+        {
+            PWTSSESSION_NOTIFICATION pWSN = (PWTSSESSION_NOTIFICATION)lpEventData;
+
+            switch(dwEventType)
+            {
+                case WTS_REMOTE_CONNECT:
+                case WTS_SESSION_LOCK:
+                    l_State.SessionLocked = TRUE;
+                    KbdcPrint(("KbdcServOnCtrlHanEx: Session locked.\n"));
+                    break;
+                case WTS_REMOTE_DISCONNECT:
+                case WTS_SESSION_UNLOCK:
+                    l_State.SessionLocked = FALSE;
+                    KbdcPrint(("KbdcServOnCtrlHanEx: Session unlocked.\n"));
+                    break;
+            }
+            break;
+        }
+        default:
+            return ERROR_CALL_NOT_IMPLEMENTED;
     }
+
+    return ERROR_SUCCESS;
 }
 
 VOID CALLBACK KbdcServStart(DWORD dwArgc, LPSTR* lppszArgv)
 {
-    l_State.ServiceData.StatusHandle = RegisterServiceCtrlHandlerA(KBDCSERV_NAME, &KbdcServOnCtrlHan);
+    l_State.ServiceData.StatusHandle = RegisterServiceCtrlHandlerExA(KBDCSERV_NAME, &KbdcServOnCtrlHanEx, NULL);
 
     if(l_State.ServiceData.StatusHandle)
     {
