@@ -167,7 +167,7 @@ VOID __WDECL KbdcServPipeBroadcastPacket(LPKBDCSERVDEVICESTATE pDS)
         return;
     }
 
-    KbdcServBroadcastData(&pDS->DeviceType, sizeof(pDS->DeviceType)+pDS->CharBufferLength);
+    KbdcServPipeBroadcastData(&pDS->DeviceType, sizeof(pDS->DeviceType)+pDS->CharBufferLength);
 }
 
 BOOL __WDECL KbdcServPipeConnect(HANDLE hPipe)
@@ -463,7 +463,7 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
                         pDS->KeyState.CAPSLOCK ? '*' : ' ',
                         pDS->KeyState.SCROLLLOCK ? '*' : ' '));
 
-                    KbdcServBroadcastPacket(pDS);
+                    KbdcServPipeBroadcastPacket(pDS);
                     pDS->CharBufferLength = 0;
                 }
                 else if(pDS->CharBufferLength>=__ARRAYSIZE(pDS->CharBuffer))
