@@ -16,5 +16,6 @@ DEL *.obj > NUL
 RC /Forocred.res /I..\snippets rocred.rc
 CL %CLOPT% rocred.c bgskin.c button.c config.c
 LINK /NOLOGO /OPT:REF /OPT:ICF /OPT:NOWIN98 /RELEASE /OUT:rocred.exe *.obj rocred.res snippets.lib kernel32.lib user32.lib gdi32.lib comctl32.lib shell32.lib
+MODPE /NOLOGO /RELEASE /DLLFLAGS +NXCOMPAT rocred.exe
 SET CLOPT=
 :END
