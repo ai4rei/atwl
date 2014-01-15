@@ -128,7 +128,49 @@ VOID __WDECL KbdcServReportStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, D
     SetServiceStatus(l_State.ServiceData.StatusHandle, &l_State.ServiceData.Status);
 }
 
-BOOL __WDECL KbdcConnectPipe(HANDLE hPipe)
+VOID __WDECL KbdcServPipeBroadcastData(PVOID pData, DWORD dwSize)
+{
+    size_t uIdx;
+
+    EnterCriticalSection(&l_State.PipeCS);
+
+    for(uIdx = 0; uIdx<BVSQueLength(&l_State.PipeQueue); uIdx++)
+    {
+        DWORD dwRead;
+        HANDLE hPipe = BVSQueAt(&l_State.PipeQueue, uIdx)[0];
+        OVERLAPPED Ovl = { 0, 0, 0, 0, NULL };
+
+        if(!WriteFile(hPipe, pData, dwSize, &dwRead, &Ovl))
+        {
+            if(GetLastError()!=ERROR_IO_PENDING)
+            {
+                KbdcPrint(("WriteFile in KbdcServPipeBroadcastData failed (code=%#x).\n", GetLastError()));
+                BVSQueEraseByEntry(&l_State.PipeQueue, hPipe);
+                DisconnectNamedPipe(hPipe);
+                CloseHandle(hPipe);
+                uIdx--;
+                continue;
+            }
+        }
+
+        KbdcPrint(("Pipe %p schuduled to write packet.\n", hPipe));
+    }
+
+    LeaveCriticalSection(&l_State.PipeCS);
+}
+
+VOID __WDECL KbdcServPipeBroadcastPacket(LPKBDCSERVDEVICESTATE pDS)
+{
+    if(l_State.SessionLocked)
+    {
+        KbdcPrint(("KbdcServPipeBroadcastPacket: Session locked, discarding packet.\n"));
+        return;
+    }
+
+    KbdcServBroadcastData(&pDS->DeviceType, sizeof(pDS->DeviceType)+pDS->CharBufferLength);
+}
+
+BOOL __WDECL KbdcServPipeConnect(HANDLE hPipe)
 {
     BOOL bSuccess = FALSE;
     HANDLE hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -183,6 +225,11 @@ BOOL __WDECL KbdcConnectPipe(HANDLE hPipe)
             }
 
             EnterCriticalSection(&l_State.PipeCS);
+
+            /*
+                check for broken pipes
+            */
+            KbdcServPipeBroadcastData("", 0);
 
             BVSQuePushTail(&l_State.PipeQueue, hPipe);
 
@@ -259,7 +306,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         */
         KbdcPrint(("Waiting for pipe %p to connect...\n", hPipe));
 
-        if(!KbdcConnectPipe(hPipe))
+        if(!KbdcServPipeConnect(hPipe))
         {
             KbdcPrint(("KbdcConnectPipe failed (code=%#x).\n", GetLastError()));
             CloseHandle(hPipe);
@@ -286,43 +333,6 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 
     KbdcPrint(("Pipe manager thread stopped.\n"));
     return 0;
-}
-
-VOID __WDECL KbdcServBroadcastPacket(LPKBDCSERVDEVICESTATE pDS)
-{
-    size_t uIdx;
-
-    if(l_State.SessionLocked)
-    {
-        KbdcPrint(("KbdcServBroadcastPacket: Session locked, discarding packet.\n"));
-        return;
-    }
-
-    EnterCriticalSection(&l_State.PipeCS);
-
-    for(uIdx = 0; uIdx<BVSQueLength(&l_State.PipeQueue); uIdx++)
-    {
-        DWORD dwRead;
-        HANDLE hPipe = BVSQueAt(&l_State.PipeQueue, uIdx)[0];
-        OVERLAPPED Ovl = { 0, 0, 0, 0, NULL };
-
-        if(!WriteFile(hPipe, &pDS->DeviceType, sizeof(pDS->DeviceType)+pDS->CharBufferLength, &dwRead, &Ovl))
-        {
-            if(GetLastError()!=ERROR_IO_PENDING)
-            {
-                KbdcPrint(("WriteFile in KbdcServBroadcastPacket failed (code=%#x).\n", GetLastError()));
-                BVSQueEraseByEntry(&l_State.PipeQueue, hPipe);
-                DisconnectNamedPipe(hPipe);
-                CloseHandle(hPipe);
-                uIdx--;
-                continue;
-            }
-        }
-
-        KbdcPrint(("Pipe %p schuduled to write packet.\n", hPipe));
-    }
-
-    LeaveCriticalSection(&l_State.PipeCS);
 }
 
 VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
