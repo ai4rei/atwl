@@ -479,123 +479,122 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
 
 UINT __WDECL KbdcServMain(VOID)
 {
+    DWORD dwThreadId, dwRead, dwIdx, dwWait;
+    HANDLE hAvailEvent, hFile, hThread, Pipe[KBDCSERV_PIPESIZE];
+    KBDCINPUTDATA Kid[KBDCSERV_SIZE];
+    OVERLAPPED Ovl;
     UINT uExitCode = EXIT_FAILURE;
-    HANDLE hAvailEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    USHORT huDevType;
 
-    if(hAvailEvent)
+    /* stuff that cannot fail */
+    InitializeCriticalSection(&l_State.PipeCS);
+    BVSQueInit(&l_State.PipeQueue, Pipe, sizeof(Pipe));
+
+    /* initialize pipe buffer prefix fields */
+    for(huDevType = 0; huDevType<__ARRAYSIZE(l_State.DevState); huDevType++)
     {
-        /* TODO: Allow late-load of driver */
-        HANDLE hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+        l_State.DevState[huDevType].DeviceType = huDevType;
+    }
 
-        if(hFile!=INVALID_HANDLE_VALUE)
+    if((hAvailEvent = CreateEvent(NULL, FALSE, FALSE, NULL))!=NULL)
+    {
+        if((hThread = CreateThread(NULL, 0, &KbdcServPipeManager, NULL, CREATE_SUSPENDED, &dwThreadId))!=NULL)
         {
-            DWORD dwThreadId;
-            HANDLE hThread = CreateThread(NULL, 0, &KbdcServPipeManager, NULL, CREATE_SUSPENDED, &dwThreadId);
+            ResumeThread(hThread);
+            KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
-            if(hThread)
+            for(;;)
             {
-                DWORD dwRead, dwIdx;
-                HANDLE Pipe[KBDCSERV_PIPESIZE];
-                KBDCINPUTDATA Kid[KBDCSERV_SIZE];
-                OVERLAPPED Ovl;
-                USHORT huDevType;
-
-                /* remaining stuff that cannot fail */
-                InitializeCriticalSection(&l_State.PipeCS);
-                BVSQueInit(&l_State.PipeQueue, Pipe, sizeof(Pipe));
-
-                /* initialize pipe buffer prefix fields */
-                for(huDevType = 0; huDevType<__ARRAYSIZE(l_State.DevState); huDevType++)
+                if((hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))!=INVALID_HANDLE_VALUE)
                 {
-                    l_State.DevState[huDevType].DeviceType = huDevType;
-                }
-
-                ResumeThread(hThread);
-                KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
-
-                for(;;)
-                {
-                    Ovl.Offset = Ovl.OffsetHigh = 0;
-                    Ovl.hEvent = hAvailEvent;
-
-                    if(!ReadFile(hFile, Kid, sizeof(Kid), &dwRead, &Ovl))
+                    for(;;)
                     {
-                        DWORD dwWait;
-                        HANDLE Events[] =
-                        {
-                            hAvailEvent,
-                            l_State.hExitEvent,
-                        };
+                        Ovl.Offset = Ovl.OffsetHigh = 0;
+                        Ovl.hEvent = hAvailEvent;
 
-                        if(GetLastError()!=ERROR_IO_PENDING)
+                        if(!ReadFile(hFile, Kid, sizeof(Kid), &dwRead, &Ovl))
                         {
-                            KbdcPrint(("ReadFile failed (code=%#x).\n", GetLastError()));
-                            break;
-                        }
-
-                        dwWait = WaitForMultipleObjects(__ARRAYSIZE(Events), Events, FALSE, INFINITE);
-
-                        if(dwWait==WAIT_FAILED)
-                        {
-                            KbdcPrint(("WaitForMultipleObjects during ReadFile completion failed (code=%#x).\n", GetLastError()));
-                            CancelIo(hFile);
-                            break;
-                        }
-                        else if(dwWait==WAIT_OBJECT_0)
-                        {/* ReadFile complete */
-                            if(!GetOverlappedResult(hFile, &Ovl, &dwRead, FALSE))
+                            HANDLE Events[] =
                             {
-                                KbdcPrint(("GetOverlappedResult failed (code=%#x).\n", GetLastError()));
+                                hAvailEvent,
+                                l_State.hExitEvent,
+                            };
+
+                            if(GetLastError()!=ERROR_IO_PENDING)
+                            {
+                                KbdcPrint(("ReadFile failed (code=%#x).\n", GetLastError()));
+                                break;
+                            }
+
+                            dwWait = WaitForMultipleObjects(__ARRAYSIZE(Events), Events, FALSE, INFINITE);
+
+                            if(dwWait==WAIT_FAILED)
+                            {
+                                KbdcPrint(("WaitForMultipleObjects during ReadFile completion failed (code=%#x).\n", GetLastError()));
+                                CancelIo(hFile);
+                                break;
+                            }
+                            else if(dwWait==WAIT_OBJECT_0)
+                            {/* ReadFile complete */
+                                if(!GetOverlappedResult(hFile, &Ovl, &dwRead, FALSE))
+                                {
+                                    KbdcPrint(("GetOverlappedResult failed (code=%#x).\n", GetLastError()));
+                                    break;
+                                }
+                            }
+                            else if(dwWait==WAIT_OBJECT_0+1)
+                            {/* hExitEvent signaled */
+                                uExitCode = EXIT_SUCCESS;
+                                CancelIo(hFile);
+                                break;
+                            }
+                            else
+                            {
+                                KbdcPrint(("WaitForMultipleObjects returned unexpected value %#x (code=%#x).\n", dwWait, GetLastError()));
+                                CancelIo(hFile);
                                 break;
                             }
                         }
-                        else if(dwWait==WAIT_OBJECT_0+1)
-                        {/* hExitEvent signaled */
-                            uExitCode = EXIT_SUCCESS;
-                            CancelIo(hFile);
-                            break;
-                        }
-                        else
+
+                        if(dwRead%sizeof(Kid[0]))
                         {
-                            KbdcPrint(("WaitForMultipleObjects returned unexcepted value %#x (code=%#x).\n", dwWait, GetLastError()));
-                            CancelIo(hFile);
+                            KbdcPrint(("Received unexpected data size %u (%u, %u, %u).\n", dwRead, dwRead/sizeof(Kid[0]), dwRead%sizeof(Kid[0]), sizeof(Kid[0])));
+                        }
+
+                        for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
+                        {
+                            KbdcServProcessPacket(&Kid[dwIdx]);
+                        }
+
+                        if(WaitForSingleObject(l_State.hExitEvent, 0)==WAIT_OBJECT_0)
+                        {
+                            uExitCode = EXIT_SUCCESS;
                             break;
                         }
                     }
 
-                    if(dwRead%sizeof(Kid[0]))
-                    {
-                        KbdcPrint(("Received unexpected data size %u (%u, %u, %u).\n", dwRead, dwRead/sizeof(Kid[0]), dwRead%sizeof(Kid[0]), sizeof(Kid[0])));
-                    }
-
-                    for(dwIdx = 0; dwIdx<dwRead/sizeof(Kid[0]); dwIdx++)
-                    {
-                        KbdcServProcessPacket(&Kid[dwIdx]);
-                    }
-
-                    if(WaitForSingleObject(l_State.hExitEvent, 0)==WAIT_OBJECT_0)
-                    {
-                        uExitCode = EXIT_SUCCESS;
-                        break;
-                    }
+                    CloseHandle(hFile);
+                    hFile = INVALID_HANDLE_VALUE;
+                }
+                else
+                {
+                    KbdcPrint(("Failed to open communication device (code=%#x), will try later.\n", GetLastError()));
                 }
 
-                SetEvent(l_State.hExitEvent);  /* ensure, that the thread exits */
-                WaitForSingleObject(hThread, INFINITE);
-                CloseHandle(hThread);
-
-                DeleteCriticalSection(&l_State.PipeCS);
-            }
-            else
-            {
-                KbdcPrint(("Failed to create pipe thread (code=%#x).\n", GetLastError()));
+                if(WaitForSingleObject(l_State.hExitEvent, 60000)==WAIT_OBJECT_0)
+                {
+                    uExitCode = EXIT_SUCCESS;
+                    break;
+                }
             }
 
-            CloseHandle(hFile);
+            SetEvent(l_State.hExitEvent);  /* ensure, that the thread exits */
+            WaitForSingleObject(hThread, INFINITE);
+            CloseHandle(hThread);
         }
         else
         {
-            KbdcPrint(("Failed to open communication device (code=%#x).\n", GetLastError()));
+            KbdcPrint(("Failed to create pipe thread (code=%#x).\n", GetLastError()));
         }
 
         CloseHandle(hAvailEvent);
@@ -604,6 +603,8 @@ UINT __WDECL KbdcServMain(VOID)
     {
         KbdcPrint(("Failed to create avail event (code=%#x).\n", GetLastError()));
     }
+
+    DeleteCriticalSection(&l_State.PipeCS);
 
     return uExitCode;
 }
