@@ -52,6 +52,7 @@ KBDCSERVDEVICESTATE,* LPKBDCSERVDEVICESTATE;
 typedef struct _KBDCSERVSTATE
 {
     HANDLE hExitEvent;
+    HANDLE hStopEvent;
     SERVICEDATA ServiceData;
     BOOLEAN ServiceMode;
     BOOLEAN ServiceCreate;
@@ -195,12 +196,19 @@ BOOL __WDECL KbdcServPipeConnect(HANDLE hPipe)
                 HANDLE Events[] =
                 {
                     hEvent,
+                    l_State.hStopEvent,
                     l_State.hExitEvent,
                 };
 
                 dwWait = WaitForMultipleObjects(__ARRAYSIZE(Events), Events, FALSE, INFINITE);
 
                 if(dwWait==WAIT_OBJECT_0+1 || dwWait==WAIT_ABANDONED_0+1)
+                {/* hStopEvent */
+                    bSuccess = TRUE;
+                    break;
+                }
+
+                if(dwWait==WAIT_OBJECT_0+2 || dwWait==WAIT_ABANDONED_0+2)
                 {/* hExitEvent */
                     bSuccess = TRUE;
                     break;
@@ -317,10 +325,37 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
             break;
         }
 
+        if(WaitForSingleObject(l_State.hStopEvent, 0)==WAIT_OBJECT_0)
+        {
+            KbdcPrint(("Pausing pipe manager thread...\n"));
+
+            EnterCriticalSection(&l_State.PipeCS);
+
+            while(BVSQueLength(&l_State.PipeQueue))
+            {
+                HANDLE hPipe = BVSQuePopTail(&l_State.PipeQueue);
+
+                FlushFileBuffers(hPipe);
+                DisconnectNamedPipe(hPipe);
+                CloseHandle(hPipe);
+            }
+
+            LeaveCriticalSection(&l_State.PipeCS);
+
+            /*
+                go to sleep
+            */
+            SuspendThread(GetCurrentThread());
+
+            KbdcPrint(("Resuming pipe manager thread...\n"));
+        }
+
         KbdcPrint(("Pipe %p connected.\n", hPipe));
     }
 
     KbdcPrint(("Stopping pipe manager thread...\n"));
+
+    EnterCriticalSection(&l_State.PipeCS);
 
     while(BVSQueLength(&l_State.PipeQueue))
     {
@@ -330,6 +365,8 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         DisconnectNamedPipe(hPipe);
         CloseHandle(hPipe);
     }
+
+    LeaveCriticalSection(&l_State.PipeCS);
 
     KbdcPrint(("Pipe manager thread stopped.\n"));
     return 0;
@@ -500,13 +537,14 @@ UINT __WDECL KbdcServMain(VOID)
     {
         if((hThread = CreateThread(NULL, 0, &KbdcServPipeManager, NULL, CREATE_SUSPENDED, &dwThreadId))!=NULL)
         {
-            ResumeThread(hThread);
             KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
             for(;;)
             {
                 if((hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))!=INVALID_HANDLE_VALUE)
                 {
+                    ResumeThread(hThread);
+
                     for(;;)
                     {
                         Ovl.Offset = Ovl.OffsetHigh = 0;
@@ -573,6 +611,13 @@ UINT __WDECL KbdcServMain(VOID)
                         }
                     }
 
+                    /*
+                        disconnect all listeners
+                        - hThread will be suspended
+                        - hStopEvent is auto-reset
+                    */
+                    SetEvent(l_State.hStopEvent);
+
                     CloseHandle(hFile);
                     hFile = INVALID_HANDLE_VALUE;
                 }
@@ -588,7 +633,11 @@ UINT __WDECL KbdcServMain(VOID)
                 }
             }
 
-            SetEvent(l_State.hExitEvent);  /* ensure, that the thread exits */
+            /*
+                ensure, that the thread exits
+            */
+            ResumeThread(hThread);
+            SetEvent(l_State.hExitEvent);
             WaitForSingleObject(hThread, INFINITE);
             CloseHandle(hThread);
         }
@@ -800,19 +849,27 @@ VOID __WDECL KbdcServEnter(VOID)
 
                 if(l_State.hExitEvent)
                 {
-                    SERVICE_TABLE_ENTRY ServiceDispatchTable[] =
-                    {
-                        { KBDCSERV_NAME, &KbdcServStart },
-                        { NULL, NULL }
-                    };
+                    l_State.hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-                    if(StartServiceCtrlDispatcherA(ServiceDispatchTable))
+                    if(l_State.hStopEvent)
                     {
-                        uExitCode = EXIT_SUCCESS;
-                    }
-                    else
-                    {
-                        KbdcPrint(("Failed to connect to SCM (code=%#x).\n", GetLastError()));
+                        SERVICE_TABLE_ENTRY ServiceDispatchTable[] =
+                        {
+                            { KBDCSERV_NAME, &KbdcServStart },
+                            { NULL, NULL }
+                        };
+
+                        if(StartServiceCtrlDispatcherA(ServiceDispatchTable))
+                        {
+                            uExitCode = EXIT_SUCCESS;
+                        }
+                        else
+                        {
+                            KbdcPrint(("Failed to connect to SCM (code=%#x).\n", GetLastError()));
+                        }
+
+                        CloseHandle(l_State.hStopEvent);
+                        l_State.hStopEvent = NULL;
                     }
 
                     CloseHandle(l_State.hExitEvent);
