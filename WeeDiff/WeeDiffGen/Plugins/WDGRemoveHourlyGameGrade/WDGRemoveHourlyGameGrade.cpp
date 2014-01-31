@@ -125,7 +125,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
                   "66 85C0"        // TEST    AX,AX
                   "75 15"          // JNZ     SHORT ADDR v
                   "84C9"           // TEST    CL,CL
-                  "75 15"          // JNZ     SHORT ADDR v
+                  "75 26"          // JNZ     SHORT ADDR v
                   "B1 01"          // MOV     CL,1
                   "33C0"           // XOR     EAX,EAX
                   ;
