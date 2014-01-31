@@ -112,10 +112,27 @@ DiffData* WDGPlugin::GeneratePatch(void)
                   "3B'?'"        // CMP     EDI,R32  ; R32 is initialized to 0
                   "0F8E"         // JLE     ADDR v
                   ;
+        if(this->TryMatch(&Fd, &uOffset))
+        {
+            this->SetByte(uOffset+14, 0x90);  // JLE -> NOP
+            this->SetByte(uOffset+15, 0xE9);  // JLE -> JMP
+            break;
+        }
+
+        // ? ~ 2013-12-23cRagexe ~ ? (VC10)
+        Fd.lpData =
+                  "B8 B17C2195"  // MOV     EAX,95217CB1h
+                  "F7E1"         // MUL     ECX
+                  "8BFA"         // MOV     EDI,EDX
+                  "C1EF 15"      // SHR     EDI,15h
+                  "897D '?'"     // MOV     DWORD PTR SS:[EBP-?],EDI
+                  "85FF"         // TEST    EDI,EDI
+                  "0F8E"         // JLE     ADDR v
+                  ;
         uOffset = this->m_dgc->Match(&Fd);
 
-        this->SetByte(uOffset+14, 0x90);  // JLE -> NOP
-        this->SetByte(uOffset+15, 0xE9);  // JLE -> JMP
+        this->SetByte(uOffset+17, 0x90);  // JLE -> NOP
+        this->SetByte(uOffset+18, 0xE9);  // JLE -> JMP
     }
     catch(const char* lpszThrown)
     {
