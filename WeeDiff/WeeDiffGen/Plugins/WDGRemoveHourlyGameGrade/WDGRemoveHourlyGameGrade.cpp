@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // WDGRemoveHourlyGameGrade
-// (c) 2012 Ai4rei/AN
+// (c) 2012-2014 Ai4rei/AN
 //
 // This work is licensed under a
 // Creative Commons BY-NC-SA 3.0 Unported License
@@ -109,6 +109,23 @@ DiffData* WDGPlugin::GeneratePatch(void)
                   "75 15"          // JNZ     SHORT ADDR v
                   "84C9"           // TEST    CL,CL
                   "75 26"          // JNZ     SHORT ADDR v
+                  "B1 01"          // MOV     CL,1
+                  "33C0"           // XOR     EAX,EAX
+                  ;
+        if(this->TryMatch(&Fd, &uOffset))
+        {
+            this->SetByte(uOffset, 0xEB);  // JNZ -> JMP
+            break;
+        }
+
+        // ? ~ 2013-12-23cRagexe ~ ? (VC10)
+        Fd.lpData =
+                  "75 33"          // JNZ     SHORT ADDR v
+                  "66 8B45 '?'"    // MOV     AX,WORD PTR SS:[EBP-?]
+                  "66 85C0"        // TEST    AX,AX
+                  "75 15"          // JNZ     SHORT ADDR v
+                  "84C9"           // TEST    CL,CL
+                  "75 15"          // JNZ     SHORT ADDR v
                   "B1 01"          // MOV     CL,1
                   "33C0"           // XOR     EAX,EAX
                   ;
