@@ -122,7 +122,7 @@ bool WDGPlugin::IsVC9Image(void)
 {
     try
     {
-        this->m_dgc->FindFunction("_encode_pointer");  // msvcr90.dll
+        this->m_dgc->FindFunction("_except_handler4_common");  // msvcr90.dll/msvcr100.dll
     }
     catch(const char* lpszThrown)
     {
