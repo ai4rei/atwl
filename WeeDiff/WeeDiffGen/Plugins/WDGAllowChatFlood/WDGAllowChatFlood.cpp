@@ -96,7 +96,13 @@ DiffData *WDGPlugin::GeneratePatch()
 		try
 		{
 			ZeroMemory(&sFindData, sizeof(sFindData));
-			sFindData.lpData = "83 3D AB AB AB AB 0A 74 AB 83 7C 24 04 02 7C 47 6A 00";
+			sFindData.lpData = 
+							 "833D ABABABAB 0A"  // CMP     DWORD PTR DS:[<g_serviceType>],0Ah
+							 "74 AB"             // JE      ADDR v
+							 "837C24 04 02"      // CMP     [ESP+4],2
+							 "7C 47"             // JL      ADDR v
+							 "6A 00"             // PUSH    0
+							 ;
 			sFindData.lpszSection = ".text";
 			sFindData.chWildCard = '\xAB';
 			sFindData.uMask = WFD_PATTERN | WFD_SECTION | WFD_WILDCARD;
