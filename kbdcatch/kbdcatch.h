@@ -52,7 +52,7 @@ Revision History:
 #define DBGIDENT "KbdC"
 #define DBGENTER(_x_) DbgPrint(DBGIDENT": Enter '%s' (0x%p), Level: %u\n", #_x_, &_x_, KeGetCurrentIrql())
 #define DBGLEAVE(_x_) DbgPrint(DBGIDENT": Leave '%s' (0x%p), Level: %u\n", #_x_, &_x_, KeGetCurrentIrql())
-#define DBGERROR(_x_,_y_,_z_) DbgPrint(DBGIDENT": Call to '%s' (0x%p) failed in '%s' (0x%p) with status %l (0x%08x)\n", #_x_, &_x_, #_y_, &_y_, _z_, _z_)
+#define DBGERROR(_x_,_y_,_z_) DbgPrint(DBGIDENT": Call to '%s' (0x%p) failed in '%s' (0x%p) with status %ld (0x%08x)\n", #_x_, &_x_, #_y_, &_y_, _z_, _z_)
 
 #else   // DBG
 
