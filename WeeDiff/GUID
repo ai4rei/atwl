@@ -27,3 +27,5 @@ Atwl:
 {f4b16161-19ea-e111-a77802215648a98} WDGScreenshotQuality
 {f5b16161-19ea-e111-a77802215648a98} WDGEnableProxySupport
 {f6b16161-19ea-e111-a77802215648a98} WDGEnableCustom3DBones
+{f7b16161-19ea-e111-a77802215648a98} WDGEnableGuildFlagAnimation
+{f8b16161-19ea-e111-a77802215648a98} WDGCancelToLoginWindow
