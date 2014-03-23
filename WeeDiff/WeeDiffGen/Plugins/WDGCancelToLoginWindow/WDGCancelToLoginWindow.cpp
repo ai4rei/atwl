@@ -130,12 +130,28 @@ DiffData* WDGPlugin::GeneratePatch(void)
             uPart = 3;
 
             uOffset = this->m_dgc->Match(&Fd);
-            uDialog = uOffset+13;
+            uDialog = uOffset+32;
         }
         else
         {
-            uDialog = uOffset+15;
+            uDialog = uOffset+34;
         }
+
+        // Process CMP EAX,IMM8/IMM32
+        if(this->m_dgc->GetBYTE(uDialog)==0x3D /* CMP EAX,IMM32 */)
+        {
+            uDialog+= 5;
+        }
+        else
+        if(this->m_dgc->GetWORD(uDialog)==0xF883 /* CMP EAX,IMM8 */)
+        {
+            uDialog+= 3;
+        }
+        else
+        {
+            throw "Unexpected CMP variant or instruction.";
+        }
+        uDialog+= 6;  // JNZ ADDR
 
         uPart = 4;
 
@@ -273,7 +289,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         uPart = 8;
 
-        this->SetBuffer(uOffset, (char*)cCodeSketch2, sizeof(cCodeSketch2));
+        this->SetBuffer(uCrawl, (char*)cCodeSketch2, sizeof(cCodeSketch2));
 
         // in this temporary realm we have to:
         // - POP last PUSH (that is, value 2), since we are not
@@ -310,7 +326,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         uPart = 9;
 
-        this->SetBuffer(uOffset, (char*)cCodeSketch3, sizeof(cCodeSketch3));
+        this->SetBuffer(uJumpBack, (char*)cCodeSketch3, sizeof(cCodeSketch3));
     }
     catch(const char* lpszThrown)
     {
