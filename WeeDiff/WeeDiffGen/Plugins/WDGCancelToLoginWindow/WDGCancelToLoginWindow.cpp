@@ -62,7 +62,8 @@ LPCTSTR WDGPlugin::GetInputValue(void)
 DiffData* WDGPlugin::GeneratePatch(void)
 {
     FINDDATA Fd;
-    UINT32 uOffset, uBegin, uPart;
+    UINT32 uOffset, uPart = 0, uDialog, uBlock, uCrawl, uJumpBack, uCallSize;
+    UINT32 uDisconnec, uInstanceR;
 
     this->m_DiffData.clear();
 
@@ -87,7 +88,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         // Find reference to the string, where it is used for a
         // Yes/No dialog for MSI_DO_YOU_REALLY_WANT_TO_QUIT.
-        char cMatchCode1[] =
+        BYTE cMatchCode1[] =
         {
             0x68, 0x00, 0x00, 0x00, 0x00,    // PUSH    ADDR
             0x6A, 0x00,                      // PUSH    0
@@ -100,7 +101,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         ((UINT32*)&cMatchCode1[1])[0] = this->m_dgc->Raw2Rva(uOffset);
 
         Fd.uMask = WFD_SECTION;
-        Fd.lpData = cMatchCode1;
+        Fd.lpData = (char*)cMatchCode1;
         Fd.uDataSize = sizeof(cMatchCode1);
         Fd.lpszSection = ".text";
 
@@ -109,7 +110,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         if(!this->TryMatch(&Fd, &uOffset))
         {
             // Variant for early VC9 clients.
-            char cMatchCode2[] =
+            BYTE cMatchCode2[] =
             {
                 0x68, 0x00, 0x00, 0x00, 0x00,    // PUSH    ADDR
                 0x50,                            // PUSH    EAX     ; 0
@@ -122,7 +123,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
             ((UINT32*)&cMatchCode2[1])[0] = this->m_dgc->Raw2Rva(uOffset);
 
             Fd.uMask = WFD_SECTION;
-            Fd.lpData = cMatchCode2;
+            Fd.lpData = (char*)cMatchCode2;
             Fd.uDataSize = sizeof(cMatchCode2);
             Fd.lpszSection = ".text";
 
@@ -139,13 +140,13 @@ DiffData* WDGPlugin::GeneratePatch(void)
         uPart = 4;
 
         // Check for size parameters (newer clients).
-        if(this->m_dgc->GetDWORD(uOffset-5)==0x68 /* PUSH */ && this->m_dgc->GetDWORD(uOffset-4)==0x118 /* 118h */)
+        if(this->m_dgc->GetBYTE(uOffset-5)==0x68 /* PUSH */ && this->m_dgc->GetDWORD32(uOffset-4)==0x118 /* 118h */)
         {
             uOffset-= 7;
         }
 
         // Find CRagConnection::instanceR and CConnection::Disconnect.
-        char cMatchCode3[] =
+        BYTE cMatchCode3[] =
         {
             0x68,  '?',  '?',  '?', 0x00,        // PUSH    ADDR ("5,01,2600,1832")
             0x51,                                // PUSH    ECX
@@ -157,21 +158,21 @@ DiffData* WDGPlugin::GeneratePatch(void)
         };
 
         Fd.uMask = WFD_SECTION|WFD_WILDCARD;
-        Fd.lpData = cMatchCode3;
+        Fd.lpData = (char*)cMatchCode3;
         Fd.uDataSize = sizeof(cMatchCode3);
         Fd.lpszSection = ".text";
-        Fd.chWildcard = '?';
+        Fd.chWildCard = '?';
 
         uPart = 5;
 
         uBlock = this->m_dgc->Match(&Fd);
 
         // convert relative offsets to absolute
-        uInstanceR = uBlock+16+this->m_dgc->GetDWORD(uBlock+12);
-        uDisconnec = uBlock+23+this->m_dgc->GetDWORD(uBlock+19);
+        uInstanceR = uBlock+16+this->m_dgc->GetDWORD32(uBlock+12);
+        uDisconnec = uBlock+23+this->m_dgc->GetDWORD32(uBlock+19);
 
         // setup new code (part A)
-        char cCodeSketch1[] =
+        BYTE cCodeSketch1[] =
         {
             0xE8, 0x00, 0x00, 0x00, 0x00,        // CALL    CRagConnection::instanceR
             0x8B, 0xC8,                          // MOV     ECX,EAX
@@ -184,7 +185,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
         uPart = 6;
 
-        this->SetBuffer(uOffset, cCodeSketch1, sizeof(cCodeSketch1));
+        this->SetBuffer(uOffset, (char*)cCodeSketch1, sizeof(cCodeSketch1));
 
         // setup new code (part B)
         // there are various code variants after the uDialog offset:
@@ -264,15 +265,15 @@ DiffData* WDGPlugin::GeneratePatch(void)
         // for later, and jump back.
         uJumpBack = uOffset+sizeof(cCodeSketch1);
 
-        char cCodeSketch2[] =
+        BYTE cCodeSketch2[] =
         {
             0xEB, 0x00,
         };
-        ((UINT8*)&cCodeSketch2[1])[0] = uJumpBack-(uByte+2);
+        ((UINT8*)&cCodeSketch2[1])[0] = uJumpBack-(uCrawl+2);
 
         uPart = 8;
 
-        this->SetBuffer(uOffset, cCodeSketch2, sizeof(cCodeSketch2));
+        this->SetBuffer(uOffset, (char*)cCodeSketch2, sizeof(cCodeSketch2));
 
         // in this temporary realm we have to:
         // - POP last PUSH (that is, value 2), since we are not
@@ -283,7 +284,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
         //   displacement, we push an optional NOP after it, so we
         //   do not have to set-up two buffers
         // - jump to the PUSH R32 after the backed up CALL
-        char cCodeSketch3[] =
+        BYTE cCodeSketch3[] =
         {
             0x83, 0xC4, 0x04,                // ADD     ESP,4
             0x68, 0x23, 0x27, 0x00, 0x00,    // PUSH    2723h
@@ -291,25 +292,25 @@ DiffData* WDGPlugin::GeneratePatch(void)
             0xEB, 0x00,
         };
 
-        if((this->m_dgc->GetBYTE(uByte+1)&0xF0)==0xD0)
+        if((this->m_dgc->GetBYTE(uCrawl+1)&0xF0)==0xD0)
         {// CALL NEAR R32
             uCallSize = 2;
 
-            ((UINT8*)&cCodeSketch3[9])[0] = this->m_dgc->GetBYTE(uByte+1);
+            ((UINT8*)&cCodeSketch3[9])[0] = this->m_dgc->GetBYTE(uCrawl+1);
         }
         else
         {// assume displacement form
             uCallSize = 3;
 
-            ((UINT8*)&cCodeSketch3[9])[0] = this->m_dgc->GetBYTE(uByte+1);
-            ((UINT8*)&cCodeSketch3[10])[0] = this->m_dgc->GetBYTE(uByte+2);
+            ((UINT8*)&cCodeSketch3[9])[0] = this->m_dgc->GetBYTE(uCrawl+1);
+            ((UINT8*)&cCodeSketch3[10])[0] = this->m_dgc->GetBYTE(uCrawl+2);
         }
 
-        ((UINT8*)&cCodeSketch3[12])[0] = (uByte+uCallSize)-(uJumpBack+13);
+        ((UINT8*)&cCodeSketch3[12])[0] = (uCrawl+uCallSize)-(uJumpBack+13);
 
         uPart = 9;
 
-        this->SetBuffer(uOffset, cCodeSketch3, sizeof(cCodeSketch3));
+        this->SetBuffer(uOffset, (char*)cCodeSketch3, sizeof(cCodeSketch3));
     }
     catch(const char* lpszThrown)
     {
