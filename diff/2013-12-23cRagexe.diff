@@ -1,0 +1,13 @@
+OCRC:38229999
+byte_[Win98]_Subsystem_Version_to_4.0:180:5:4
+byte_[Win98]_Subsystem_Version_to_4.0:182:1:0
+byte_[Fix]_Enable_Clientinfo.xml_(Langtype_0):1C52DC:0:1
+byte_[Fix]_Disable_Debugger_Detection:29AD93:117:235
+byte_[Packet]_Disable_Obfuscation:41D51A:1:2
+byte_[Packet]_Disable_Obfuscation:4491F7:1:2
+byte_[Fix]_Disable_Cash_Fonts:491E70:15:144
+byte_[Fix]_Disable_Cash_Fonts:491E71:133:233
+byte_[Fix]_Enable_Window_Move/Minimize:4BA3EB:194:202
+byte_[Fix]_Enable_Window_Move/Minimize:4BA4C7:194:202
+byte_[Fix]_Disable_Client_Filename_Check:4BB1B5:117:235
+byte_[Fix]_Disable_Hackshield:4BB26F:117:235
