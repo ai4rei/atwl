@@ -1,0 +1,41 @@
+====================================================================
+= CRagEffect::Init Database
+= (c) 2014 Ai4rei/AN
+=
+====================================================================
+
+License:
+
+    This work is licensed under a Creative Commons Attribution-Noncommercial 3.0 Unported License ( http://creativecommons.org/licenses/by-nc/3.0/ ).
+
+About:
+
+    This is a RagnarokOnline* Client Plug-In that allows visual
+    effect definitions to be edited within a convenient text table
+    as opposed to hard-coded values in the client. Provided template
+    reflects the hard-coded values of the indicated client.
+
+Usage:
+
+    Place id2rageffect.txt into the data\ folder in the
+    RagnarokOnline directory and rageffect.asi in the RagnarokOnline
+    directory. The client will load the Plug-In upon next start.
+
+Customization:
+
+    See notes in id2rageffect.txt on the format of the data. The
+    Plug-In output can be observed with DebugView from Sysinternals.
+
+History:
+
+    - [2014-05-10] 1.0.3.1
+        ! Fixed stack corruption on VC10 clients, that would lead to
+          effects not actually working.
+    - [2014-05-04] 1.0.2.0
+        ! Fixed tail check failure for VC10 clients.
+    - [2014-04-28] 1.0.1.0
+        ! Fixed ID for WindHit%d.str as pointed out by [KeyWorld].
+    - [2014-04-27] 1.0.0.0
+        + Initial release.
+
+====================================================================

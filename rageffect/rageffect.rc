@@ -1,0 +1,9 @@
+#define APP_VERSION "1.0.3.1"
+#define APP_VERSIONINFO_VERSION 1,0,3,1
+#define APP_PRODUCTNAME "CRagEffect::Init Database"
+#define APP_DESCRIPTION "RagnarokOnline Client Plug-In"
+#define APP_INTERNALNAME "rageffect"
+#define APP_ORIGINALNAME "rageffect.asi"
+#define APP_COPYYEAR "2014"
+
+#include <rc_vinfo.rc>
