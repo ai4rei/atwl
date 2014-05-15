@@ -1,8 +1,8 @@
 // Id2RagEffect Database
 //
-// Date:                2014-04-20
-// Version:             1.1
-// Reference Client:    kRO/Main/2013-12-23cRagexe
+// Date:                2014-05-15
+// Version:             1.2
+// Reference Client:    kRO/Main/2014-04-16aRagexe
 // Author:              Ai4rei/AN
 //
 // Format:
@@ -249,4 +249,3 @@
 1050#NC_MAGMA_ERUPTION##
 1055#chill##
 1057#AB_OFFERTORIUM_ring##
-1062#StormGust##
