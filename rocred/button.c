@@ -1,7 +1,7 @@
 #include <windows.h>
 
 #include <btypes.h>
-#include <cstr.h>
+#include <bvcstr.h>
 #include <memory.h>
 #include <xf_slash.h>
 
@@ -38,7 +38,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
 
         if(lpszActionData[0]=='#')
         {
-            LoadStringA(GetModuleHandle(NULL), lstrtoulA(lpszActionData+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
+            LoadStringA(GetModuleHandle(NULL), BvStrToULongA(lpszActionData+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
             lpszActionData = szBuffer;
         }
 

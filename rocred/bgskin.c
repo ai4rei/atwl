@@ -9,7 +9,7 @@
 
 #include <btypes.h>
 #include <bvector.h>
-#include <cstr.h>
+#include <bvcstr.h>
 #include <memory.h>
 #include <regionui.h>
 #include <w32uxt.h>
@@ -190,7 +190,7 @@ static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const cha
     HBITMAP hbmLook;
 
     wsprintfA(szFileName, "%s.bmp", lpszName);
-    lstrtolowerA(szFileName);
+    BvStrToLowerA(szFileName);
 
     hbmLook = BgSkin_P_LoadBitmap(szFileName, lpszName);
 

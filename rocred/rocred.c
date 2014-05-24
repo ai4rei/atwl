@@ -9,7 +9,7 @@
 #include <commctrl.h>
 
 #include <btypes.h>
-#include <cstr.h>
+#include <bvcstr.h>
 #include <dlgabout.h>
 #include <dlgtempl.h>
 #include <macaddr.h>
@@ -263,7 +263,7 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
 
         if(lpszDisplayName[0]=='#')
         {
-            LoadStringA(GetModuleHandle(NULL), lstrtoulA(lpszDisplayName+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
+            LoadStringA(GetModuleHandle(NULL), BvStrToULongA(lpszDisplayName+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
             lpszDisplayName = szBuffer;
         }
 
