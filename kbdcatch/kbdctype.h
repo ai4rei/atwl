@@ -6,6 +6,11 @@
 #ifndef _KBDCTYPE_H_
 #define _KBDCTYPE_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif  /* __cplusplus */
+
 typedef enum _KBDCDEVICETYPE
 {
     KBDC_DEVTYPE_UNKNOWN, /* debug and devices that do not fit */
@@ -33,5 +38,22 @@ typedef struct _KBDCINPUTDATA
     USHORT Reserved;    /* padding */
 }
 KBDCINPUTDATA,* PKBDCINPUTDATA;
+
+typedef BOOLEAN (__WDECL* LPFNKBDCHANDLER)
+(
+    KBDCDEVICETYPE nDeviceType,
+    LPCBYTE lpData,
+    DWORD dwSize
+);
+
+typedef void (__WDECL* LPFNKBDCENTRY)
+(
+    LPFNKBDCHANDLER* lppHandler,
+    void* lpReserved
+);
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
 
 #endif  /* _KBDCTYPE_H_ */
