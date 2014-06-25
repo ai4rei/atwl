@@ -40,14 +40,14 @@ typedef struct _KBDCINPUTDATA
 }
 KBDCINPUTDATA,* PKBDCINPUTDATA;
 
-typedef BOOLEAN (__WDECL* LPFNKBDCHANDLER)
+typedef BOOLEAN (__stdcall* LPFNKBDCHANDLER)
 (
     KBDCDEVICETYPE nDeviceType,
-    LPCBYTE lpData,
-    DWORD dwSize
+    CONST UCHAR* lpData,
+    ULONG ulSize
 );
 
-typedef void (__WDECL* LPFNKBDCENTRY)
+typedef void (__stdcall* LPFNKBDCENTRY)
 (
     LPFNKBDCHANDLER* lppHandler,
     void* lpReserved
