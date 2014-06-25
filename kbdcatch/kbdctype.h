@@ -16,6 +16,7 @@ typedef enum _KBDCDEVICETYPE
     KBDC_DEVTYPE_UNKNOWN, /* debug and devices that do not fit */
     KBDC_DEVTYPE_BARCODE,
     KBDC_DEVTYPE_RFID,
+    KBDC_DEVTYPE_NUMPAD,
     KBDC_DEVTYPE_MAX
 }
 KBDCDEVICETYPE;
