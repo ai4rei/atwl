@@ -382,6 +382,16 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
     */
     switch(pKid->MakeCode)
     {
+        case 14:  /* BKSP */
+            if(pKid->Flags&KIDF_BREAK)
+            {/* released */
+                ;
+            }
+            else if(pDS->CharBufferLength)
+            {
+                pDS->CharBufferLength--;
+            }
+            break;
         case 29:  /* LCTRL (1)/RCTRL (2) */
             if(pKid->Flags&KIDF_BREAK)
             {
