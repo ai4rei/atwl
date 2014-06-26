@@ -253,6 +253,22 @@ BOOL __WDECL KbdcServPipeConnect(HANDLE hPipe)
     return bSuccess;
 }
 
+VOID __WDECL KbdcServPipeDisconnectAll(VOID)
+{
+    EnterCriticalSection(&l_State.PipeCS);
+
+    while(BVSQueLength(&l_State.PipeQueue))
+    {
+        HANDLE hPipe = BVSQuePopTail(&l_State.PipeQueue);
+
+        FlushFileBuffers(hPipe);
+        DisconnectNamedPipe(hPipe);
+        CloseHandle(hPipe);
+    }
+
+    LeaveCriticalSection(&l_State.PipeCS);
+}
+
 DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 {
     KbdcPrint(("Pipe manager thread started.\n"));
@@ -329,18 +345,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         {
             KbdcPrint(("Pausing pipe manager thread...\n"));
 
-            EnterCriticalSection(&l_State.PipeCS);
-
-            while(BVSQueLength(&l_State.PipeQueue))
-            {
-                HANDLE hPipe = BVSQuePopTail(&l_State.PipeQueue);
-
-                FlushFileBuffers(hPipe);
-                DisconnectNamedPipe(hPipe);
-                CloseHandle(hPipe);
-            }
-
-            LeaveCriticalSection(&l_State.PipeCS);
+            KbdcServPipeDisconnectAll();
 
             /*
                 go to sleep
@@ -355,18 +360,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
 
     KbdcPrint(("Stopping pipe manager thread...\n"));
 
-    EnterCriticalSection(&l_State.PipeCS);
-
-    while(BVSQueLength(&l_State.PipeQueue))
-    {
-        HANDLE hPipe = BVSQuePopTail(&l_State.PipeQueue);
-
-        FlushFileBuffers(hPipe);
-        DisconnectNamedPipe(hPipe);
-        CloseHandle(hPipe);
-    }
-
-    LeaveCriticalSection(&l_State.PipeCS);
+    KbdcServPipeDisconnectAll();
 
     KbdcPrint(("Pipe manager thread stopped.\n"));
     return 0;
