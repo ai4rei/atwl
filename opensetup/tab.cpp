@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -16,26 +16,76 @@
 #define IMGLISTID_24BP(x) MAKEINTRESOURCE((x)+2)
 #define IMGLISTID_32BP(x) MAKEINTRESOURCE((x)+3)
 
+bool __stdcall CTabMgr::IsTransparencyBitmapSupportBroken(void)
+{
+    OSVERSIONINFO Osvi = { sizeof(Osvi) };
+
+    ::GetVersionEx(&Osvi);
+
+    return (Osvi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (Osvi.dwMajorVersion<5 || (Osvi.dwMajorVersion==5 && Osvi.dwMinorVersion<1));  // Windows 2000 and earlier
+}
+
+void __stdcall CTabMgr::InitImgList(int nImgDimension, int nImgListBase, int nMaxImages)
+{
+    HBITMAP hBmp, hMsk = NULL;
+    UINT uFlags = ILC_COLOR32;
+
+    if(IsTransparencyBitmapSupportBroken() || (hBmp = (HBITMAP)::LoadImage(m_hInstance, IMGLISTID_32BP(nImgListBase), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION))==NULL)
+    {// GetLastError will return 120 (ERROR_CALL_NOT_SUPPORTED)
+        hBmp = (HBITMAP)::LoadImage(m_hInstance, IMGLISTID_24BP(nImgListBase), IMAGE_BITMAP, 0, 0, 0);
+        hMsk = (HBITMAP)::LoadImage(m_hInstance, IMGLISTID_MASK(nImgListBase), IMAGE_BITMAP, 0, 0, 0);
+        uFlags = ILC_COLOR24|ILC_MASK;
+    }
+
+    m_hImgList = ::ImageList_Create(nImgDimension, nImgDimension, uFlags, 0, nMaxImages);
+
+    ::ImageList_Add(m_hImgList, hBmp, hMsk);
+
+    ::DeleteObject(hMsk);
+    ::DeleteObject(hBmp);
+}
+
+bool __stdcall CTabMgr::GetActiveTab(unsigned long& luIdx)
+{
+    for(luIdx = 0; luIdx<m_TabList.size() && !::SendMessage(m_hWnd, TB_ISBUTTONCHECKED, m_TabList[luIdx].first, 0); luIdx++);
+
+    if(luIdx==m_TabList.size())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+CTabMgr::CTabMgr()
+{
+    m_hImgList   = NULL;
+    m_hInstance  = NULL;
+    m_hWnd       = NULL;
+    m_hWndParent = NULL;
+}
+
 CTabMgr::~CTabMgr()
 {
-    this->Kill();
+    Kill();
 }
 
 bool __stdcall CTabMgr::Init(HINSTANCE hInstance, HWND hWndParent, int nImgDimension, int nImgListBase, int nMaxImages)
 {
-    this->m_hInstance  = hInstance;
-    this->m_hWndParent = hWndParent;
-    this->m_hWnd       = CreateWindow(TOOLBARCLASSNAME, NULL, TBSTYLE_FLAT|TBSTYLE_LIST|WS_CHILD, 0, 0, 0, 0, hWndParent, NULL, hInstance, NULL);
+    m_hInstance  = hInstance;
+    m_hWndParent = hWndParent;
+    m_hWnd       = ::CreateWindow(TOOLBARCLASSNAME, NULL, TBSTYLE_FLAT|TBSTYLE_LIST|WS_CHILD, 0, 0, 0, 0, hWndParent, NULL, hInstance, NULL);
 
-    if(this->m_hWnd)
+    if(m_hWnd)
     {
-        this->m_hImgList = this->InitImgList(hInstance, nImgDimension, nImgListBase, nMaxImages);
+        InitImgList(nImgDimension, nImgListBase, nMaxImages);
 
-        SendMessage(this->m_hWnd, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
-        SendMessage(this->m_hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(nImgDimension, nImgDimension));
-        SendMessage(this->m_hWnd, TB_SETIMAGELIST, 0, (LPARAM)this->m_hImgList);
+        ::SendMessage(m_hWnd, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+        ::SendMessage(m_hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(nImgDimension, nImgDimension));
+        ::SendMessage(m_hWnd, TB_SETIMAGELIST, 0, (LPARAM)m_hImgList);
 
-        ShowWindow(this->m_hWnd, SW_SHOW);
+        ::ShowWindow(m_hWnd, SW_SHOW);
+
         return true;
     }
 
@@ -44,17 +94,19 @@ bool __stdcall CTabMgr::Init(HINSTANCE hInstance, HWND hWndParent, int nImgDimen
 
 void __stdcall CTabMgr::Kill(void)
 {
-    this->m_hInstance  = NULL;
-    this->m_hWndParent = NULL;
-    if(this->m_hWnd)
+    m_hInstance  = NULL;
+    m_hWndParent = NULL;
+
+    if(m_hWnd)
     {
-        DestroyWindow(this->m_hWnd);
-        this->m_hWnd = NULL;
+        ::DestroyWindow(m_hWnd);
+        m_hWnd = NULL;
     }
-    if(this->m_hImgList)
+
+    if(m_hImgList)
     {
-        ImageList_Destroy(this->m_hImgList);
-        this->m_hImgList = NULL;
+        ::ImageList_Destroy(m_hImgList);
+        m_hImgList = NULL;
     }
 }
 
@@ -62,13 +114,14 @@ HWND __stdcall CTabMgr::AddTab(const char* lpszCaption, int nCmd, int nImgId, bo
 {
     HWND hTab;
 
-    if((hTab = CreateDialog(this->m_hInstance, lpszRes, this->m_hWndParent, lpfnProc))!=NULL)
+    if((hTab = ::CreateDialog(m_hInstance, lpszRes, m_hWndParent, lpfnProc))!=NULL)
     {
         TBBUTTON Button;
 
         Button.iBitmap = MAKELONG(nImgId,0);
         Button.fsStyle = BTNS_AUTOSIZE|BTNS_BUTTON|BTNS_CHECKGROUP|BTNS_SHOWTEXT;
         Button.fsState = TBSTATE_ENABLED;
+
         if(bEnabled)
         {
             Button.fsState|= TBSTATE_CHECKED;
@@ -76,13 +129,17 @@ HWND __stdcall CTabMgr::AddTab(const char* lpszCaption, int nCmd, int nImgId, bo
         }
         else
         {
-            ShowWindow(hTab, SW_HIDE);
+            ::ShowWindow(hTab, SW_HIDE);
         }
+
         Button.idCommand = nCmd;
         Button.iString = (INT_PTR)lpszCaption;
-        SendMessage(this->m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
-        this->m_TabList.push_back(std::pair< int, HWND >(nCmd, hTab));
-        this->OnResizeMove();
+
+        ::SendMessage(m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
+
+        m_TabList.push_back(TABITEM(nCmd, hTab));
+
+        OnResizeMove();
 
         return hTab;
     }
@@ -94,11 +151,11 @@ HWND __stdcall CTabMgr::GetTab(int nCmd)
 {
     unsigned long luIdx;
 
-    for(luIdx = 0; luIdx<this->m_TabList.size(); luIdx++)
+    for(luIdx = 0; luIdx<m_TabList.size(); luIdx++)
     {
-        if(this->m_TabList[luIdx].first==nCmd)
+        if(m_TabList[luIdx].first==nCmd)
         {
-            return this->m_TabList[luIdx].second;
+            return m_TabList[luIdx].second;
         }
     }
 
@@ -114,111 +171,83 @@ void __stdcall CTabMgr::AddButton(const char* lpszCaption, int nCmd, int nImgId)
     Button.fsState = TBSTATE_ENABLED;
     Button.idCommand = nCmd;
     Button.iString = (INT_PTR)lpszCaption;
-    SendMessage(this->m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
-    this->OnResizeMove();
+
+    ::SendMessage(m_hWnd, TB_ADDBUTTONS, 1, (LPARAM)&Button);
+
+    OnResizeMove();
 }
 
 void __stdcall CTabMgr::OnResizeMove(void)
 {
-    SendMessage(this->m_hWnd, TB_AUTOSIZE, 0, 0);
+    ::SendMessage(m_hWnd, TB_AUTOSIZE, 0, 0);
 }
 
 void __stdcall CTabMgr::OnActivateTab(int nCmd, bool bManual)
 {
     unsigned long luIdx;
 
-    for(luIdx = 0; luIdx<this->m_TabList.size(); luIdx++)
+    for(luIdx = 0; luIdx<m_TabList.size(); luIdx++)
     {
-        if(this->m_TabList[luIdx].first==nCmd)
+        if(m_TabList[luIdx].first==nCmd)
         {
             if(bManual)
             {
-                SendMessage(this->m_hWnd, TB_CHECKBUTTON, this->m_TabList[luIdx].first, MAKELONG(TRUE, 0));
+                ::SendMessage(m_hWnd, TB_CHECKBUTTON, m_TabList[luIdx].first, MAKELONG(TRUE, 0));
             }
-            ShowWindow(this->m_TabList[luIdx].second,  SW_SHOW);
-            UI::SetFocusFirstChild(this->m_TabList[luIdx].second);
+
+            ::ShowWindow(m_TabList[luIdx].second,  SW_SHOW);
+
+            UI::SetFocusFirstChild(m_TabList[luIdx].second);
         }
         else
         {
             if(bManual)
             {
-                SendMessage(this->m_hWnd, TB_CHECKBUTTON, this->m_TabList[luIdx].first, MAKELONG(FALSE, 0));
+                ::SendMessage(m_hWnd, TB_CHECKBUTTON, m_TabList[luIdx].first, MAKELONG(FALSE, 0));
             }
-            ShowWindow(this->m_TabList[luIdx].second,  SW_HIDE);
+
+            ::ShowWindow(m_TabList[luIdx].second,  SW_HIDE);
         }
     }
 }
 
 void __stdcall CTabMgr::ActivateTabNext(void)
 {
-    unsigned long luIdx;
+    unsigned long luIdx = 0;
 
-    for(luIdx = 0; luIdx<this->m_TabList.size() && !SendMessage(this->m_hWnd, TB_ISBUTTONCHECKED, this->m_TabList[luIdx].first, 0); luIdx++);
-    if(luIdx==this->m_TabList.size())
+    if(!GetActiveTab(luIdx))
     {
         return;
     }
-    else if(luIdx==this->m_TabList.size()-1)
+    else if(luIdx==m_TabList.size()-1)
     {
-        this->OnActivateTab(this->m_TabList[0].first, true);
+        OnActivateTab(m_TabList[0].first, true);
     }
     else
     {
-        this->OnActivateTab(this->m_TabList[luIdx+1].first, true);
+        OnActivateTab(m_TabList[luIdx+1].first, true);
     }
 }
 
 void __stdcall CTabMgr::ActivateTabPrev(void)
 {
-    unsigned long luIdx;
+    unsigned long luIdx = 0;
 
-    for(luIdx = 0; luIdx<this->m_TabList.size() && !SendMessage(this->m_hWnd, TB_ISBUTTONCHECKED, this->m_TabList[luIdx].first, 0); luIdx++);
-    if(luIdx==this->m_TabList.size())
+    if(!GetActiveTab(luIdx))
     {
         return;
     }
     else if(!luIdx)
     {
-        this->OnActivateTab(this->m_TabList[this->m_TabList.size()-1].first, true);
+        OnActivateTab(m_TabList[m_TabList.size()-1].first, true);
     }
     else
     {
-        this->OnActivateTab(this->m_TabList[luIdx-1].first, true);
+        OnActivateTab(m_TabList[luIdx-1].first, true);
     }
 }
 
 HWND __stdcall CTabMgr::GetWindowHandle(void)
 {
-    return this->m_hWnd;
-}
-
-bool __stdcall CTabMgr::HasBrokenTransparencyBitmapSupport(void)
-{
-    OSVERSIONINFO Osvi = { sizeof(Osvi) };
-
-    GetVersionEx(&Osvi);
-
-    return (Osvi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (Osvi.dwMajorVersion<5 || (Osvi.dwMajorVersion==5 && Osvi.dwMinorVersion<1));
-}
-
-HIMAGELIST __stdcall CTabMgr::InitImgList(HINSTANCE hInstance, int nImgDimension, int nImgListBase, int nMaxImages)
-{
-    HBITMAP hBmp, hMsk = NULL;
-    HIMAGELIST hImgList;
-    UINT uFlags = ILC_COLOR32;
-
-    if(CTabMgr::HasBrokenTransparencyBitmapSupport() || (hBmp = (HBITMAP)LoadImage(hInstance, IMGLISTID_32BP(nImgListBase), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION))==NULL)
-    {// GetLastError will return 120 (ERROR_CALL_NOT_SUPPORTED)
-        hBmp = (HBITMAP)LoadImage(hInstance, IMGLISTID_24BP(nImgListBase), IMAGE_BITMAP, 0, 0, 0);
-        hMsk = (HBITMAP)LoadImage(hInstance, IMGLISTID_MASK(nImgListBase), IMAGE_BITMAP, 0, 0, 0);
-        uFlags = ILC_COLOR24|ILC_MASK;
-    }
-
-    hImgList = ImageList_Create(nImgDimension, nImgDimension, uFlags, 0, nMaxImages);
-    ImageList_Add(hImgList, hBmp, hMsk);
-
-    DeleteObject(hMsk);
-    DeleteObject(hBmp);
-
-    return hImgList;
+    return m_hWnd;
 }

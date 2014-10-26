@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -10,6 +10,8 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#include <versioninfo.h>
+
 #include "opensetup.h"
 #include "error.h"
 #include "resource.h"
@@ -17,8 +19,6 @@
 #include "ui.h"
 
 #include "roext.h"
-
-#pragma comment(lib,"version.lib")
 
 #define ROEXT_DLLFILE ".\\dinput.dll"
 #define ROEXT_INIFILE ".\\dinput.ini"
@@ -218,44 +218,11 @@ static BOOL CALLBACK ROExtTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 bool __stdcall CROExt::Detect(void)
 {
-    bool bPresent;
-    char szKeyName[64];
-    unsigned long i, luVersionInfoSize, luDummy, luLangSize;
-    unsigned long* lpluLang;
-    void* lpVersionInfo;
-    const char* lpszCopyright;
-
-    // By default, it does not exist.
-    bPresent = false;
-
     // How to differentiate ROExt from mouse-freedom and such? Well,
     // the author states, that the ROExt dinput.dll is small (~10k)
     // and it's version resource copyright field contains 'Ruri'. It
     // is not completely fool-proof, but well.
-    if((luVersionInfoSize = GetFileVersionInfoSize(ROEXT_DLLFILE, &luDummy))>0)
-    {
-        if((lpVersionInfo = GlobalAlloc(GMEM_FIXED, luVersionInfoSize))!=NULL)
-        {
-            if(GetFileVersionInfo(ROEXT_DLLFILE, 0, luVersionInfoSize, lpVersionInfo))
-            {
-                if(VerQueryValue(lpVersionInfo, "\\VarFileInfo\\Translation", (void**)&lpluLang, (unsigned int*)&luLangSize))
-                {
-                    for(i = 0; i<luLangSize/sizeof(unsigned long); i++)
-                    {
-                        wsprintfA(szKeyName, "\\StringFileInfo\\%04x%04x\\LegalCopyright", LOWORD(lpluLang[i]), HIWORD(lpluLang[i]));
-
-                        if(VerQueryValue(lpVersionInfo, szKeyName, (void**)&lpszCopyright, (unsigned int*)&luDummy) && !lstrcmpiA(lpszCopyright, "Ruri"))
-                        {
-                            bPresent = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            GlobalFree(lpVersionInfo);
-        }
-    }
-    return bPresent;
+    return VersionInfoMatch(ROEXT_DLLFILE, "LegalCopyright", "Ruri", true);
 }
 
 CROExt::CROExt()

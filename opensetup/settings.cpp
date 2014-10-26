@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -11,7 +11,9 @@
 
 #include <regutil.h>
 
+#include "error.h"
 #include "opensetup.h"
+#include "resource.h"
 #include "settings.h"
 
 #define SETTINGS_REGPATH "Software\\Gravity Soft\\Ragnarok"
@@ -32,6 +34,7 @@ static const char* l_lppszUserDataItems[] =
 static BOOL l_bAchievementUnlocked = FALSE;  // signal valid data in l_IPCBuffer
 static unsigned long l_luHash = 0;
 static SETTINGSENTRIES l_IPCBuffer = { 0 };
+static int l_nIPCFlags = 0;
 static LONG l_lSpinLock = 0;
 #pragma data_seg()
 #pragma comment(linker, "/SECTION:.shared,RWS")
@@ -142,9 +145,24 @@ unsigned long __stdcall CSettings::Get(SETTINGENTRY nEntry)
         GETENTRY(ISFIXEDCAMERA    );
         GETENTRY(ONHOUSERAI       );
         GETENTRY(ONMERUSERAI      );
+        GETENTRY(MONSTERHP        );
+        GETENTRY(Q1               );
+        GETENTRY(Q2               );
     }
     DebugBreakHere();
     return 0;
+#undef GETENTRY
+}
+
+void __stdcall CSettings::Get(SETTINGENTRY nEntry, GUID* lpGuid)
+{
+#define GETENTRY(name) case SE_##name: CopyMemory(lpGuid, &this->m_Entries.##name, sizeof(lpGuid[0])); break
+    switch(nEntry)
+    {
+        GETENTRY(GUIDDRIVER       );
+        GETENTRY(GUIDDEVICE       );
+        default: DebugBreakHere();
+    }
 #undef GETENTRY
 }
 
@@ -196,12 +214,15 @@ void __stdcall CSettings::Set(SETTINGENTRY nEntry, unsigned long luValue)
         SETENTRY(ISFIXEDCAMERA    );
         SETENTRY(ONHOUSERAI       );
         SETENTRY(ONMERUSERAI      );
+        SETENTRY(MONSTERHP        );
+        SETENTRY(Q1               );
+        SETENTRY(Q2               );
         default: DebugBreakHere();
     }
 #undef SETENTRY
 }
 
-void __stdcall CSettings::Set(SETTINGENTRY nEntry, GUID* lpGuid)
+void __stdcall CSettings::Set(SETTINGENTRY nEntry, const GUID* lpGuid)
 {
 #define SETENTRY(name) case SE_##name: CopyMemory(&this->m_Entries.##name, lpGuid, sizeof(this->m_Entries.##name)); break
     switch(nEntry)
@@ -237,11 +258,12 @@ void __stdcall CSettings::Set(SETTINGFLAG nFlag, bool bState)
     }
 }
 
-unsigned long __stdcall CSettings::SaveToIPC(void)
+unsigned long __stdcall CSettings::SaveToIPC()
 {
     EnterSpinLock(&l_lSpinLock);
 
     CopyMemory(&l_IPCBuffer, &this->m_Entries, sizeof(l_IPCBuffer));
+    l_nIPCFlags = this->m_nFlags;
 
     l_bAchievementUnlocked = TRUE;
     l_luHash = GetTickCount();
@@ -257,6 +279,7 @@ void __stdcall CSettings::LoadFromIPC(unsigned long luHash)
     if(l_bAchievementUnlocked && l_luHash==luHash)
     {
         CopyMemory(&this->m_Entries, &l_IPCBuffer, sizeof(this->m_Entries));
+        this->m_nFlags = l_nIPCFlags;
 
         l_bAchievementUnlocked = FALSE;
         l_luHash = 0;
@@ -269,17 +292,56 @@ void __stdcall CSettings::LoadFromIPC(unsigned long luHash)
     LeaveSpinLock(&l_lSpinLock);
 }
 
-void __stdcall CSettings::ResetUI(void)
+void __stdcall CSettings::ResetUI()
 {
     RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH_UIRECTINFO);
 }
 
-void __stdcall CSettings::ResetSkillLevel(void)
+void __stdcall CSettings::ResetSkillLevel()
 {
     RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH_SKILLUSELEVELINFO);
 }
 
-void __stdcall CSettings::ResetUserData(void)
+void __stdcall CSettings::ResetUserData()
 {
     /* this:: */DropFolderList(l_lppszUserDataItems, __ARRAYSIZE(l_lppszUserDataItems));
+}
+
+void __stdcall CSettings::ResetInstall()
+{
+    char szPathName[MAX_PATH];
+    char* lpszSlash;
+    HKEY hKey;
+    LONG lResult;
+
+    if(!GetModuleFileName(NULL, szPathName, __ARRAYSIZE(szPathName)) || (lpszSlash = strrchr(szPathName, '\\'))==NULL)
+    {
+        return;
+    }
+    lpszSlash[1] = 0;  // keep the backslash
+
+    REGUTILSAVEINFO SaveInfo[] =
+    {
+        { NULL,         szPathName, lpszSlash-szPathName+2, REG_SZ },  // @
+        { "RagPath",    szPathName, lpszSlash-szPathName+2, REG_SZ },
+        { "SakrayPath", szPathName, lpszSlash-szPathName+2, REG_SZ },
+    };
+
+    lResult = RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Gravity\\RagnarokOnline", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
+
+    if(lResult!=ERROR_SUCCESS)
+    {
+        SetLastError(lResult);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_CREATE);
+        return;
+    }
+
+    if(!RegUtilSave(hKey, SaveInfo, __ARRAYSIZE(SaveInfo), &lResult))
+    {
+        SetLastError(lResult);
+        CError::ErrorMessage(NULL, TEXT_ERROR_HKEY_WRITE);
+    }
+
+    RegFlushKey(hKey);
+    RegCloseKey(hKey);
 }

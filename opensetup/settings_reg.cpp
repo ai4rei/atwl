@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -19,7 +19,7 @@
 #define SETTINGS_REGPATH "Software\\Gravity Soft\\Ragnarok"
 #define SETTINGS_REGPATH_OPTION SETTINGS_REGPATH"\\Option"
 
-bool __stdcall CSettingsReg::Save(void)
+bool __stdcall CSettingsReg::Save()
 {
     HKEY hKey;
     LONG lResult;
@@ -97,6 +97,8 @@ bool __stdcall CSettingsReg::Save(void)
         }
     }
 
+    this->ResetInstall();
+
     lResult = RegCreateKeyEx(HKEY_GRAVITY, SETTINGS_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
 
     if(lResult!=ERROR_SUCCESS)
@@ -135,7 +137,7 @@ bool __stdcall CSettingsReg::Save(void)
     return true;
 }
 
-void __stdcall CSettingsReg::Load(void)
+void __stdcall CSettingsReg::Load()
 {
     unsigned long luDeviceNameLen, luGUIDDeviceLen, luGUIDDriverLen, luProviderNameLen;
     HKEY hKey;
@@ -200,7 +202,7 @@ void __stdcall CSettingsReg::Load(void)
     }
 }
 
-void __stdcall CSettingsReg::Reset(void)
+void __stdcall CSettingsReg::Reset()
 {
     GUID Guid;
 
@@ -255,6 +257,9 @@ void __stdcall CSettingsReg::Reset(void)
     this->Set(SE_ISFIXEDCAMERA,    0UL          );
     this->Set(SE_ONHOUSERAI,       0UL          );
     this->Set(SE_ONMERUSERAI,      0UL          );
+    this->Set(SE_MONSTERHP,        0UL          );
+    this->Set(SE_Q1,               0UL          );
+    this->Set(SE_Q2,               0UL          );
     //
     this->Set(SF__ALL_FLAGS, false);
 }
@@ -312,13 +317,16 @@ bool __stdcall CSettingsReg::IsAvail(SETTINGENTRY nEntry)
         case SE_ISFIXEDCAMERA:
         case SE_ONHOUSERAI:
         case SE_ONMERUSERAI:
+        //case SE_MONSTERHP:
+        //case SE_Q1:
+        //case SE_Q2:
             return true;
     }
 
     return false;
 }
 
-bool __stdcall CSettingsReg::IsAdminRequired(void)
+bool __stdcall CSettingsReg::IsAdminRequired()
 {
     OSVERSIONINFO Osvi = { sizeof(Osvi) };
 
@@ -339,12 +347,18 @@ bool __stdcall CSettingsReg::IsAdminRequired(void)
     return false;
 }
 
-SETTINGENGINEID __stdcall CSettingsReg::GetEngineID(void)
+bool __stdcall CSettingsReg::IsSane()
+{
+    // always considered sane
+    return true;
+}
+
+SETTINGENGINEID __stdcall CSettingsReg::GetEngineID()
 {
     return SENGINE_REG;
 }
 
-void __stdcall CSettingsReg::ResetSettings(void)
+void __stdcall CSettingsReg::ResetSettings()
 {
     RegUtilDrop(HKEY_GRAVITY, SETTINGS_REGPATH);
 }

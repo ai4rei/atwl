@@ -1,34 +1,33 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
 
-#define DIRECT3D_VERSION 0x0700
-#define DIRECTDRAW_VERSION 0x0700
 #include <windows.h>
 #include <commctrl.h>
-#include <d3d.h>
-#include <ddraw.h>
 #include <stdio.h>
 
+#include <dx7enum.h>
 #include <regutil.h>
 
 #include "config.h"
-#include "dx7enum.h"
 #include "error.h"
+#include "log.h"
+#include "parentctrl.h"
 #include "resource.h"
 #include "roext.h"
 #include "settings.h"
 #include "settings_lua.h"
 #include "settings_reg.h"
+#include "sound.h"
 #include "tab.h"
 #include "ui.h"
 
 #include "opensetup.h"
 
-static const char* l_lpszSignature = "$ RagnarokOnline OpenSetup, "APP_VERSION", build on "__DATE__" @ "__TIME__", (c) 2010-2013 Ai4rei/AN $";
+static const char* l_lpszSignature = "$ RagnarokOnline OpenSetup, "APP_VERSION", build on "__DATE__" @ "__TIME__", (c) 2010-2014 Ai4rei/AN $";
 
 static const unsigned int l_lpuNumSampleTypes[] =
 {
@@ -64,23 +63,24 @@ static const unsigned int l_lpuDigitalBitsTypes[] =
 // registry target (global)
 HKEY HKEY_GRAVITY = HKEY_LOCAL_MACHINE;
 
+static BOOL l_LoadDefaults = FALSE;
 static HFONT l_DlgFont = NULL;
-static struct DDrawDriverDeviceInfo l_DI = { 0 };
-static class CConfig Config;
-static class CROExt ROExt;
-static class CTabMgr TabMgr;
+static DX7EDISPLAYDRIVERINFO l_DI = { 0 };
+static CParentCtrl ParentCtrl;
+static CROExt ROExt;
+static CTabMgr TabMgr;
 
-static class CSettingsLua SettingsLua;
-static class CSettingsReg SettingsReg;
-static class CSettings* Settings = NULL;
+static CSettingsLua SettingsLua;
+static CSettingsReg SettingsReg;
+static CSettings* Settings = NULL;
 
 static inline unsigned long __stdcall GetDriverIndex(unsigned long luComboIndex)
 {
     unsigned long luDriver, luDevice;
 
-    for(luDriver = 0; luDriver<l_DI.luItems; luDriver++)
+    for(luDriver = 0; luDriver<l_DI.luDrivers; luDriver++)
     {
-        for(luDevice = 0; luDevice<l_DI.Drivers[luDriver].luItems; luDevice++)
+        for(luDevice = 0; luDevice<l_DI.Driver[luDriver].luDevicesHW; luDevice++)
         {
             if(!luComboIndex)
             {
@@ -98,9 +98,9 @@ static inline unsigned long __stdcall GetDeviceIndex(unsigned long luComboIndex)
 {
     unsigned long luDriver, luDevice;
 
-    for(luDriver = 0; luDriver<l_DI.luItems; luDriver++)
+    for(luDriver = 0; luDriver<l_DI.luDrivers; luDriver++)
     {
-        for(luDevice = 0; luDevice<l_DI.Drivers[luDriver].luItems; luDevice++)
+        for(luDevice = 0; luDevice<l_DI.Driver[luDriver].luDevicesHW; luDevice++)
         {
             if(!luComboIndex)
             {
@@ -122,60 +122,128 @@ static inline void __stdcall DisableUnavailableSetting(SETTINGENTRY nEntry, HWND
 static void __stdcall OnChangeDevice(HWND hWnd)
 {
     char szLabel[128];
-    unsigned long i, lResult, luIndex;
-    struct DDrawDriverEntry* lpEntry;
-    HWND hResWnd;
+    int nResult;
+    unsigned long luMode, luDriver;
+    LPCDX7EDISPLAYDRIVER lpDriver;
+    HWND hChild;
 
-    lResult = Settings->Get(SE_DEVICECNT);
-    luIndex = GetDriverIndex(lResult);
+    luDriver = GetDriverIndex(Settings->Get(SE_DEVICECNT));
 
-    if(luIndex>=l_DI.luItems)
+    if(luDriver>=l_DI.luDrivers)
     {// ignore
         return;
     }
 
-    lpEntry = &l_DI.Drivers[luIndex];
+    lpDriver = &l_DI.Driver[luDriver];
 
     // save selection
-    hResWnd = GetDlgItem(hWnd, IDCOMBOBOX_RESOLUTION);
-    lResult = SendMessage(hResWnd, CB_GETCURSEL, 0, 0);
+    hChild  = GetDlgItem(hWnd, IDCOMBOBOX_RESOLUTION);
+    nResult = SendMessage(hChild, CB_GETCURSEL, 0, 0);
 
     // empty combobox
-    SendMessage(hResWnd, CB_RESETCONTENT, 0, 0);
+    SendMessage(hChild, CB_RESETCONTENT, 0, 0);
 
-    for(i=0; i<lpEntry->luModes; i++)
+    for(luMode = 0; luMode<lpDriver->luModes; luMode++)
     {
-        wsprintfA(szLabel, "%lu x %lu x %lu", lpEntry->Modes[i].luWidth, lpEntry->Modes[i].luHeight, lpEntry->Modes[i].luBitDepth);
+        wsprintfA(szLabel, "%lu x %lu x %lu", lpDriver->Mode[luMode].luWidth, lpDriver->Mode[luMode].luHeight, lpDriver->Mode[luMode].luBitDepth);
 
-        SendMessage(hResWnd, CB_ADDSTRING, 0, (LPARAM)szLabel);
+        SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)szLabel);
     }
 
     // restore selection
-    SendMessage(hResWnd, CB_SETCURSEL, (WPARAM)lResult, 0);
+    if(SendMessage(hChild, CB_SETCURSEL, nResult, 0)==CB_ERR)
+    {// overflow
+        SendMessage(hChild, CB_SETCURSEL, 0, 0);
+    }
+}
+
+static inline bool __stdcall IsZeroGUID(REFGUID rguid)
+{
+    static const GUID zguid = { 0 };
+    return IsEqualGUID(rguid, zguid)!=FALSE;
+}
+
+static void __stdcall OnUpdateDevice(HWND hWnd)
+{
+    int nResult;
+    unsigned long luDriver, luDevice;
+    HWND hChild;
+
+    // save selection
+    hChild  = GetDlgItem(hWnd, IDCOMBOBOX_VIDEODEVICE);
+    nResult = SendMessage(hChild, CB_GETCURSEL, 0, 0);
+
+    // empty combobox
+    SendMessage(hChild, CB_RESETCONTENT, 0, 0);
+
+    // feed the list
+    for(luDriver = 0; luDriver<l_DI.luDrivers; luDriver++)
+    {
+        bool bIsPrimary = IsZeroGUID(l_DI.Driver[luDriver].DriverGuid);
+        char szDisplayName[86];
+
+        if(UI::GetCheckBoxTick(hWnd, IDCHECKBOX_HELDEVICE))
+        {// force software rendering
+            for(luDevice = 0; luDevice<l_DI.Driver[luDriver].luDevicesSW; luDevice++)
+            {
+                wsprintfA(szDisplayName, "%s [%s]", l_DI.Driver[luDriver].szName, l_DI.Driver[luDriver].DeviceSW[luDevice].szName);
+
+                SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)(bIsPrimary ? l_DI.Driver[luDriver].DeviceSW[luDevice].szName : szDisplayName));
+            }
+        }
+        else
+        {
+            for(luDevice = 0; luDevice<l_DI.Driver[luDriver].luDevicesHW; luDevice++)
+            {
+                wsprintfA(szDisplayName, "%s [%s]", l_DI.Driver[luDriver].szName, l_DI.Driver[luDriver].DeviceHW[luDevice].szName);
+
+                SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)(bIsPrimary ? l_DI.Driver[luDriver].DeviceHW[luDevice].szName : szDisplayName));
+            }
+        }
+    }
+
+    // restore selection
+    if(SendMessage(hChild, CB_SETCURSEL, nResult, 0)==CB_ERR)
+    {// overflow
+        SendMessage(hChild, CB_SETCURSEL, 0, 0);
+    }
+
+    // refresh resolution
+    OnChangeDevice(hWnd);
 }
 
 static void __stdcall GetVideoTab(HWND hWnd)
 {
-    unsigned long i;
+    int nComboIdx;
 
     // complex combo boxes
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_VIDEODEVICE), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_VIDEODEVICE), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        unsigned long luIndex = GetDriverIndex(i);
+        unsigned long luDriver = GetDriverIndex(nComboIdx);
+        unsigned long luDevice = GetDeviceIndex(nComboIdx);
 
-        Settings->Set(SE_DEVICECNT, i);
-        Settings->Set(SE_GUIDDRIVER, &l_DI.Drivers[luIndex].DriverGuid);
-        Settings->Set(SE_GUIDDEVICE, &l_DI.Drivers[luIndex].Devices[GetDeviceIndex(i)].DeviceGuid);
-        Settings->Set(SE_DEVICENAME,  l_DI.Drivers[luIndex].Devices[GetDeviceIndex(i)].szName);
+        Settings->Set(SE_DEVICECNT, nComboIdx);
+        Settings->Set(SE_GUIDDRIVER, &l_DI.Driver[luDriver].DriverGuid);
+
+        if(UI::GetCheckBoxTick(hWnd, IDCHECKBOX_HELDEVICE))
+        {// force software rendering
+            Settings->Set(SE_GUIDDEVICE, DX7E_DeviceType2Guid(l_DI.Driver[luDriver].DeviceSW[luDevice].nType));
+            Settings->Set(SE_DEVICENAME, l_DI.Driver[luDriver].DeviceSW[luDevice].szName);
+        }
+        else
+        {
+            Settings->Set(SE_GUIDDEVICE, DX7E_DeviceType2Guid(l_DI.Driver[luDriver].DeviceHW[luDevice].nType));
+            Settings->Set(SE_DEVICENAME, l_DI.Driver[luDriver].DeviceHW[luDevice].szName);
+        }
     }
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_RESOLUTION), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_RESOLUTION), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        unsigned long luIndex = GetDriverIndex(Settings->Get(SE_DEVICECNT));
+        unsigned long luDriver = GetDriverIndex(Settings->Get(SE_DEVICECNT));
 
-        Settings->Set(SE_MODECNT,     i);
-        Settings->Set(SE_WIDTH,       l_DI.Drivers[luIndex].Modes[i].luWidth   );
-        Settings->Set(SE_HEIGHT,      l_DI.Drivers[luIndex].Modes[i].luHeight  );
-        Settings->Set(SE_BITPERPIXEL, l_DI.Drivers[luIndex].Modes[i].luBitDepth);
+        Settings->Set(SE_MODECNT,     nComboIdx);
+        Settings->Set(SE_WIDTH,       l_DI.Driver[luDriver].Mode[nComboIdx].luWidth   );
+        Settings->Set(SE_HEIGHT,      l_DI.Driver[luDriver].Mode[nComboIdx].luHeight  );
+        Settings->Set(SE_BITPERPIXEL, l_DI.Driver[luDriver].Mode[nComboIdx].luBitDepth);
     }
 
     // check boxes
@@ -193,28 +261,28 @@ static void __stdcall GetVideoTab(HWND hWnd)
 
 static void __stdcall GetSoundTab(HWND hWnd)
 {
-    unsigned long i;
+    int nComboIdx;
 
     // simple combo boxes
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_MODE), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_MODE), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        Settings->Set(SE_SOUNDMODE, i);
+        Settings->Set(SE_SOUNDMODE, nComboIdx);
     }
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_SPEAKERTYPE), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_SPEAKERTYPE), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        Settings->Set(SE_SPEAKERTYPE, i);
+        Settings->Set(SE_SPEAKERTYPE, nComboIdx);
     }
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_BITRATE), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_BITRATE), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        Settings->Set(SE_DIGITALRATETYPE, i);
+        Settings->Set(SE_DIGITALRATETYPE, nComboIdx);
     }
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_BITDEPTH), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_BITDEPTH), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        Settings->Set(SE_DIGITALBITSTYPE, i);
+        Settings->Set(SE_DIGITALBITSTYPE, nComboIdx);
     }
-    if((i = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_CHANNELS), CB_GETCURSEL, 0, 0))!=CB_ERR)
+    if((nComboIdx = SendMessage(GetDlgItem(hWnd, IDCOMBOBOX_SOUND_CHANNELS), CB_GETCURSEL, 0, 0))!=CB_ERR)
     {
-        Settings->Set(SE_NUMSAMPLETYPE, i);
+        Settings->Set(SE_NUMSAMPLETYPE, nComboIdx);
     }
 
     // check boxes
@@ -237,6 +305,7 @@ static void __stdcall GetSetupTab(HWND hWnd)
     Settings->Set(SE_LOGINOUT,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_LOGINOUT)         );
     Settings->Set(SE_ONMERUSERAI,       UI::GetCheckBoxTick(hWnd, IDCHECKBOX_ONMERUSERAI)      );
     Settings->Set(SE_MAKEMISSEFFECT,    UI::GetCheckBoxTick(hWnd, IDCHECKBOX_MAKEMISSEFFECT)   );
+    Settings->Set(SE_MONSTERHP,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_MONSTERHP)        );
     Settings->Set(SE_NOCTRL,            UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOCTRL)           );
     Settings->Set(SE_NOSHIFT,           UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOSHIFT)          );
     Settings->Set(SE_NOTRADE,           UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTRADE)          );
@@ -245,34 +314,29 @@ static void __stdcall GetSetupTab(HWND hWnd)
     Settings->Set(SE_SKILLFAIL,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SKILLFAIL)        );
     Settings->Set(SE_NOTALKMSG,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTALKMSG)        );
     Settings->Set(SE_NOTALKMSG2,        UI::GetCheckBoxTick(hWnd, IDCHECKBOX_NOTALKMSG2)       );
+    Settings->Set(SE_Q1,                UI::GetCheckBoxTick(hWnd, IDCHECKBOX_Q1)               );
+    Settings->Set(SE_Q2,                UI::GetCheckBoxTick(hWnd, IDCHECKBOX_Q2)               );
     Settings->Set(SE_SHOWNAME,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SHOWNAME)         );
     Settings->Set(SE_STATEINFO,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_STATEINFO)        );
     Settings->Set(SE_SHOWTIPSATSTARTUP, UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SHOWTIPSATSTARTUP));
     Settings->Set(SE_WINDOW,            UI::GetCheckBoxTick(hWnd, IDCHECKBOX_WINDOW)           );
     Settings->Set(SE_SKILLSNAP,         UI::GetCheckBoxTick(hWnd, IDCHECKBOX_SKILLSNAP)        );
+    Settings->Set(SF_RESET_UI,          UI::GetCheckBoxTick(hWnd, IDCHECKBOX_RESETWINDOWS)     );
+    Settings->Set(SF_RESET_SKILLLEVEL,  UI::GetCheckBoxTick(hWnd, IDCHECKBOX_RESETSKILLLV)     );
+    Settings->Set(SF_RESET_USERDATA,    UI::GetCheckBoxTick(hWnd, IDCHECKBOX_RESETFOLDER)      );
+    Settings->Set(SF_RESET_SETTING,     UI::GetCheckBoxTick(hWnd, IDCHECKBOX_RESETSETTING)     );
 }
 
 static void __stdcall SetVideoTab(HWND hWnd)
 {
-    unsigned long i;
-    HWND hChild;
+    GUID DeviceGuid;
 
-    // feed the lists
-    hChild = GetDlgItem(hWnd, IDCOMBOBOX_VIDEODEVICE);
-    SendMessage(hChild, CB_RESETCONTENT, 0, 0);
-    for(i = 0; i<l_DI.luItems; i++)
-    {
-        unsigned long* luGuid = (unsigned long*)&l_DI.Drivers[i].DriverGuid, k;
-        bool bIsPrimary = !(luGuid[0] && luGuid[1] && luGuid[2] && luGuid[3]);
+    // software renderer selected?
+    Settings->Get(SE_GUIDDEVICE, &DeviceGuid);
+    SendMessage(GetDlgItem(hWnd, IDCHECKBOX_HELDEVICE), BM_SETCHECK, (WPARAM)IsEqualGUID(DeviceGuid, DX7E_DeviceType2Guid(DX7E_RDT_HEL)[0]), 0);
 
-        for(k=0; k<l_DI.Drivers[i].luItems; k++)
-        {
-            SendMessage(hChild, CB_ADDSTRING, 0, (LPARAM)(bIsPrimary ? l_DI.Drivers[i].Devices[k].szName : l_DI.Drivers[i].szDescription));
-        }
-    }
-
-    // refresh resolution
-    OnChangeDevice(hWnd);
+    // refresh device and resolution
+    OnUpdateDevice(hWnd);
 
     // initialize track bars
     SendMessage(GetDlgItem(hWnd, IDTRACKBAR_SPRITEQ),  TBM_SETRANGE, (WPARAM)FALSE, (LPARAM)MAKELONG(0, 2));
@@ -359,6 +423,7 @@ static void __stdcall SetSetupTab(HWND hWnd)
         { IDCHECKBOX_LOGINOUT,          BM_SETCHECK, (WPARAM)Settings->Get(SE_LOGINOUT),          0 },
         { IDCHECKBOX_ONMERUSERAI,       BM_SETCHECK, (WPARAM)Settings->Get(SE_ONMERUSERAI),       0 },
         { IDCHECKBOX_MAKEMISSEFFECT,    BM_SETCHECK, (WPARAM)Settings->Get(SE_MAKEMISSEFFECT),    0 },
+        { IDCHECKBOX_MONSTERHP,         BM_SETCHECK, (WPARAM)Settings->Get(SE_MONSTERHP),         0 },
         { IDCHECKBOX_NOCTRL,            BM_SETCHECK, (WPARAM)Settings->Get(SE_NOCTRL),            0 },
         { IDCHECKBOX_NOSHIFT,           BM_SETCHECK, (WPARAM)Settings->Get(SE_NOSHIFT),           0 },
         { IDCHECKBOX_NOTRADE,           BM_SETCHECK, (WPARAM)Settings->Get(SE_NOTRADE),           0 },
@@ -367,13 +432,24 @@ static void __stdcall SetSetupTab(HWND hWnd)
         { IDCHECKBOX_SKILLFAIL,         BM_SETCHECK, (WPARAM)Settings->Get(SE_SKILLFAIL),         0 },
         { IDCHECKBOX_NOTALKMSG,         BM_SETCHECK, (WPARAM)Settings->Get(SE_NOTALKMSG),         0 },
         { IDCHECKBOX_NOTALKMSG2,        BM_SETCHECK, (WPARAM)Settings->Get(SE_NOTALKMSG2),        0 },
+        { IDCHECKBOX_Q1,                BM_SETCHECK, (WPARAM)Settings->Get(SE_Q1),                0 },
+        { IDCHECKBOX_Q2,                BM_SETCHECK, (WPARAM)Settings->Get(SE_Q2),                0 },
         { IDCHECKBOX_SHOWNAME,          BM_SETCHECK, (WPARAM)Settings->Get(SE_SHOWNAME),          0 },
         { IDCHECKBOX_STATEINFO,         BM_SETCHECK, (WPARAM)Settings->Get(SE_STATEINFO),         0 },
         { IDCHECKBOX_SHOWTIPSATSTARTUP, BM_SETCHECK, (WPARAM)Settings->Get(SE_SHOWTIPSATSTARTUP), 0 },
         { IDCHECKBOX_WINDOW,            BM_SETCHECK, (WPARAM)Settings->Get(SE_WINDOW),            0 },
         { IDCHECKBOX_SKILLSNAP,         BM_SETCHECK, (WPARAM)Settings->Get(SE_SKILLSNAP),         0 },
+        { IDCHECKBOX_RESETWINDOWS,      BM_SETCHECK, (WPARAM)0,                                   0 },
+        { IDCHECKBOX_RESETSKILLLV,      BM_SETCHECK, (WPARAM)0,                                   0 },
+        { IDCHECKBOX_RESETFOLDER,       BM_SETCHECK, (WPARAM)0,                                   0 },
+        { IDCHECKBOX_RESETSETTING,      BM_SETCHECK, (WPARAM)0,                                   0 },
     };
     UI::BatchMessage(hWnd, BatchList, __ARRAYSIZE(BatchList));
+
+    // dependencies
+    EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETWINDOWS), TRUE);
+    EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETSKILLLV), TRUE);
+    //EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETFOLDER),  TRUE);
 
     // store availability
     DisableUnavailableSetting(SE_AURA, hWnd, IDCHECKBOX_AURA);
@@ -384,9 +460,12 @@ static void __stdcall SetSetupTab(HWND hWnd)
     DisableUnavailableSetting(SE_LOGINOUT, hWnd, IDCHECKBOX_LOGINOUT);
     DisableUnavailableSetting(SE_ONMERUSERAI, hWnd, IDCHECKBOX_ONMERUSERAI);
     DisableUnavailableSetting(SE_MAKEMISSEFFECT, hWnd, IDCHECKBOX_MAKEMISSEFFECT);
+    DisableUnavailableSetting(SE_MONSTERHP, hWnd, IDCHECKBOX_MONSTERHP);
     DisableUnavailableSetting(SE_NOCTRL, hWnd, IDCHECKBOX_NOCTRL);
     DisableUnavailableSetting(SE_NOSHIFT, hWnd, IDCHECKBOX_NOSHIFT);
     DisableUnavailableSetting(SE_NOTRADE, hWnd, IDCHECKBOX_NOTRADE);
+    DisableUnavailableSetting(SE_Q1, hWnd, IDCHECKBOX_Q1);
+    DisableUnavailableSetting(SE_Q2, hWnd, IDCHECKBOX_Q2);
     DisableUnavailableSetting(SE_SHOPPING, hWnd, IDCHECKBOX_SHOPPING);
     DisableUnavailableSetting(SE_SNAP, hWnd, IDCHECKBOX_SNAP);
     DisableUnavailableSetting(SE_SKILLFAIL, hWnd, IDCHECKBOX_SKILLFAIL);
@@ -406,14 +485,49 @@ static BOOL CALLBACK VideoTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     switch(uMsg)
     {
         case WM_INITDIALOG:
-            if(!UI::IsRemoteSession())
+        {
+            bool bActive = false;
+
+            if(UI::IsRemoteSession())
+            {
+                g_Log.LogWarning("Remote desktop session detected.");
+            }
+            else
             {
                 ShowWindow(GetDlgItem(hWnd, IDINFOICON_VIDEO_REMOTESESSION), SW_HIDE);
             }
+
+            if(UI::IsMirrorDriverPresent(&bActive))
+            {
+                if(bActive)
+                {
+                    g_Log.LogWarning("Mirror video driver (attached) detected.");
+                }
+                else
+                {
+                    g_Log.LogWarning("Mirror video driver detected.");
+                }
+            }
+            if(!bActive)
+            {
+                ShowWindow(GetDlgItem(hWnd, IDINFOICON_VIDEO_MIRRORDRIVER), SW_HIDE);
+            }
+
             return FALSE;
+        }
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
+                case BN_CLICKED:
+                    switch(LOWORD(wParam))
+                    {
+                        case IDCHECKBOX_HELDEVICE:
+                            OnUpdateDevice(hWnd);
+                            break;
+                        default:
+                            return FALSE;
+                    }
+                    break;
                 case CBN_SELCHANGE:
                     switch(LOWORD(wParam))
                     {
@@ -432,8 +546,8 @@ static BOOL CALLBACK VideoTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
                     return FALSE;
             }
             break;
-        case WM_HELP:
-            UI::HHLite(hWnd, (LPHELPINFO)lParam);
+        case WM_NOTIFY:
+            UI::HandleToolTips((LPNMHDR)lParam);
             break;
         default:
             return FALSE;
@@ -446,7 +560,27 @@ static BOOL CALLBACK SoundTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     switch(uMsg)
     {
         case WM_INITDIALOG:
+        {
+            bool bExist = false;
+
+            if(!Sound::IsMSSSane(&bExist))
+            {
+                if(bExist)
+                {
+                    g_Log.LogWarning("Corrupt MSS driver files.");
+                }
+                else
+                {
+                    g_Log.LogWarning("Missing MSS driver files.");
+                }
+            }
+            else
+            {
+                ShowWindow(GetDlgItem(hWnd, IDINFOICON_SOUND_MISSINGFILES), SW_HIDE);
+            }
+
             return FALSE;
+        }
         case WM_COMMAND:
             switch(HIWORD(wParam))
             {
@@ -467,8 +601,8 @@ static BOOL CALLBACK SoundTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
                     return FALSE;
             }
             break;
-        case WM_HELP:
-            UI::HHLite(hWnd, (LPHELPINFO)lParam);
+        case WM_NOTIFY:
+            UI::HandleToolTips((LPNMHDR)lParam);
             break;
         default:
             return FALSE;
@@ -482,8 +616,41 @@ static BOOL CALLBACK SetupTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
         case WM_INITDIALOG:
             return FALSE;
-        case WM_HELP:
-            UI::HHLite(hWnd, (LPHELPINFO)lParam);
+        case WM_COMMAND:
+            switch(HIWORD(wParam))
+            {
+                case BN_CLICKED:
+                    switch(LOWORD(wParam))
+                    {
+                        case IDCHECKBOX_RESETSETTING:
+                        {
+                            BOOL bChecked = (BOOL)(IsDlgButtonChecked(hWnd, IDCHECKBOX_RESETSETTING)==BST_CHECKED);
+
+                            // (un)check all
+                            UI::BATCHLIST BatchList[] =
+                            {
+                                { IDCHECKBOX_RESETWINDOWS, BM_SETCHECK, (WPARAM)bChecked, 0 },
+                                { IDCHECKBOX_RESETSKILLLV, BM_SETCHECK, (WPARAM)bChecked, 0 },
+                                //{ IDCHECKBOX_RESETFOLDER,  BM_SETCHECK, (WPARAM)bChecked, 0 },
+                            };
+                            UI::BatchMessage(hWnd, BatchList, __ARRAYSIZE(BatchList));
+
+                            // dis/enable all
+                            EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETWINDOWS), !bChecked);
+                            EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETSKILLLV), !bChecked);
+                            //EnableWindow(GetDlgItem(hWnd, IDCHECKBOX_RESETFOLDER),  !bChecked);
+                            break;
+                        }
+                        default:
+                            return FALSE;
+                    }
+                    break;
+                default:
+                    return FALSE;
+            }
+            break;
+        case WM_NOTIFY:
+            UI::HandleToolTips((LPNMHDR)lParam);
             break;
         default:
             return FALSE;
@@ -506,8 +673,39 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             {// not the EDIT box
                 return FALSE;
             }
+
+            SetTextColor((HDC)wParam, GetSysColor(COLOR_WINDOWTEXT));
+
             // make readonly/disabled edit box have white background
-            return (BOOL)GetStockObject(WHITE_BRUSH);
+            return (BOOL)GetSysColorBrush(COLOR_WINDOW);
+        case WM_COMMAND:
+            switch(HIWORD(wParam))
+            {
+                case BN_CLICKED:
+                    switch(LOWORD(wParam))
+                    {
+                        case IDHOMEPAGE:
+                        {
+                            SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+
+                            Sei.hwnd = hWnd;
+                            Sei.lpVerb = "open";
+                            Sei.lpFile = "http://nn.nachtwolke.com/dev/opensetup/";
+                            Sei.nShow = SW_SHOWNORMAL;
+
+                            EnableWindow(GetDlgItem(hWnd, IDHOMEPAGE), FALSE);
+                            ShellExecuteEx(&Sei);
+                            EnableWindow(GetDlgItem(hWnd, IDHOMEPAGE), TRUE);
+                            break;
+                        }
+                        default:
+                            return FALSE;
+                    }
+                    break;
+                default:
+                    return FALSE;
+            }
+            break;
         default:
             return FALSE;
     }
@@ -517,9 +715,15 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 static void __stdcall OnChangeSettingsEngine(HWND hWnd)
 {
     HINSTANCE hInstance = GetModuleHandle(NULL);
+    SETTINGENGINEID nEngineID = Settings->GetEngineID();
+
+    g_Log.LogInfo("OnChangeSettingsEngine: %s", &nEngineID);
+
+    // disable tool tips
+    UI::EnableToolTips(hWnd, FALSE);
 
     // set icon
-    switch(Settings->GetEngineID())
+    switch(nEngineID)
     {
         case SENGINE_LUA:
             SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
@@ -543,6 +747,9 @@ static void __stdcall OnChangeSettingsEngine(HWND hWnd)
     bool bAdmin = Settings->IsAdminRequired();
     UI::SetButtonShield(GetDlgItem(hWnd, IDOK), bAdmin);
     UI::SetButtonShield(GetDlgItem(hWnd, IDAPPLY), bAdmin);
+
+    // setup tool tips
+    UI::EnableToolTips(hWnd, TRUE);
 }
 
 static bool __stdcall OnBackgroundSave(HWND hWnd, unsigned long luHash)
@@ -616,7 +823,6 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
                 // add-ons
                 ROExt.Load(&TabMgr);
-                // TODO: Add RO_MF support
 
                 // about
                 LoadStringA(hInstance, TEXT_TAB_ABOUT, szTabTitle, __ARRAYSIZE(szTabTitle));
@@ -629,40 +835,13 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             // load settings and refresh tabs
             OnChangeSettingsEngine(hWnd);
 
-            // take over the tab font (to satisfy multibyte charsets)
+            // get shell font (to satisfy multibyte charsets)
             if(!l_DlgFont)
             {
-                LOGFONT Lf;
-
-                if(GetObject((HGDIOBJ)SendMessage(TabMgr.GetWindowHandle(), WM_GETFONT, 0, 0), sizeof(Lf), &Lf))
-                {
-                    HDC hDC;
-                    UINT uFontSize;
-
-                    switch(PRIMARYLANGID(LANGIDFROMLCID(GetThreadLocale())))
-                    {
-                        case LANG_CHINESE:
-                        case LANG_JAPANESE:
-                        case LANG_KOREAN:
-                            // account for kanji/hangul readability
-                            uFontSize = DLG_FONT_SIZE+1;
-                            break;
-                        default:
-                            uFontSize = DLG_FONT_SIZE;
-                            break;
-                    }
-
-                    hDC = GetDC(hWnd);
-                    Lf.lfHeight = -MulDiv(uFontSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-                    ReleaseDC(hWnd, hDC);
-
-                    l_DlgFont = CreateFontIndirect(&Lf);
-                }
+                l_DlgFont = UI::GetShellFont();
             }
-            if(l_DlgFont)
-            {
-                UI::SetFont(hWnd, l_DlgFont);
-            }
+
+            UI::SetFont(hWnd, l_DlgFont);
 
             return FALSE;
         }
@@ -694,6 +873,13 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                             GetSoundTab(TabMgr.GetTab(IDSOUND));
                             GetSetupTab(TabMgr.GetTab(IDSETUP));
 
+                            // are we sane?
+                            if(!Settings->IsSane())
+                            {
+                                g_Log.Store(true);
+                                CError::ErrorMessage(hWnd, TEXT_ERROR_INSANE_ENGINE);
+                            }
+
                             // persist storage
                             if(Settings->IsAdminRequired())
                             {
@@ -707,8 +893,8 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                             // re-enable button
                             EnableWindow(GetDlgItem(hWnd, LOWORD(wParam)), TRUE);
 
-                            if(!bSuccess)
-                            {// abort on failure
+                            if(!bSuccess && !l_LoadDefaults)
+                            {// abort on failure, unless we are loading defaults
                                 break;
                             }
 
@@ -719,6 +905,11 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                             }
                             // but fall through for 'OK'
                         case IDCANCEL:
+                            if(LOWORD(wParam)==IDCANCEL && ParentCtrl.IsAvail() && (GetAsyncKeyState(VK_CONTROL)>>0xf))
+                            {// get rid of the parent process that might intent to launch us again
+                                ParentCtrl.Kill();
+                            }
+
                             DestroyWindow(hWnd);
                             //EndDialog(hWnd, LOWORD(wParam));
                             break;
@@ -771,21 +962,19 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     return TRUE;
 }
 
-static int __cdecl DX7E_P_GetInfoSort(const void* lpA, const void* lpB)
+static int __cdecl DX7E_P_GetInfoSort(LPCDX7EDISPLAYMODE lpModeA, LPCDX7EDISPLAYMODE lpModeB)
 {
-    struct DDrawModeEntry* lpModeA = (struct DDrawModeEntry*)lpA;
-    struct DDrawModeEntry* lpModeB = (struct DDrawModeEntry*)lpB;
-
     if(lpModeA->luWidth==lpModeB->luWidth)
     {
         return lpModeA->luHeight-lpModeB->luHeight;
     }
+
     return lpModeA->luWidth-lpModeB->luWidth;
 }
 
 static bool __stdcall DX7E_P_GetInfo(void)
 {
-    unsigned long luDrivers, luModes, luBitDepthFlt = 16;
+    unsigned long luDrivers, luModes, luDevices, luBitDepthFlt = 16;
     OSVERSIONINFO Osvi = { sizeof(Osvi) };
 
     // retrieve direct x information
@@ -804,25 +993,48 @@ static bool __stdcall DX7E_P_GetInfo(void)
         }
     }
 
+    g_Log.LogInfo("Enumerated %lu DX7 drivers.", l_DI.luDrivers);
+    g_Log.IncrementLevel();
+
     // sort out irrelevant stuff
-    for(luDrivers=0; luDrivers<l_DI.luItems; luDrivers++)
+    for(luDrivers=0; luDrivers<l_DI.luDrivers; luDrivers++)
     {
-        for(luModes = l_DI.Drivers[luDrivers].luModes; luModes>0; luModes--)
+        unsigned long luPrevModes = l_DI.Driver[luDrivers].luModes;
+
+        for(luModes = l_DI.Driver[luDrivers].luModes; luModes>0; luModes--)
         {
-            if(l_DI.Drivers[luDrivers].Modes[luModes-1].luWidth<640 || l_DI.Drivers[luDrivers].Modes[luModes-1].luHeight<480 || l_DI.Drivers[luDrivers].Modes[luModes-1].luBitDepth!=luBitDepthFlt)
+            if(l_DI.Driver[luDrivers].Mode[luModes-1].luWidth<640 || l_DI.Driver[luDrivers].Mode[luModes-1].luHeight<480 || l_DI.Driver[luDrivers].Mode[luModes-1].luBitDepth!=luBitDepthFlt)
             {// setup imposed limitations
-                if(luModes<l_DI.Drivers[luDrivers].luModes)
+                if(luModes<l_DI.Driver[luDrivers].luModes)
                 {
-                    MoveMemory(&l_DI.Drivers[luDrivers].Modes[luModes-1], &l_DI.Drivers[luDrivers].Modes[luModes], (l_DI.Drivers[luDrivers].luModes-luModes)*sizeof(struct DDrawModeEntry));
+                    MoveMemory(&l_DI.Driver[luDrivers].Mode[luModes-1], &l_DI.Driver[luDrivers].Mode[luModes], (l_DI.Driver[luDrivers].luModes-luModes)*sizeof(l_DI.Driver[0].Mode[0]));
                 }
-                l_DI.Drivers[luDrivers].luModes--;
+                l_DI.Driver[luDrivers].luModes--;
             }
         }
-        if(l_DI.Drivers[luDrivers].luModes)
+        if(l_DI.Driver[luDrivers].luModes)
         {// setup sorts modes
-            qsort(l_DI.Drivers[luDrivers].Modes, l_DI.Drivers[luDrivers].luModes, sizeof(struct DDrawModeEntry), &DX7E_P_GetInfoSort);
+            qsort(l_DI.Driver[luDrivers].Mode, l_DI.Driver[luDrivers].luModes, sizeof(l_DI.Driver[0].Mode[0]), (int (__cdecl*)(const void*,const void*))&DX7E_P_GetInfoSort);
         }
+
+        g_Log.LogInfo("Driver '%s': %lu video modes (%lu filtered), %lu hw devices, %lu sw devices", l_DI.Driver[luDrivers].szName, luPrevModes, luPrevModes-l_DI.Driver[luDrivers].luModes, l_DI.Driver[luDrivers].luDevicesHW, l_DI.Driver[luDrivers].luDevicesSW);
+
+        g_Log.IncrementLevel();
+
+        for(luDevices = 0; luDevices<l_DI.Driver[luDrivers].luDevicesHW; luDevices++)
+        {
+            g_Log.LogInfo("HW Device '%s': Type %d", l_DI.Driver[luDrivers].DeviceHW[luDevices].szName, l_DI.Driver[luDrivers].DeviceHW[luDevices].nType);
+        }
+
+        for(luDevices = 0; luDevices<l_DI.Driver[luDrivers].luDevicesSW; luDevices++)
+        {
+            g_Log.LogInfo("SW Device '%s': Type %d", l_DI.Driver[luDrivers].DeviceSW[luDevices].szName, l_DI.Driver[luDrivers].DeviceSW[luDevices].nType);
+        }
+
+        g_Log.DecrementLevel();
     }
+
+    g_Log.DecrementLevel();
 
     return true;
 }
@@ -830,18 +1042,18 @@ static bool __stdcall DX7E_P_GetInfo(void)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nShowCmd)
 {
     // select registry target
-    if(Config.GetBool("settings", "HKLMtoHKCU", false))
+    if(g_Config.GetBool("settings", "HKLMtoHKCU", false))
     {
         HKEY_GRAVITY = HKEY_CURRENT_USER;
     }
 
-    // handle ipc save request
+    // handle parameters
     if(lpCmdLine[0]=='/')
     {
         unsigned long luEngine = 0, luHash = 0;
 
         if(sscanf(lpCmdLine, "/save:%lu,%lu", &luEngine, &luHash)==2)
-        {
+        {// handle ipc save request
             switch(luEngine)
             {
                 case SENGINE_LUA:
@@ -857,10 +1069,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             Settings->LoadFromIPC(luHash);
             return Settings->Save() ? EXIT_SUCCESS : EXIT_FAILURE;
         }
+        else if(!strcmp(lpCmdLine, "/defaults"))
+        {// handle defaults setup
+            l_LoadDefaults = TRUE;
+        }
     }
 
-    // Obsolete: Windows 8 PCA rewriting code, now a cleanup. Remove
-    // in a version or two.
+    // Windows 8 PCA cleanup.
     for(;;)
     {
         CHAR szFileName[MAX_PATH];
@@ -932,7 +1147,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 
     // we are reading strings into unsigned longs, aren't we great?
     // check settings.h if you are still in doubt.
-    Config.GetString("settings", "Engine", (char*)&luEngine, (char*)&luEngine, sizeof(luEngine));
+    g_Config.GetString("settings", "Engine", (char*)&luEngine, (char*)&luEngine, sizeof(luEngine));
 
     // select settings engine
     switch(luEngine)
@@ -951,9 +1166,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     // show 'em the dialog
     HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDA_MAIN_DIALOG));
     HWND hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MAIN_DIALOG), NULL, &MainDialogProc);
-    MSG Msg;
+
+    // if we are only loading the machine with defaults, tear it down
+    if(l_LoadDefaults)
+    {
+        PostMessage(hWnd, WM_COMMAND, MAKELONG(IDOK, 0), (LPARAM)GetDlgItem(hWnd, IDOK));
+    }
+    else
+    {// otherwise make it show according start up options
+        ShowWindow(hWnd, nShowCmd);
+    }
 
     // process messages
+    MSG Msg;
+
     while(GetMessage(&Msg, NULL, 0, 0)>0)
     {
         if(!TranslateAccelerator(hWnd, hAccel, &Msg))
@@ -975,6 +1201,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 
     // release mutex
     CloseHandle(hMutex);
+
+    // dump log to disk
+    if(GetAsyncKeyState(VK_SHIFT)>>0xf)
+    {
+        g_Log.Store(true);
+    }
 
     return EXIT_SUCCESS;
 }

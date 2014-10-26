@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -13,6 +13,7 @@
 
 #include "opensetup.h"
 #include "error.h"
+#include "log.h"
 #include "resource.h"
 
 void __stdcall CError::ErrorMessageFromStringImpl(HWND hWnd, DWORD dwLastError, unsigned int uTitle, const char* lpszStrError, va_list vlArgs)
@@ -37,6 +38,10 @@ void __stdcall CError::ErrorMessageFromStringImpl(HWND hWnd, DWORD dwLastError, 
     // build final message
     snprintf(szFinal, __ARRAYSIZE(szFinal), "%s\r\n\r\n%s (0x%08x, %lu):\r\n%s", szFmtError, szStrSystem, dwLastError, dwLastError, szFmtSystem);
 
+    // log it
+    g_Log.LogError("Displaying message:\n%s", szFinal);
+
+    // confront the user
     MessageBox(hWnd, szFinal, szStrTitle, MB_OK|MB_ICONSTOP);
 }
 

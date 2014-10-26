@@ -1,11 +1,86 @@
 ====================================================================
 RagnarokOnline OpenSetup
-(c) 2010-2013 Ai4rei/AN
+(c) 2010-2014 Ai4rei/AN
 See doc/license.txt for details.
 
 ====================================================================
 
 == History =========================================================
+
+[Version 2.11.2]
++ Ctrl+Cancel now nukes the process that started OpenSetup.
+  # Use this only if you need to break out of client's setup loop.
+  # If you use this when you started OpenSetup manually, you will nuke the explorer desktop instance with default settings.
+! Fixed concurrent attempts to write the debug log could truncate the output (since 2.8.1).
+! Fixed truncated debug log output when the settings engine sanity check fails (since 2.8.1).
+
+[Version 2.11.1]
++ Added Simplified Chinese translation by tinpont.
+* Adjusted UI to accomodate localized texts.
+* Marked as Windows 10 aware.
+* Improved code that handles current shell font across Windows versions. This still (probably) does not make us DPI aware, though...
+! Fixes to Spanish translation [jaBote].
+! Fixed volume sliders showing help text rather than volume level while dragging (since 2.9.0).
+
+[Version 2.11.0]
++ Added support for configurable Lua settings folder for older clients.
++ Added workaround code chunk to Lua settings to allow people with messed up client folders to start the client, once.
+* Lua setting updates are no longer appended at the end of the old settings.
+
+[Version 2.10.2]
++ Added sample ini file to release builds.
+* Updated new translation bits in Brazilian Portuguese translation [EvilPuncker].
+* Extended DX7 device information in debug log.
+
+[Version 2.10.1]
+* Updated new translation bits in Spanish translation [jaBote].
+* Updated new translation bits in Japanese translation [Mintmoon].
+
+[Version 2.10.0]
++ Added setting of default RO folder upon saving, which is normally performed by the official installer.
++ Added support for automated initialization of RO settings on machines that do not have any RO settings, yet.
++ Added detection of missing Miles Sound System files.
++ Added support for "/monsterhp", "/quickspell" and "/quickspell2".
+* Duplicated traditional Spanish to modern Spanish as per suggestion from Leeg on rAthena boards.
+* Marked as Windows 8.1 aware.
+* Improved sanity checking.
+! Fixed main window could be resized or maximized with window menu commands.
+- Removed incomplete Korean translation.
+- Removed untranslated help messages from es_CL translation.
+
+[Version 2.9.1]
+* Updated new translation bits in Spanish translation [jaBote].
+* Updated new translation bits in Japanese translation [Mintmoon].
+
+[Version 2.9.0]
++ Added support for disabling graphics hardware-acceleration.
++ Added device name labels to driver names in device selection combobox.
++ Added home page button to about tab.
++ Added support for detecting active mirror drivers, which prevent DirectX hardware acceleration from working (like conventional RDP does).
+* Context-sensitive help is now served through tool tips, replacing previous HTML Help Balloons, that have graphical glitches and require interaction in order to show up.
+* [snippets::dx7enum] Updated to the latest version.
+! Fixed various typos in translations.
+
+[Version 2.8.3]
+* Updated new translation bits in Japanese translation [Mintmoon].
+* General cleaning in translations.
+! Fixes to Japanese translation [Mintmoon] (since 2.8.2).
+! Fixes to Czech translation (since 2.6.7).
+! Fixes to German translation (since 2.6.3).
+! Fixes to English translation (since 2.0.1).
+
+[Version 2.8.2]
++ Added Japanese translation by Mintmoon.
+* Improved sanity checking to also check for files, that are not supposed to exist (lub in savedata).
+* Made sanity checking trigger on save rather than on load to make it less annoying.
+! Fixed missing Czech and German translation of sanity bits.
+
+[Version 2.8.1]
++ Added LUA settings sanity checking (checks for default settings in folder System).
++ Added logging facility (debug).
+* Updated new translation bits in Russian translation [Jarek].
+! Fixes to Russian translation [Jarek] (since 2.6.6).
+! Fixed LUA settings not being loaded from the same file as they are saved (for people with messed up installations, that is).
 
 [Version 2.8.0]
 + Added notice for Remote Desktop users (DirectX does not work over conventional RDP).

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -32,7 +32,7 @@ static inline void __stdcall EnterSpinLock(LPLONG lplSL)
     while(InterlockedExchangeAdd(lplSL, 1))
     {
         InterlockedExchangeAdd(lplSL, -1);
-        Sleep(100);
+        Sleep(1);
     }
     (void)EnterSpinLock;
 }
@@ -40,7 +40,7 @@ static inline void __stdcall EnterSpinLock(LPLONG lplSL)
 static inline void __stdcall LeaveSpinLock(LPLONG lplSL)
 {
     InterlockedExchangeAdd(lplSL, -1);
-    Sleep(100);
+    Sleep(1);
     (void)LeaveSpinLock;
 }
 

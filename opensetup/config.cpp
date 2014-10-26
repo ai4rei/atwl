@@ -1,16 +1,21 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
 
+#include <stdio.h>
 #include <string.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "opensetup.h"
 #include "config.h"
+#include "log.h"
+
+// global instance
+CConfig g_Config;
 
 CConfig::CConfig()
 {
@@ -44,4 +49,44 @@ int __stdcall CConfig::GetNumber(const char* lpszSection, const char* lpszKey, i
 bool __stdcall CConfig::GetBool(const char* lpszSection, const char* lpszKey, bool bDefault)
 {
     return this->GetNumber(lpszSection, lpszKey, bDefault ? 1 : 0)!=0;
+}
+
+void __stdcall CConfig::DumpToLog(void)
+{
+    FILE* hFile = fopen(this->m_szIniFile, "r");
+
+    if(hFile)
+    {
+        char szBuffer[2048];
+        unsigned long luLine = 0;
+
+        g_Log.LogInfo("Dumping contents of '%s':", this->m_szIniFile);
+        g_Log.IncrementLevel();
+
+        while(fgets(szBuffer, __ARRAYSIZE(szBuffer), hFile))
+        {
+            char* lpszEnd = szBuffer+strlen(szBuffer);
+
+            // drop EOL
+            while(lpszEnd!=szBuffer)
+            {
+                lpszEnd--;
+
+                if(lpszEnd[0]=='\r' || lpszEnd[0]=='\n')
+                {
+                    lpszEnd[0] = 0;
+                }
+            }
+
+            g_Log.LogMessage("%2u: %s", ++luLine, szBuffer);
+        }
+
+        g_Log.DecrementLevel();
+
+        fclose(hFile);
+    }
+    else
+    {
+        g_Log.LogWarning("Either there is no config file or it failed to open.");
+    }
 }

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -14,16 +14,27 @@
 #include "luaio.h"
 #include "resource.h"
 
-typedef struct LUAREADERINFO_
+static const char* l_lppszAcceptableExtensions[] = { "lub", "lua" };
+
+void __stdcall CLuaIO::P_GetField(int nIndex, const char* lpszName)
 {
-    void* lpPtr;
-    unsigned long luSize;
+#ifndef DONT_USE_LUA_5_1
+    lua_getfield(this->L, nIndex, lpszName);
+#else  /* DONT_USE_LUA_5_1 */
+    lua_pushstring(this->L, lpszName);
+    lua_gettable(this->L, nIndex);
+#endif  /* DONT_USE_LUA_5_1 */
 }
-LUAREADERINFO, * LPLUAREADERINFO;
 
-static const char* lpszAcceptableExtensions[] = { "lub", "lua" };
+void __stdcall CLuaIO::P_GetTableField(const char* lpszTable, const char* lpszKey)
+{
+    P_GetField(LUA_GLOBALSINDEX, lpszTable);
+    P_GetField(-1, lpszKey);
 
-void* __stdcall CLuaIO::ReAlloc(void* lpPtr, unsigned long luSize)
+    lua_remove(this->L, -2);  // remove table from stack
+}
+
+void* __stdcall CLuaIO::Realloc(void* lpPtr, unsigned long luSize)
 {
     return realloc(lpPtr, luSize);
 }
@@ -46,8 +57,8 @@ const char* __cdecl CLuaIO::ReaderFunc(lua_State* L, void* lpData, size_t* lpuSi
     }
     lpuSize[0] = luReqSize;
 
-    lpChunk = (const char*)lpReaderInfo->lpPtr;
-    lpReaderInfo->lpPtr = ((char*)(lpReaderInfo->lpPtr))+luReqSize;
+    lpChunk = (const char*)lpReaderInfo->lpData;
+    lpReaderInfo->lpData = ((char*)(lpReaderInfo->lpData))+luReqSize;
     lpReaderInfo->luSize-= luReqSize;
 
     return lpChunk;
@@ -61,7 +72,7 @@ void* __cdecl CLuaIO::AllocatorFunc(void* lpUserData, void* lpPtr, size_t uOldSi
         return lpPtr;
     }
 
-    return CLuaIO::ReAlloc(lpPtr, uNewSize);
+    return CLuaIO::Realloc(lpPtr, uNewSize);
 }
 #endif  /* DONT_USE_LUA_5_1 */
 
@@ -76,7 +87,7 @@ void __stdcall CLuaIO::Error(void)
             CError::ErrorMessageFromStringEx(NULL, TEXT_ERROR__TITLE_LUA, "%s", lpszErrMsg);
         }
 
-        // pop the error message from stack (from lua_pcall)
+        // pop the error message from stack (from lua_load/lua_pcall)
         lua_pop(this->L, 1);
     }
 }
@@ -108,96 +119,112 @@ CLuaIO::~CLuaIO()
     }
 }
 
-bool __stdcall CLuaIO::FetchFile(const char* lpszName, void* lpBuf, unsigned long luSize)
+bool __stdcall CLuaIO::P_LoadBufferFromFile(const char* lpszFileName, unsigned long* lpluFileSize, void** lppBuf)
 {
-    bool bSuccess = false;
-    DWORD dwRead = 0;
-    HANDLE hFile;
-
-    if((hFile = CreateFile(lpszName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL))!=INVALID_HANDLE_VALUE)
-    {
-        if(ReadFile(hFile, lpBuf, luSize, &dwRead, NULL))
-        {
-            bSuccess = true;
-        }
-
-        CloseHandle(hFile);
-    }
-
-    return bSuccess;
-}
-
-bool __stdcall CLuaIO::ExistFile(const char* lpszName, unsigned long* lpluSize)
-{
-    bool bSuccess = false;
-    HANDLE hFile;
-
-    if((hFile = CreateFile(lpszName, 0, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL))!=INVALID_HANDLE_VALUE)
-    {
-        if((lpluSize[0] = GetFileSize(hFile, NULL))!=INVALID_FILE_SIZE)
-        {
-            bSuccess = true;
-        }
-
-        CloseHandle(hFile);
-    }
-
-    return bSuccess;
-}
-
-bool __stdcall CLuaIO::Load(const char* lpszName)
-{
-    char szScriptName[MAX_PATH];
-    unsigned long luIdx, luFileSize = 0;
     void* lpBuf = NULL;
+    HANDLE hFile;
 
-    if(this->L)
+    if((hFile = CreateFileA(lpszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL))!=INVALID_HANDLE_VALUE)
     {
-        for(luIdx = 0; luIdx<__ARRAYSIZE(lpszAcceptableExtensions); luIdx++)
-        {// look for a suitable file
-            wsprintfA(szScriptName, "%s.%s", lpszName, lpszAcceptableExtensions[luIdx]);
+        unsigned long luFileSize;
 
-            if(CLuaIO::ExistFile(szScriptName, &luFileSize))
+        if((luFileSize = GetFileSize(hFile, NULL))!=INVALID_FILE_SIZE)
+        {
+            // +1 for the unnecessary zero-termination
+            if((lpBuf = CLuaIO::Realloc(NULL, luFileSize+1))!=NULL)
             {
-                if((lpBuf = CLuaIO::ReAlloc(NULL, luFileSize+1))!=NULL)
-                {
-                    if(CLuaIO::FetchFile(szScriptName, lpBuf, luFileSize))
-                    {
-                        ((char*)lpBuf)[luFileSize] = 0;
-                        break;
-                    }
+                DWORD dwRead;
 
+                if(ReadFile(hFile, lpBuf, luFileSize, &dwRead, NULL) && dwRead==luFileSize)
+                {
+                    ((char*)lpBuf)[luFileSize] = 0;  // zero-terminate
+
+                    lpluFileSize[0] = luFileSize;
+                    lppBuf[0]       = lpBuf;
+                }
+                else
+                {
                     CLuaIO::FreeEx(&lpBuf);
                 }
             }
         }
 
+        CloseHandle(hFile);
+    }
+
+    return lpBuf!=NULL;
+}
+
+bool __stdcall CLuaIO::Eval(const void* lpData, unsigned long luSize, const char* lpszName)
+{
+    bool bSuccess = false;
+    LUAREADERINFO Lri;
+
+    Lri.lpData = lpData;
+    Lri.luSize = luSize;
+
+    if(lua_load(this->L, &CLuaIO::ReaderFunc, &Lri, lpszName))
+    {
+        this->Error();
+    }
+    else if(lua_pcall(this->L, 0, 0, 0))
+    {
+        this->Error();
+    }
+    else
+    {
+        bSuccess = true;
+    }
+
+    return bSuccess;
+}
+
+bool __stdcall CLuaIO::Eval(const char* lpszCode, const char* lpszName)
+{
+    return this->Eval((const void*)lpszCode, strlen(lpszCode), lpszName);
+}
+
+bool __stdcall CLuaIO::Load(const char* lpszName, LUAFILETYPE nFileType)
+{
+    bool bSuccess = false;
+    char szFileName[MAX_PATH];
+    unsigned long luIdx;
+    unsigned long luFileSize;
+    void* lpBuf = NULL;
+
+    if(this->L)
+    {
+        switch(nFileType)
+        {
+            case LFT_AUTO:
+                // look for a suitable file
+                for(luIdx = 0; luIdx<__ARRAYSIZE(l_lppszAcceptableExtensions); luIdx++)
+                {
+                    wsprintfA(szFileName, "%s.%s", lpszName, l_lppszAcceptableExtensions[luIdx]);
+
+                    if(CLuaIO::P_LoadBufferFromFile(szFileName, &luFileSize, &lpBuf))
+                    {
+                        break;
+                    }
+                }
+                break;
+            case LFT_LUB:
+            case LFT_LUA:
+                // specific type
+                wsprintfA(szFileName, "%s.%s", lpszName, l_lppszAcceptableExtensions[nFileType]);
+                CLuaIO::P_LoadBufferFromFile(szFileName, &luFileSize, &lpBuf);
+                break;
+        }
+
         if(lpBuf)
         {
-            int nResult;
-            LUAREADERINFO ReaderInfo;
+            bSuccess = this->Eval(lpBuf, luFileSize, lpszName);
 
-            ReaderInfo.lpPtr = lpBuf;
-            ReaderInfo.luSize = luFileSize;
-
-            nResult = lua_load(this->L, &CLuaIO::ReaderFunc, &ReaderInfo, lpszName);
             CLuaIO::FreeEx(&lpBuf);
-
-            if(!nResult)
-            {
-                // load pushed the chunk as function on the stack
-                if(!lua_pcall(this->L, 0, 0, 0))
-                {
-                    return true;
-                }
-            }
-
-            // either load and pcall push a message in case of error
-            this->Error();
         }
     }
 
-    return false;
+    return bSuccess;
 }
 
 void __stdcall CLuaIO::DefineTable(const char* lpszName)
@@ -215,12 +242,7 @@ bool __stdcall CLuaIO::GetInteger(const char* lpszName, unsigned long* lpluValue
 
     if(this->L)
     {
-#ifndef DONT_USE_LUA_5_1
-        lua_getfield(this->L, LUA_GLOBALSINDEX, lpszName);
-#else  /* DONT_USE_LUA_5_1 */
-        lua_pushstring(this->L, lpszName);
-        lua_gettable(this->L, LUA_GLOBALSINDEX);
-#endif  /* DONT_USE_LUA_5_1 */
+        P_GetField(LUA_GLOBALSINDEX, lpszName);
 
         if(lua_isnumber(this->L, -1))
         {
@@ -240,17 +262,7 @@ bool __stdcall CLuaIO::GetTableInteger(const char* lpszTable, const char* lpszNa
 
     if(this->L)
     {
-#ifndef DONT_USE_LUA_5_1
-        lua_getfield(this->L, LUA_GLOBALSINDEX, lpszTable);
-        lua_getfield(this->L, -1, lpszName);  // push referenced index value
-        lua_remove(this->L, -2);  // remove table from stack
-#else  /* DONT_USE_LUA_5_1 */
-        lua_pushstring(this->L, lpszTable);
-        lua_gettable(this->L, LUA_GLOBALSINDEX);
-        lua_pushstring(this->L, lpszName);
-        lua_gettable(this->L, -1);
-        lua_remove(this->L, -2);
-#endif  /* DONT_USE_LUA_5_1 */
+        P_GetTableField(lpszTable, lpszName);
 
         if(lua_isnumber(this->L, -1))
         {
@@ -262,4 +274,100 @@ bool __stdcall CLuaIO::GetTableInteger(const char* lpszTable, const char* lpszNa
     }
 
     return bSuccess;
+}
+
+bool __stdcall CLuaIO::GetTableString(const char* lpszTable, const char* lpszName, char** lppszValue)
+{
+    bool bSuccess = false;
+
+    if(this->L)
+    {
+        P_GetTableField(lpszTable, lpszName);
+
+        if(lua_isstring(this->L, -1))
+        {
+            lppszValue[0] = strdup(lua_tostring(this->L, -1));
+            bSuccess = true;
+        }
+
+        lua_pop(this->L, 1);
+    }
+
+    return bSuccess;
+}
+
+void __stdcall CLuaIO::SetTableInteger(const char* lpszTable, const char* lpszName, unsigned long luValue)
+{
+    if(this->L)
+    {
+        P_GetField(LUA_GLOBALSINDEX, lpszTable);
+
+#ifndef DONT_USE_LUA_5_1
+        lua_pushinteger(this->L, luValue);
+        lua_setfield(this->L, -2, lpszName);  // pops value from stack
+#else  /* DONT_USE_LUA_5_1 */
+        lua_pushstring(this->L, lpszName);
+        lua_pushinteger(this->L, luValue);
+        lua_settable(this->L, -3);  // pops value and key from stack
+#endif  /* DONT_USE_LUA_5_1 */
+
+        lua_pop(this->L, 1);  // remove table from stack
+    }
+}
+
+void __stdcall CLuaIO::DeleteTableValue(const char* lpszTable, const char* lpszName)
+{
+    if(this->L)
+    {
+        P_GetField(LUA_GLOBALSINDEX, lpszTable);
+
+#ifndef DONT_USE_LUA_5_1
+        lua_pushnil(this->L);
+        lua_setfield(this->L, -2, lpszName);  // pops value from stack
+#else  /* DONT_USE_LUA_5_1 */
+        lua_pushstring(this->L, lpszName);
+        lua_pushnil(this->L);
+        lua_settable(this->L, -3);  // pops value and key from stack
+#endif  /* DONT_USE_LUA_5_1 */
+
+        lua_pop(this->L, 1);  // remove table from stack
+    }
+}
+
+void __stdcall CLuaIO::ForEachTableKey(const char* lpszTable, LPFNFOREACHTABLEKEYFUNC Func, void* lpContext)
+{
+    if(this->L)
+    {
+        P_GetField(LUA_GLOBALSINDEX, lpszTable);
+
+        lua_pushnil(this->L);
+
+        while(lua_next(this->L, -2)!=0)
+        {
+            bool bContinue = true;
+
+            int nValType = lua_type(this->L, -1);
+
+            lua_pop(this->L, 1);  // remove value from stack
+
+            lua_pushvalue(this->L, -1);  // push a copy of the key
+
+            int nKeyType = lua_type(this->L, -1);
+
+            switch(nKeyType)
+            {
+                case LUA_TBOOLEAN:
+                    bContinue = Func(this, lpszTable, lua_toboolean(this->L, -1) ? "true" : "false", nKeyType, nValType, lpContext);
+                    break;
+                case LUA_TNUMBER:
+                case LUA_TSTRING:
+                    bContinue = Func(this, lpszTable, lua_tostring(this->L, -1), nKeyType, nValType, lpContext);
+                    break;
+            }
+
+            lua_pop(this->L, 1);  // remove key copy from stack
+        }
+
+        lua_pop(this->L, 2);  // remove key and table from stack
+    }
 }

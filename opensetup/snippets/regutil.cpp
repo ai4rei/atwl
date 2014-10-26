@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 // Must not be used with other software than RO Open Setup.
 //

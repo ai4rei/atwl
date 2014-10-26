@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -66,6 +66,9 @@ typedef enum SETTINGENTRY
     SE_ISFIXEDCAMERA,
     SE_ONHOUSERAI,
     SE_ONMERUSERAI,
+    SE_MONSTERHP,           // LUA
+    SE_Q1,                  // LUA
+    SE_Q2,                  // LUA
 }
 SETTINGENTRY;
 
@@ -128,6 +131,9 @@ typedef struct SETTINGSENTRIES
     unsigned long ISFIXEDCAMERA;    // Whether /camera is turned on (1) or not (0).
     unsigned long ONHOUSERAI;       // Whether /hoai is turned on (1) or not (0).
     unsigned long ONMERUSERAI;      // Whether /merai is turned on (1) or not (0).
+    unsigned long MONSTERHP;        // Whether /monsterhp is turned on (1) or not (0).
+    unsigned long Q1;               // Whether /q1 is turned on (1) or not (0).
+    unsigned long Q2;               // Whether /q2 is turned on (1) or not (0).
     // 2.0 end
     GUID GUIDDRIVER;
     GUID GUIDDEVICE;
@@ -148,22 +154,25 @@ protected:
 
 public:
     unsigned long __stdcall Get(SETTINGENTRY nEntry);
+    void __stdcall Get(SETTINGENTRY nEntry, GUID* lpGuid);
     void __stdcall Set(SETTINGENTRY nEntry, unsigned long luValue);
-    void __stdcall Set(SETTINGENTRY nEntry, GUID* lpGuid);
+    void __stdcall Set(SETTINGENTRY nEntry, const GUID* lpGuid);
     void __stdcall Set(SETTINGENTRY nEntry, const char* lpszString);
     void __stdcall Set(SETTINGFLAG nFlag, bool bState);
-    unsigned long __stdcall SaveToIPC(void);
+    unsigned long __stdcall SaveToIPC();
     void __stdcall LoadFromIPC(unsigned long luHash);
-    virtual bool __stdcall Save(void) = 0;
-    virtual void __stdcall Load(void) = 0;
-    virtual void __stdcall Reset(void) = 0;
-    virtual void __stdcall ResetUI(void);
-    virtual void __stdcall ResetSkillLevel(void);
-    virtual void __stdcall ResetUserData(void);
-    virtual void __stdcall ResetSettings(void) = 0;
+    virtual bool __stdcall Save() = 0;
+    virtual void __stdcall Load() = 0;
+    virtual void __stdcall Reset() = 0;
+    virtual void __stdcall ResetUI();
+    virtual void __stdcall ResetSkillLevel();
+    virtual void __stdcall ResetUserData();
+    virtual void __stdcall ResetSettings() = 0;
+    virtual void __stdcall ResetInstall();
     virtual bool __stdcall IsAvail(SETTINGENTRY nEntry) = 0;
-    virtual bool __stdcall IsAdminRequired(void) = 0;
-    virtual SETTINGENGINEID __stdcall GetEngineID(void) = 0;
+    virtual bool __stdcall IsAdminRequired() = 0;
+    virtual bool __stdcall IsSane() = 0;
+    virtual SETTINGENGINEID __stdcall GetEngineID() = 0;
 };
 
 #endif  /* _SETTINGS_H_ */

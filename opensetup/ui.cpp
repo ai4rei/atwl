@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2013 Ai4rei/AN
+// (c) 2010-2014 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -136,62 +136,6 @@ bool __stdcall UI::GetCheckBoxTick(HWND hWnd, int nId)
     return IsDlgButtonChecked(hWnd, nId)!=BST_UNCHECKED;
 }
 
-void __stdcall UI::HHLite(HWND hWnd, LPHELPINFO lpHi)
-{
-    static char szLastMsg[4096+1] = { 0 };
-    HH_POPUP Popup;
-
-    if(lpHi->cbSize<sizeof(HELPINFO))
-    {// less data than we expect
-        return;
-    }
-
-    if(lpHi->iContextType!=HELPINFO_WINDOW)
-    {// do not care about menu help (there should not be any, either)
-        return;
-    }
-
-    if(lpHi->iCtrlId==0xffff)
-    {// ignore labels
-        return;
-    }
-
-    if(!IsWindowEnabled((HWND)lpHi->hItemHandle))
-    {// do not display help for something disabled
-        return;
-    }
-
-    if(hWnd!=GetParent((HWND)lpHi->hItemHandle))
-    {// does not have the current parent as immediate ancestor
-        return;
-    }
-
-    if(UI::GetSizeRatio(hWnd, (HWND)lpHi->hItemHandle)>=75)
-    {// too large, to be intended target
-        return;
-    }
-
-    if(!LoadStringA(GetModuleHandle(NULL), lpHi->iCtrlId, szLastMsg, __ARRAYSIZE(szLastMsg)))
-    {// no such string
-        return;
-    }
-
-    Popup.cbStruct = sizeof(Popup);
-    Popup.hinst = NULL;  // GetModuleHandle(NULL);
-    Popup.idString = 0;  // lpHi->iCtrlId;
-    Popup.pszText = szLastMsg;
-    Popup.pt.x = lpHi->MousePos.x;     // has no effect
-    Popup.pt.y = lpHi->MousePos.y+16;  // NOTE: offset coords so that the window does not cover the control completely
-    Popup.clrForeground = -1;
-    Popup.clrBackground = -1;
-    Popup.rcMargins.left =
-    Popup.rcMargins.top =
-    Popup.rcMargins.right =
-    Popup.rcMargins.bottom = -1;
-    Popup.pszFont = "Tahoma, 8";
-    HtmlHelp((HWND)lpHi->hItemHandle, NULL, HH_DISPLAY_TEXT_POPUP, (DWORD)&Popup);
-}
-
 BOOL CALLBACK UI::SetFocusFirstChildEach(HWND hWnd, LPARAM lParam)
 {
     if(IsWindowEnabled(hWnd) /* enabled */ && IsWindowVisible(hWnd) /* visible */ && (GetWindowLong(hWnd, GWL_STYLE)&WS_TABSTOP) /* is tabbable */)
@@ -211,4 +155,173 @@ void __stdcall UI::SetFocusFirstChild(HWND hWnd)
 bool __stdcall UI::IsRemoteSession(void)
 {
     return GetSystemMetrics(SM_REMOTESESSION)!=0;
+}
+
+bool __stdcall UI::IsMirrorDriverPresent(bool* lpbActive)
+{
+    LPFNENUMDISPLAYDEVICESA EnumDisplayDevices = (LPFNENUMDISPLAYDEVICESA)GetProcAddress(GetModuleHandle("user32.dll"), "EnumDisplayDevicesA");
+
+    if(EnumDisplayDevices)
+    {
+        unsigned long luIdx;
+        DISPLAY_DEVICE DisplayDevice = { sizeof(DisplayDevice) };
+
+        for(luIdx = 0; EnumDisplayDevices(NULL, luIdx, &DisplayDevice, 0); luIdx++)
+        {
+            if(DisplayDevice.StateFlags&DISPLAY_DEVICE_MIRRORING_DRIVER)
+            {
+                if(lpbActive)
+                {
+                    lpbActive[0] = (DisplayDevice.StateFlags&DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)!=0;
+                }
+
+                return true;
+            }
+        }
+    }
+
+    if(lpbActive)
+    {
+        lpbActive[0] = false;
+    }
+
+    return false;
+}
+
+BOOL CALLBACK UI::EnableToolTipsForEach(HWND hWnd, LPARAM lParam)
+{
+    char szTestBuffer[16];
+    HWND hWndTT = (HWND)lParam;
+    HWND hWndMain = GetParent(hWndTT);
+    HWND hWndParent = GetParent(hWnd);
+    UINT uID = GetDlgCtrlID(hWnd);
+
+    for(;;)
+    {
+        if(uID==0xffff)
+        {// ignore labels and anonymous controls
+            break;
+        }
+
+        if(!IsWindowEnabled(hWnd))
+        {// do not display help for something disabled
+            break;
+        }
+
+        if(hWndMain==hWndParent)
+        {// does not have the tab window as immediate ancestor
+            break;
+        }
+
+        if(UI::GetSizeRatio(hWndParent, hWnd)>=75)
+        {// too large, to be intended target
+            break;
+        }
+
+        if(!LoadStringA(GetModuleHandle(NULL), uID, szTestBuffer, __ARRAYSIZE(szTestBuffer)))
+        {// no such string
+            break;
+        }
+
+        {// add tool
+            TOOLINFO Ti = { sizeof(Ti) };
+
+            Ti.uFlags = TTF_IDISHWND|TTF_SUBCLASS;
+            Ti.hwnd = hWndParent;
+            Ti.uId = (UINT_PTR)hWnd;
+            Ti.lpszText = LPSTR_TEXTCALLBACK;
+
+            SendMessage(hWndTT, TTM_ADDTOOL, 0, (LPARAM)&Ti);
+        }
+        break;
+    }
+
+    return TRUE;
+}
+
+void __stdcall UI::EnableToolTips(HWND hWnd, BOOL bEnable)
+{
+    static HWND hWndTT = NULL;
+
+    if(!hWndTT)
+    {
+        RECT rcWnd;
+
+        // first time initialization
+        hWndTT = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, "", TTS_NOPREFIX, 0, 0, 0, 0, hWnd, NULL, GetModuleHandle(NULL), NULL);
+
+        // limit the tool tip width to the width of the main window
+        GetWindowRect(hWnd, &rcWnd);
+        SendMessage(hWndTT, TTM_SETMAXTIPWIDTH, 0, rcWnd.right-rcWnd.left);
+    }
+
+    if(bEnable)
+    {
+        // add all matching child windows
+        EnumChildWindows(hWnd, &UI::EnableToolTipsForEach, (LPARAM)hWndTT);
+    }
+    else
+    {
+        // clear all tools
+        TOOLINFO Ti = { sizeof(Ti) };
+
+        while(SendMessage(hWndTT, TTM_ENUMTOOLS, 0, (LPARAM)&Ti))
+        {
+            SendMessage(hWndTT, TTM_DELTOOL, 0, (LPARAM)&Ti);
+        }
+    }
+
+    // finally change state
+    SendMessage(hWndTT, TTM_ACTIVATE, bEnable, 0);
+}
+
+void __stdcall UI::HandleToolTips(LPNMHDR lpHdr)
+{
+    static char szLastMsg[4096+1] = { 0 };
+    UINT uID;
+
+    if(lpHdr->code==TTN_GETDISPINFO)
+    {
+        LPNMTTDISPINFO lpDi = (LPNMTTDISPINFO)lpHdr;
+
+        if(lpDi->szText[0])
+        {// auto tick-value from trackbar
+            return;
+        }
+
+        if(lpDi->uFlags&TTF_IDISHWND)
+        {
+            uID = GetDlgCtrlID((HWND)lpHdr->idFrom);
+        }
+        else
+        {
+            uID = lpHdr->idFrom;
+        }
+
+        if(!LoadStringA(GetModuleHandle(NULL), uID, szLastMsg, __ARRAYSIZE(szLastMsg)))
+        {// no such string, should not happen
+            DebugBreakHere();
+            return;
+        }
+
+        lpDi->lpszText = szLastMsg;
+        lpDi->hinst = NULL;
+    }
+}
+
+HFONT __stdcall UI::GetShellFont()
+{
+    NONCLIENTMETRICS Ncm = { sizeof(Ncm) };
+
+    if(SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, &Ncm, 0))
+    {
+        HFONT hFont = CreateFontIndirect(&Ncm.lfMessageFont);
+
+        if(hFont)
+        {
+            return hFont;
+        }
+    }
+
+    return (HFONT)GetStockObject(SYSTEM_FONT);
 }
