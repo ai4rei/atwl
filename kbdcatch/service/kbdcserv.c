@@ -541,7 +541,10 @@ UINT __WDECL KbdcServMain(VOID)
     {
         if((hThread = CreateThread(NULL, 0, &KbdcServPipeManager, NULL, CREATE_SUSPENDED, &dwThreadId))!=NULL)
         {
-            KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
+            if(l_State.ServiceMode)
+            {
+                KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
+            }
 
             for(;;)
             {
