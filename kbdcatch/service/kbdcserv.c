@@ -940,3 +940,9 @@ VOID __WDECL KbdcServEnter(VOID)
 
     ExitProcess(uExitCode);
 }
+
+int main(void)
+{
+    KbdcServEnter();
+    return 0;
+}
