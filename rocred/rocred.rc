@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RO Credentials (ROCred)
-// (c) 2012-2013 Ai4rei/AN
+// (c) 2012-2014 Ai4rei/AN
 //
 // -----------------------------------------------------------------
 
@@ -15,7 +15,7 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 #define APP_PRODUCTNAME "RO Credentials"
 #define APP_DESCRIPTION "Minimalist Client Launcher"
 #define APP_HAS_UI
-#define APP_COPYYEAR "2012-2013"
+#define APP_COPYYEAR "2012-2014"
 #define APP_INTERNALNAME "ROCred"
 #define APP_ORIGINALNAME "rocred.exe"
 
