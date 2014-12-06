@@ -203,7 +203,6 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
 
 static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
 {
-    char* lpszPtr;
     char szMutexName[MAX_PATH];
 
     // care about secondary instances?
@@ -216,7 +215,7 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
     GetModuleFileNameA(NULL, szMutexName, __ARRAYSIZE(szMutexName));
 
     // replace backslashes with a valid character
-    for(lpszPtr = szMutexName; lpszPtr[0] = lpszPtr[0]=='\\' ? '!' : lpszPtr[0]; lpszPtr++);
+    BvChrReplaceA(szMutexName, '\\', '!');
 
     if((lphMutex[0] = CreateMutex(NULL, FALSE, szMutexName))==NULL)
     {
