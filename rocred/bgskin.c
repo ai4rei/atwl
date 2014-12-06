@@ -258,7 +258,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
         {
             const char* lpszName;
             unsigned int uBtnId = GetDlgCtrlID(hChildWnd);
-            int nX, nY, nW, nH;
+            int nX, nY, nW, nH, nF;
             HBITMAP hbmLook;
 
             lpszName = BgSkin_P_ButtonId2Name(uBtnId);
@@ -281,6 +281,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 wsprintfA(szKeyName, "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
                 wsprintfA(szKeyName, "%s.W", lpszName); nW = ConfigGetInt(szKeyName);
                 wsprintfA(szKeyName, "%s.H", lpszName); nH = ConfigGetInt(szKeyName);
+                wsprintfA(szKeyName, "%s.F", lpszName); nF = ConfigGetInt(szKeyName);
 
                 if((hbmLook = BgSkin_P_GetSkin(uBtnId))!=NULL && GetObject(hbmLook, sizeof(bmBG), &bmBG))
                 {// take W/H from skin in pixels
@@ -289,6 +290,13 @@ bool __stdcall BgSkinInit(HWND hWnd)
 
                     // switch button to use skins
                     SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)|BS_OWNERDRAW);
+                }
+
+                // remove border, if any
+                if(nF&1)
+                {
+                    SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)&~WS_BORDER);
+                    SetWindowLongPtr(hChildWnd, GWL_EXSTYLE, GetWindowLongPtr(hChildWnd, GWL_EXSTYLE)&~WS_EX_CLIENTEDGE);
                 }
 
                 // set size
