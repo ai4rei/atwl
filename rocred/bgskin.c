@@ -10,8 +10,10 @@
 #include <btypes.h>
 #include <bvector.h>
 #include <bvcstr.h>
+#include <bvpars.h>
 #include <memory.h>
 #include <regionui.h>
+#include <w32ui.h>
 #include <w32uxt.h>
 
 #include "bgskin.h"
@@ -28,6 +30,7 @@ BUTTONSKININFO,* LPBUTTONSKININFO;
 typedef const BUTTONSKININFO* LPCBUTTONSKININFO;
 
 static HBITMAP l_hbmBackground = NULL;
+static HBRUSH l_hbrEditBack = NULL;
 static struct bvector* l_SkinDB = NULL;  // id -> LPBGSKININFO
 
 static const char* __stdcall BgSkin_P_ButtonId2Name(UINT uId)
@@ -136,13 +139,42 @@ bool __stdcall BgSkinOnLButtonDown(HWND hWnd)
     return false;
 }
 
-BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC)
+BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
 {
     if(BgSkin_P_IsActive())
     {
         SetBkMode(hDC, TRANSPARENT);
 
         return (BOOL)GetStockObject(NULL_BRUSH);
+    }
+
+    return FALSE;
+}
+
+BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
+{
+    if(BgSkin_P_IsActive())
+    {
+        switch(ConfigGetInt("EditBackground"))
+        {
+            case 1:
+                SetBkMode(hDC, TRANSPARENT);
+
+                return (BOOL)GetStockObject(NULL_BRUSH);
+            case 2:
+                SetBkMode(hDC, TRANSPARENT);
+
+                SetTextColor(hDC, BvStrToRgbA(ConfigGetStr("EditForegroundColor"), NULL));
+
+                if(l_hbrEditBack)
+                {
+                    DeleteObject(l_hbrEditBack);
+                }
+
+                l_hbrEditBack = CreateSolidBrush(BvStrToRgbA(ConfigGetStr("EditBackgroundColor"), NULL));
+
+                return (BOOL)l_hbrEditBack;
+        }
     }
 
     return FALSE;
@@ -258,7 +290,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
         {
             const char* lpszName;
             unsigned int uBtnId = GetDlgCtrlID(hChildWnd);
-            int nX, nY, nW, nH, nF;
+            int nX, nY, nW, nH;
             HBITMAP hbmLook;
 
             lpszName = BgSkin_P_ButtonId2Name(uBtnId);
@@ -281,7 +313,6 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 wsprintfA(szKeyName, "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
                 wsprintfA(szKeyName, "%s.W", lpszName); nW = ConfigGetInt(szKeyName);
                 wsprintfA(szKeyName, "%s.H", lpszName); nH = ConfigGetInt(szKeyName);
-                wsprintfA(szKeyName, "%s.F", lpszName); nF = ConfigGetInt(szKeyName);
 
                 if((hbmLook = BgSkin_P_GetSkin(uBtnId))!=NULL && GetObject(hbmLook, sizeof(bmBG), &bmBG))
                 {// take W/H from skin in pixels
@@ -293,7 +324,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 }
 
                 // remove border, if any
-                if(nF&1)
+                if(GetClassKind(hChildWnd)==CTL_BASE_EDIT && ConfigGetInt("EditFrame"))
                 {
                     SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)&~WS_BORDER);
                     SetWindowLongPtr(hChildWnd, GWL_EXSTYLE, GetWindowLongPtr(hChildWnd, GWL_EXSTYLE)&~WS_EX_CLIENTEDGE);
@@ -343,6 +374,12 @@ void __stdcall BgSkinFree(void)
     {
         l_SkinDB->destroy(l_SkinDB);
         l_SkinDB = NULL;
+    }
+
+    if(l_hbrEditBack)
+    {
+        DeleteObject(l_hbrEditBack);
+        l_hbrEditBack = NULL;
     }
 
     if(l_hbmBackground)

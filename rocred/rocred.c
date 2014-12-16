@@ -496,7 +496,9 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_CTLCOLORSTATIC:
-            return BgSkinOnCtlColorStatic((HDC)wParam);
+            return BgSkinOnCtlColorStatic((HDC)wParam, (HWND)lParam);
+        case WM_CTLCOLOREDIT:
+            return BgSkinOnCtlColorEdit((HDC)wParam, (HWND)lParam);
         case WM_DRAWITEM:
             if(!BgSkinOnDrawItem(wParam, (LPDRAWITEMSTRUCT)lParam))
             {
