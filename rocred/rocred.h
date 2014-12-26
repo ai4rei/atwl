@@ -32,6 +32,9 @@
 #define IDS_MISCINFO_PROMPT_SUFFIX      1015
 #define IDS_MISCINFO_OPT_MACADDRESS     1016
 
+#define MAX_REGISTRY_KEY_SIZE 255
+
 int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags);
+bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
 
 #endif  /* _ROCRED_H_ */

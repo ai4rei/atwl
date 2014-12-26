@@ -28,13 +28,15 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
     {
         char szBuffer[4096];
         const char* lpszActionData;
+        const char* lpszActionHandler;
         int nActionType;
         SHELLEXECUTEINFO Sei = { sizeof(Sei) };
 
         wsprintf(szBuffer, "ROCred.Buttons.%s", lpszBtnName);
 
-        nActionType    = ConfigGetIntFromSection(szBuffer, "ActionType");
-        lpszActionData = ConfigGetStrFromSection(szBuffer, "ActionData");
+        nActionType       = ConfigGetIntFromSection(szBuffer, "ActionType");
+        lpszActionData    = ConfigGetStrFromSection(szBuffer, "ActionData");
+        lpszActionHandler = ConfigGetStrFromSection(szBuffer, "ActionHandler");
 
         if(lpszActionData[0]=='#')
         {
@@ -48,6 +50,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             char* lpszIdx;
             const char* lpszFile;
             const char* lpszParam = "";
+            char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
             BOOL bSuccess;
 
             lpszIdx = lpszBuf = Memory_DuplicateString(lpszActionData);
@@ -81,6 +84,21 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             Sei.lpFile       = lpszFile;
             Sei.lpParameters = lpszParam;
             Sei.nShow        = SW_SHOWNORMAL;
+
+            if(lpszActionHandler[0])
+            {
+                if(GetFileClassFromExtension(lpszActionHandler, szFileClass, __ARRAYSIZE(szFileClass)))
+                {
+                    Sei.lpClass = szFileClass;
+                }
+                else
+                {// not a recognized extension, maybe not an extension at all
+                    Sei.lpClass = lpszActionHandler;
+                }
+
+                // override file class
+                Sei.fMask|= SEE_MASK_CLASSNAME;
+            }
 
             bSuccess = ShellExecuteEx(&Sei);
 

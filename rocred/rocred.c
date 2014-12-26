@@ -64,6 +64,28 @@ int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
     return MessageBoxA(hWnd, lpszText, l_szAppTitle, dwFlags);
 }
 
+bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize)
+{
+    bool bSuccess = false;
+
+    if(lpszExtension[0]=='.')
+    {// it's a file extension
+        HKEY hKey;
+
+        if(ERROR_SUCCESS==RegOpenKeyExA(HKEY_CLASSES_ROOT, lpszExtension, 0, KEY_QUERY_VALUE, &hKey))
+        {
+            if(ERROR_SUCCESS==RegQueryValueExA(hKey, NULL, NULL, NULL, lpszBuffer, &uBufferSize))
+            {
+                bSuccess = true;
+            }
+
+            RegCloseKey(hKey);
+        }
+    }
+
+    return bSuccess;
+}
+
 static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
 {
     char szBuffer[256*3+128];
@@ -165,7 +187,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 // Run and execute process.
 static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
 {
-    char szBuffer[1024];
+    char szBuffer[1024], szFileClass[MAX_REGISTRY_KEY_SIZE+1];
     va_list lpVl;
     SHELLEXECUTEINFO Sei = { sizeof(Sei) };
 
@@ -173,12 +195,22 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     wvsprintfA(szBuffer, lpszParamFmt, lpVl);
     va_end(lpVl);
 
-    Sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0);
+    Sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0)|SEE_MASK_CLASSNAME;
     Sei.hwnd = hWnd;
     Sei.lpVerb = "open";
     Sei.lpFile = lpszApplication;
     Sei.lpParameters = szBuffer;
     Sei.nShow = SW_SHOWNORMAL;
+
+    // consider the file an executable, whether or not it looks like it
+    if(GetFileClassFromExtension(".exe", szFileClass, __ARRAYSIZE(szFileClass)))
+    {
+        Sei.lpClass = szFileClass;
+    }
+    else
+    {// should not happen, fallback to default
+        Sei.lpClass = "exefile";
+    }
 
     if(ShellExecuteEx(&Sei))
     {
