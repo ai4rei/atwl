@@ -29,3 +29,5 @@ Atwl:
 {f6b16161-19ea-e111-a77802215648a98} WDGEnableCustom3DBones
 {f7b16161-19ea-e111-a77802215648a98} WDGEnableGuildFlagAnimation
 {f8b16161-19ea-e111-a77802215648a98} WDGCancelToLoginWindow
+{f9b16161-19ea-e111-a77802215648a98} WDGRemoveIsCheatName
+{fab16161-19ea-e111-a77802215648a98} WDGRemoveIsGuildCheatName
