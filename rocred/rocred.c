@@ -601,6 +601,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     {
         if(AppMutexAcquire(&hMutex))
         {
+#if 0
             if(lpszCmdLine[0]=='/')
             {
                 if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
@@ -616,6 +617,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                 }
             }
             else
+#endif
             {
                 CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
                 DlgTi.huFontSize = ConfigGetInt("FontSize");
