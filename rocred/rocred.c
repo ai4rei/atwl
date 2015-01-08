@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RO Credentials (ROCred)
-// (c) 2012-2014 Ai4rei/AN
+// (c) 2012-2015 Ai4rei/AN
 //
 // -----------------------------------------------------------------
 
@@ -542,7 +542,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DLGABOUTINFO Dai =
             {
                 hWnd,
-                MAKELONG(2012,2014),
+                MAKELONG(2012,2015),
                 "About ROCred...",
                 "ROCred",
                 APP_VERSION,
