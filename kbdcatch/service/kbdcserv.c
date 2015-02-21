@@ -755,7 +755,7 @@ BOOL __WDECL KbdcServCreate(LPCSTR lpszServName, LPCSTR lpszServDisp, LPCSTR lps
         {
             SC_HANDLE hServ;
 
-            wsprintf(szBinName, "\"%s\" %cservice", szModuleName, BVARGS_SWITCH_CHARACTER);
+            wsprintf(szBinName, "\"%s\" -service", szModuleName);
 
             hServ = CreateServiceA(
                 hSCM,
