@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <windows.h>
 #include <comutil.h>
 
@@ -62,7 +63,7 @@ static bool CompactDatabase(const _bstr_t& sSrcBase, const _bstr_t& sDstBase)
         {
             printf("Error%s occured:\n", DBE->Errors->Count==1 ? "" :"s");
 
-            if(DBE->Errors->Count)
+            if(DBE->Errors->Count!=0L)
             {
                 for(long lIdx = 0; lIdx<DBE->Errors->Count; lIdx++)
                 {
