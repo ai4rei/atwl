@@ -46,27 +46,6 @@ static bool Dao360_OpenDatabase(const DAO::WorkspacePtr& WS, const _bstr_t& sBas
     return true;
 }
 
-static _bstr_t Dao360_GetLastErrorString(const DAO::_DBEnginePtr& DBE)
-{
-    _bstr_t sError = "";
-
-    try
-    {
-        if(!DBE->Errors->Count)
-        {
-            throw;
-        }
-
-        sError = DBE->Errors->Item[0]->Description;
-    }
-    catch(...)
-    {
-        ;
-    }
-
-    return sError;
-}
-
 static bool CompactDatabase(const _bstr_t& sSrcBase, const _bstr_t& sDstBase)
 {
     DAO::_DBEnginePtr DBE;
