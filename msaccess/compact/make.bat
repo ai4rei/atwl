@@ -1,0 +1,1 @@
+@CL /nologo /W3 /O2x /GF /Gz /EHsc /Gy daocompact.cpp /link /RELEASE /DEBUG /OPT:REF /OPT:ICF
