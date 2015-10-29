@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <windows.h>
 #include <accctrl.h>
 #include <aclapi.h>
@@ -6,14 +8,20 @@
 #include <bvargs.h>
 #include <bvdebug.h>
 #include <bvsque.h>
+#include <bvsvcs.h>
 
 #include "../kbdctype.h"
 
-#define KBDCSERV_NAME "KbdcServ"
-#define KBDCSERV_DISP "Keyboard Catcher Service"
 #define KBDCSERV_SIZE 100
 #define KBDCSERV_PIPENAME "\\\\.\\pipe\\KbdcData"
 #define KBDCSERV_PIPESIZE 10
+
+extern LPCWSTR SERVICE_NAME                 = L"KbdcServ";
+extern LPCWSTR SERVICE_INSTALL_DISPLAYNAME  = L"Keyboard Catcher Service";
+extern LPCWSTR SERVICE_INSTALL_DEPENDENCIES = L"\0";
+extern LPCWSTR SERVICE_INSTALL_USERNAME     = L"NT AUTHORITY\\LocalService";
+extern LPCWSTR SERVICE_INSTALL_PASSWORD     = NULL;
+extern BOOL    SERVICE_INSTALL_DELAYSTART   = TRUE;
 
 #ifdef _DEBUG
     #define KbdcPrint(_x_) BvDbgPrintf _x_
@@ -85,49 +93,6 @@ CONST BYTE l_ScanCodeToAsciiS[] =
 };
 
 KBDCSERVSTATE l_State = { 0 };
-
-VOID __WDECL KbdcServReportStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, DWORD dwWaitHint)
-{
-    static DWORD dwCheckPoint = 1;
-
-    l_State.ServiceData.Status.dwCurrentState  = dwCurrentState;
-    l_State.ServiceData.Status.dwWin32ExitCode = dwWin32ExitCode;
-    l_State.ServiceData.Status.dwWaitHint      = dwWaitHint;
-
-    /* accepted controls */
-    switch(dwCurrentState)
-    {
-        case SERVICE_RUNNING:
-        case SERVICE_PAUSED:
-        case SERVICE_CONTINUE_PENDING:
-        case SERVICE_PAUSE_PENDING:
-            l_State.ServiceData.Status.dwControlsAccepted = SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN;
-            break;
-        case SERVICE_START_PENDING:
-        case SERVICE_STOP_PENDING:
-        case SERVICE_STOPPED:
-            l_State.ServiceData.Status.dwControlsAccepted = 0;
-            break;
-    }
-
-    /* check point handling */
-    switch(dwCurrentState)
-    {
-        case SERVICE_STOPPED:
-        case SERVICE_RUNNING:
-        case SERVICE_PAUSED:
-            l_State.ServiceData.Status.dwCheckPoint = 0;
-            break;
-        case SERVICE_START_PENDING:
-        case SERVICE_STOP_PENDING:
-        case SERVICE_CONTINUE_PENDING:
-        case SERVICE_PAUSE_PENDING:
-            l_State.ServiceData.Status.dwCheckPoint = dwCheckPoint++;
-            break;
-    }
-
-    SetServiceStatus(l_State.ServiceData.StatusHandle, &l_State.ServiceData.Status);
-}
 
 VOID __WDECL KbdcServPipeBroadcastData(PVOID pData, DWORD dwSize)
 {
@@ -541,11 +506,6 @@ UINT __WDECL KbdcServMain(VOID)
     {
         if((hThread = CreateThread(NULL, 0, &KbdcServPipeManager, NULL, CREATE_SUSPENDED, &dwThreadId))!=NULL)
         {
-            if(l_State.ServiceMode)
-            {
-                KbdcServReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
-            }
-
             for(;;)
             {
                 if((hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))!=INVALID_HANDLE_VALUE)
@@ -665,30 +625,10 @@ UINT __WDECL KbdcServMain(VOID)
     return uExitCode;
 }
 
-BOOL CALLBACK KbdcServOnCtrl(DWORD dwCtrlType)
-{
-    if(l_State.ServiceMode)
-    {
-        KbdcServReportStatus(SERVICE_STOP_PENDING, NO_ERROR, 3000);
-    }
-
-    SetEvent(l_State.hExitEvent);
-    return TRUE;
-}
-
-DWORD CALLBACK KbdcServOnCtrlHanEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
+BOOL CALLBACK ServiceOnControlEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData)
 {
     switch(dwControl)
     {
-        case SERVICE_CONTROL_STOP:
-            KbdcServOnCtrl(CTRL_CLOSE_EVENT);
-            break;
-        case SERVICE_CONTROL_INTERROGATE:
-            KbdcServReportStatus(l_State.ServiceData.Status.dwCurrentState, NO_ERROR, l_State.ServiceData.Status.dwWaitHint);
-            break;
-        case SERVICE_CONTROL_SHUTDOWN:
-            KbdcServOnCtrl(CTRL_SHUTDOWN_EVENT);
-            break;
         case SERVICE_CONTROL_SESSIONCHANGE:
         {
             PWTSSESSION_NOTIFICATION pWSN = (PWTSSESSION_NOTIFICATION)lpEventData;
@@ -709,240 +649,60 @@ DWORD CALLBACK KbdcServOnCtrlHanEx(DWORD dwControl, DWORD dwEventType, LPVOID lp
             break;
         }
         default:
-            return ERROR_CALL_NOT_IMPLEMENTED;
+            return FALSE;
     }
 
-    return ERROR_SUCCESS;
+    return TRUE;
 }
 
-VOID CALLBACK KbdcServStart(DWORD dwArgc, LPSTR* lppszArgv)
+BOOL CALLBACK ServiceOnControl(DWORD dwType)
 {
-    l_State.ServiceData.StatusHandle = RegisterServiceCtrlHandlerExA(KBDCSERV_NAME, &KbdcServOnCtrlHanEx, NULL);
+    SetEvent(l_State.hExitEvent);
+    return TRUE;
+}
 
-    if(l_State.ServiceData.StatusHandle)
+BOOL CALLBACK ServiceMain(DWORD dwArgc, LPTSTR* lppszArgv)
+{
+    BOOL bResult = FALSE;
+
+    if(!BvServiceParseMainteArgs(dwArgc, lppszArgv, &bResult))
     {
-        l_State.ServiceData.Status.dwServiceType             = SERVICE_WIN32_OWN_PROCESS;
-        l_State.ServiceData.Status.dwServiceSpecificExitCode = 0;
-
-        KbdcServReportStatus(SERVICE_START_PENDING, NO_ERROR, 1000);
-
-        if(KbdcServMain()==EXIT_SUCCESS)
-        {
-            SetLastError(ERROR_SUCCESS);
-        }
+        return bResult;
     }
 
-    KbdcServReportStatus(SERVICE_STOPPED, GetLastError(), 0);
-}
+    BvServiceReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
-BOOL __WDECL KbdcServSCM(SC_HANDLE* lphSCM, DWORD dwDesiredAccess)
-{
-    lphSCM[0] = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT|dwDesiredAccess);
-
-    return lphSCM[0]!=NULL;
-}
-
-BOOL __WDECL KbdcServCreate(LPCSTR lpszServName, LPCSTR lpszServDisp, LPCSTR lpszDepends, LPCSTR lpszUser, LPCSTR lpszPass)
-{
-    BOOL bSuccess = FALSE;
-    SC_HANDLE hSCM;
-
-    if(KbdcServSCM(&hSCM, SC_MANAGER_ALL_ACCESS))
+    if(!BvServiceActive())
     {
-        CHAR szModuleName[MAX_PATH], szBinName[MAX_PATH+32];
-
-        if(GetModuleFileNameA(NULL, szModuleName, __ARRAYSIZE(szModuleName)))
-        {
-            SC_HANDLE hServ;
-
-            wsprintf(szBinName, "\"%s\" -service", szModuleName);
-
-            hServ = CreateServiceA(
-                hSCM,
-                lpszServName,
-                lpszServDisp,
-                SERVICE_ALL_ACCESS,
-                SERVICE_WIN32_OWN_PROCESS,
-                SERVICE_AUTO_START,
-                SERVICE_ERROR_NORMAL,
-                szBinName,
-                NULL,
-                NULL,
-                lpszDepends,
-                lpszUser,
-                lpszPass
-            );
-
-            if(hServ)
-            {
-                bSuccess = TRUE;
-
-                CloseServiceHandle(hServ);
-            }
-        }
-
-        CloseServiceHandle(hSCM);
+        SetConsoleCtrlHandler(&ServiceOnControl, TRUE);
     }
 
-    return bSuccess;
-}
-
-BOOL __WDECL KbdcServDelete(LPCSTR lpszServName)
-{
-    BOOL bSuccess = FALSE;
-    SC_HANDLE hSCM;
-
-    if(KbdcServSCM(&hSCM, SC_MANAGER_ALL_ACCESS))
+    if((l_State.hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL))!=NULL)
     {
-        SC_HANDLE hServ = OpenServiceA(hSCM, lpszServName, DELETE|SERVICE_STOP);
-
-        if(hServ)
+        if((l_State.hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL))!=NULL)
         {
-            SERVICE_STATUS ServStatus;
+            bResult = KbdcServMain()==EXIT_SUCCESS;
 
-            for(;;)
-            {
-                if(!ControlService(hServ, SERVICE_CONTROL_STOP, &ServStatus))
-                {
-                    if(GetLastError()!=ERROR_SERVICE_NOT_ACTIVE)
-                    {
-                        break;
-                    }
-                }
-
-                if(DeleteService(hServ))
-                {
-                    bSuccess = TRUE;
-                }
-
-                break;
-            }
-
-            CloseServiceHandle(hServ);
-        }
-
-        CloseServiceHandle(hSCM);
-    }
-
-    return bSuccess;
-}
-
-VOID __WDECL KbdcServEnter(VOID)
-{
-    unsigned char ucBuffer[256];
-    unsigned long luArgc;
-    char** lppszArgv = (char**)ucBuffer;
-    UINT uExitCode = EXIT_FAILURE;
-
-    if(BVArgsSplitEx(GetCommandLineA(), &luArgc, &lppszArgv, sizeof(ucBuffer)))
-    {
-        BVARGSPARSESWITCH Bps[] =
-        {
-            { "service", BVAPS_TYPE_BOOL, &l_State.ServiceMode   },
-            { "create",  BVAPS_TYPE_BOOL, &l_State.ServiceCreate },
-            { "delete",  BVAPS_TYPE_BOOL, &l_State.ServiceDelete },
-        };
-        BVARGSPARSEINFO Bpi =
-        {
-            Bps,
-            __ARRAYSIZE(Bps),
-        };
-
-        if(BVArgsParse(luArgc, lppszArgv, &Bpi))
-        {
-            if(l_State.ServiceMode)
-            {
-                l_State.hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-                if(l_State.hExitEvent)
-                {
-                    l_State.hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-                    if(l_State.hStopEvent)
-                    {
-                        SERVICE_TABLE_ENTRY ServiceDispatchTable[] =
-                        {
-                            { KBDCSERV_NAME, &KbdcServStart },
-                            { NULL, NULL }
-                        };
-
-                        if(StartServiceCtrlDispatcherA(ServiceDispatchTable))
-                        {
-                            uExitCode = EXIT_SUCCESS;
-                        }
-                        else
-                        {
-                            KbdcPrint(("Failed to connect to SCM (code=%#x).\n", GetLastError()));
-                        }
-
-                        CloseHandle(l_State.hStopEvent);
-                        l_State.hStopEvent = NULL;
-                    }
-
-                    CloseHandle(l_State.hExitEvent);
-                    l_State.hExitEvent = NULL;
-                }
-                else
-                {
-                    KbdcPrint(("Failed to create exit event (code=%#x).\n", GetLastError()));
-                }
-            }
-            else if(l_State.ServiceCreate)
-            {
-                if(KbdcServCreate(KBDCSERV_NAME, KBDCSERV_DISP, "", "NT AUTHORITY\\LocalService", NULL))
-                {
-                    uExitCode = EXIT_SUCCESS;
-                }
-                else
-                {
-                    KbdcPrint(("Failed to create service (code=%#x).\n", GetLastError()));
-                }
-            }
-            else if(l_State.ServiceDelete)
-            {
-                if(KbdcServDelete(KBDCSERV_NAME))
-                {
-                    uExitCode = EXIT_SUCCESS;
-                }
-                else
-                {
-                    KbdcPrint(("Failed to delete service (code=%#x).\n", GetLastError()));
-                }
-            }
-            else
-            {
-                l_State.hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-                if(l_State.hExitEvent)
-                {
-                    SetConsoleCtrlHandler(&KbdcServOnCtrl, TRUE);
-
-                    uExitCode = KbdcServMain();
-
-                    CloseHandle(l_State.hExitEvent);
-                    l_State.hExitEvent = NULL;
-                }
-                else
-                {
-                    KbdcPrint(("Failed to create exit event (code=%#x).\n", GetLastError()));
-                }
-            }
+            CloseHandle(l_State.hStopEvent);
+            l_State.hStopEvent = NULL;
         }
         else
         {
-            KbdcPrint(("Invalid command line parameters.\n"));
+            bResult = FALSE;
         }
+
+        CloseHandle(l_State.hExitEvent);
+        l_State.hExitEvent = NULL;
     }
     else
     {
-        KbdcPrint(("Command line too long.\n"));
+        bResult = FALSE;
     }
 
-    ExitProcess(uExitCode);
-}
+    if(!BvServiceActive())
+    {
+        SetConsoleCtrlHandler(&ServiceOnControl, FALSE);
+    }
 
-int main(void)
-{
-    KbdcServEnter();
-    return 0;
+    return bResult;
 }
