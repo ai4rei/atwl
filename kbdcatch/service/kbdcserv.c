@@ -638,12 +638,12 @@ BOOL CALLBACK ServiceOnControlEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEv
                 case WTS_REMOTE_CONNECT:
                 case WTS_SESSION_LOCK:
                     l_State.SessionLocked = TRUE;
-                    KbdcPrint(("KbdcServOnCtrlHanEx: Session locked.\n"));
+                    KbdcPrint(("ServiceOnControlEx: Session locked.\n"));
                     break;
                 case WTS_REMOTE_DISCONNECT:
                 case WTS_SESSION_UNLOCK:
                     l_State.SessionLocked = FALSE;
-                    KbdcPrint(("KbdcServOnCtrlHanEx: Session unlocked.\n"));
+                    KbdcPrint(("ServiceOnControlEx: Session unlocked.\n"));
                     break;
             }
             break;
