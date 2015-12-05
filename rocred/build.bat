@@ -9,7 +9,7 @@ REM ----------------------------------------------------------------
 FOR %%v IN (*.obj snippets.lib rocred.res) DO IF EXIST %%v DEL %%v
 IF "%1"=="clean" GOTO END
 :BUILD
-SET CLOPT=/nologo /c /W3 /O2x /GF /GA /Gy /IC:\Progra~1\Micros~1\SDK\include /I..\snippets
+SET CLOPT=/nologo /c /W3 /O2x /GF /GA /Gy /I..\snippets
 FOR %%v IN (bvector dlgabout dlgtempl kvdb kvdb\win32ini macaddr md5 memory regionui w32uxt wnttools xf_slash) DO CL %CLOPT% ..\snippets\%%v.c
 FOR %%v IN (bvcstr bvfont bvpars w32ui xf_binhex) DO CL %CLOPT% ..\snippets\%%v.cpp
 LIB /NOLOGO /OUT:snippets.lib *.obj
