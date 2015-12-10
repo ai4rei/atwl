@@ -17,9 +17,9 @@ Private Const FILE_ATTRIBUTE_NORMAL = &H80
 Private Const INVALID_HANDLE_VALUE = &HFFFFFFFF
 
 Private Declare Function CloseHandle Lib "kernel32.dll" (ByVal hHandle As Long) As Long
-Private Declare Function CreateFile Lib "kernel32.dll" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
+Private Declare Function CreateFileW Lib "kernel32.dll" (ByVal lpszFileName As Long, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
 
-Private Declare Sub DWG2PDF_ProcessFiles Lib "dwg2pdf.dll" (ByVal lpszDirectory As String, ByVal lpfnCallback As Long, ByVal nContext As Long)
+Private Declare Sub DWG2PDF_ProcessFiles Lib "dwg2pdf.dll" (ByVal lpszDirectory As Long, ByVal lpfnCallback As Long, ByVal nContext As Long)
 
 Enum MAKEPDFSTATUS
     MPS_SUCCESS = 0    ' No error
@@ -34,7 +34,7 @@ End Sub
 
 Private Sub MakeCookie(sName As String)
     Dim hFile As Long
-    Let hFile = CreateFile(sName & "." & Chr(160), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+    Let hFile = CreateFileW(StrPtr(sName & "." & Chr(160)), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
 
     If hFile <> INVALID_HANDLE_VALUE Then
         CloseHandle hFile
@@ -197,7 +197,7 @@ End Function
 
 Sub Main()
     If Dir$(Command$, vbDirectory) <> "" Then
-        DWG2PDF_ProcessFiles Command$, AddressOf ForEachFileCallback, 0
+        DWG2PDF_ProcessFiles StrPtr(Command$), AddressOf ForEachFileCallback, 0
     Else
         Display "Usage: DWG2PDF <working directory>"
     End If

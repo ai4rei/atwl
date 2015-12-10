@@ -9,8 +9,9 @@
 // ---------------------------------------------------------------*/
 
 #include <windows.h>
+#include <tchar.h>
 
-BOOL WINAPI DWG2PDF_P_TestExclusiveWrite(LPCSTR lpszFile)
+BOOL WINAPI DWG2PDF_P_TestExclusiveWrite(LPCTSTR lpszFile)
 {
     for(;;)
     {
@@ -33,14 +34,14 @@ BOOL WINAPI DWG2PDF_P_TestExclusiveWrite(LPCSTR lpszFile)
     }
 }
 
-BOOL WINAPI DWG2PDF_P_EnumFiles(LPCSTR lpszDirectory, LONG (WINAPI* Func)(BSTR lpszFilePath, LONG nContext), LONG nContext)
+BOOL WINAPI DWG2PDF_P_EnumFiles(LPCTSTR lpszDirectory, LONG (WINAPI* Func)(BSTR lpszFilePath, LONG nContext), LONG nContext)
 {
     BOOL bSuccess = TRUE;
-    CHAR szPathMask[MAX_PATH];
+    TCHAR szPathMask[MAX_PATH];
     HANDLE hFind;
     WIN32_FIND_DATA Wfd;
 
-    wsprintf(szPathMask, "%s\\*", lpszDirectory);
+    wsprintf(szPathMask, _T("%s\\*"), lpszDirectory);
 
     if((hFind = FindFirstFile(szPathMask, &Wfd))!=INVALID_HANDLE_VALUE)
     {
@@ -53,7 +54,7 @@ BOOL WINAPI DWG2PDF_P_EnumFiles(LPCSTR lpszDirectory, LONG (WINAPI* Func)(BSTR l
                     continue;
                 }
 
-                wsprintf(szPathMask, "%s\\%s", lpszDirectory, Wfd.cFileName);
+                wsprintf(szPathMask, _T("%s\\%s"), lpszDirectory, Wfd.cFileName);
 
                 if(!DWG2PDF_P_EnumFiles(szPathMask, Func, nContext))
                 {
@@ -63,15 +64,20 @@ BOOL WINAPI DWG2PDF_P_EnumFiles(LPCSTR lpszDirectory, LONG (WINAPI* Func)(BSTR l
             }
             else
             {/* file */
-                wsprintf(szPathMask, "%s\\%s", lpszDirectory, Wfd.cFileName);
+                wsprintf(szPathMask, _T("%s\\%s"), lpszDirectory, Wfd.cFileName);
 
                 if(DWG2PDF_P_TestExclusiveWrite(szPathMask))
                 {
                     BSTR bsFilePath;
+
+#ifndef _UNICODE
                     WCHAR wszFilePath[MAX_PATH*4];
 
                     MultiByteToWideChar(CP_ACP, 0, szPathMask, -1, wszFilePath, sizeof(wszFilePath)/sizeof(wszFilePath[0]));
                     bsFilePath = SysAllocString(wszFilePath);
+#else
+                    bsFilePath = SysAllocString(szPathMask);
+#endif
 
                     bSuccess = Func(bsFilePath, nContext);
 
@@ -92,7 +98,7 @@ BOOL WINAPI DWG2PDF_P_EnumFiles(LPCSTR lpszDirectory, LONG (WINAPI* Func)(BSTR l
     return bSuccess;
 }
 
-VOID WINAPI DWG2PDF_ProcessFiles(LPCSTR lpszDirectory, LONG (WINAPI* Func)(BSTR lpszFilePath, LONG nContext), LONG nContext)
+VOID WINAPI DWG2PDF_ProcessFiles(LPCTSTR lpszDirectory, LONG (WINAPI* Func)(BSTR lpszFilePath, LONG nContext), LONG nContext)
 {
     HANDLE hChange = FindFirstChangeNotification(lpszDirectory, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME);
 
