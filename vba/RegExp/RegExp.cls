@@ -11,8 +11,6 @@ Option Explicit
 
 Private m_RegExp As Object
 
-' private
-
 Private Sub Class_Initialize()
     Set m_RegExp = CreateObject("VBScript.RegExp")
 End Sub
@@ -21,10 +19,10 @@ Private Sub Class_Terminate()
     Set m_RegExp = Nothing
 End Sub
 
-' public
-
-Public Function Execute(sSubject As String) As Collection
-    Set Execute = m_RegExp.Execute(sSubject)
+Public Function Execute(sSubject As String) As Matches
+    Set Execute = New Matches
+    
+    Execute.OnInit m_RegExp.Execute(sSubject)
 End Function
 
 Public Function Replace(sSubject As String, sReplacement As String) As String
@@ -34,8 +32,6 @@ End Function
 Public Function Test(sSubject As String) As Boolean
     Let Test = m_RegExp.Test(sSubject)
 End Function
-
-' properties
 
 Public Property Get IsGlobal() As Boolean
     IsGlobal = m_RegExp.Global
@@ -60,8 +56,6 @@ End Property
 Public Property Let Pattern(sValue As String)
     m_RegExp.Pattern = sValue
 End Property
-
-' constants
 
 Public Property Get FLOAT_NUMBER() As String
     FLOAT_NUMBER = "([\-\+]?(?:\d+(?:[\.,]\d*)?|\d*[\.,]\d+))"
