@@ -19,7 +19,7 @@ Private Const INVALID_HANDLE_VALUE = &HFFFFFFFF
 
 Private Declare Function CloseHandle Lib "kernel32.dll" (ByVal hHandle As Long) As Boolean
 Private Declare Function WriteFile Lib "kernel32.dll" (ByVal hFile As Long, ByVal lpBuffer As String, ByVal dwWrite As Long, ByRef dwWritten As Long, ByVal lpTemplate As Long) As Boolean
-Private Declare Function CreateFile Lib "kernel32.dll" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
+Private Declare Function CreateFileW Lib "kernel32.dll" (ByVal lpFileName As Long, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
 
 Private Function ExportSQL_P_GetDateStrFromDate(myDate As Date) As String
     ExportSQL_P_GetDateStrFromDate = IIf(Year(myDate) > 999, "", "0") & Year(myDate) & "-" & IIf(Month(myDate) > 9, "", "0") & Month(myDate) & "-" & IIf(Day(myDate) > 9, "", "0") & Day(myDate)
@@ -50,7 +50,7 @@ Private Sub ExportSQL_P_TableForeignKeys(hFile As Long)
     ExportSQL_P_Write hFile, "-- Foreign Keys"
     ExportSQL_P_Write hFile, "--"
 
-    For Each oRelation In CurrentDb.Relations
+    For Each oRelation In CurrentDb().Relations
         ExportSQL_P_Write hFile, "ALTER TABLE `" & oRelation.ForeignTable & "` ADD CONSTRAINT `" & oRelation.Name & "` FOREIGN KEY"
 
         If oRelation.Attributes And Not (dbRelationDeleteCascade Or dbRelationUpdateCascade Or dbRelationUnique) Then
@@ -78,16 +78,16 @@ Private Sub ExportSQL_P_TableForeignKeys(hFile As Long)
 End Sub
 
 Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
-    Dim myRes As DAO.Recordset
+    Dim oRS As DAO.Recordset
     Dim myDT As Date
     Dim sDTFmt As String
     Dim sInsertDef As String
     Dim sInsertPak As String
     Dim nData As Long
 
-    Set myRes = CurrentDb.OpenRecordset("SELECT * FROM [" & sTableName & "];", dbOpenSnapshot)
+    Set oRS = CurrentDb().OpenRecordset("SELECT * FROM [" & sTableName & "];", dbOpenSnapshot)
 
-    If myRes.RecordCount > 0 Then
+    If oRS.RecordCount > 0 Then
         ExportSQL_P_Write hFile, "--"
         ExportSQL_P_Write hFile, "-- Table `" & sTableName & "` Data"
         ExportSQL_P_Write hFile, "--"
@@ -96,10 +96,10 @@ Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
         
         Dim aItems() As String
         Dim nItems As Integer
-        ReDim aItems(0 To myRes.Fields.Count - 1)
+        ReDim aItems(0 To oRS.Fields.Count - 1)
     
-        For nItems = 0 To myRes.Fields.Count - 1
-            aItems(nItems) = "`" & myRes.Fields(nItems).Name & "`"
+        For nItems = 0 To oRS.Fields.Count - 1
+            aItems(nItems) = "`" & oRS.Fields(nItems).Name & "`"
         Next
     
         sInsertDef = sInsertDef & Join(aItems, ",") & ") VALUES"
@@ -108,21 +108,21 @@ Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
         Dim nValues As Integer
         ReDim aValues(0 To 4999)
         
-        While Not myRes.EOF
-            For nItems = 0 To myRes.Fields.Count - 1
-                If IsNull(myRes.Fields(nItems).Value) Then
+        While Not oRS.EOF
+            For nItems = 0 To oRS.Fields.Count - 1
+                If IsNull(oRS.Fields(nItems).Value) Then
                     aItems(nItems) = "NULL"
                 Else
-                    Select Case myRes.Fields(nItems).Type
+                    Select Case oRS.Fields(nItems).Type
                         Case 1
-                            aItems(nItems) = IIf(myRes.Fields(nItems).Value, "TRUE", "FALSE")
+                            aItems(nItems) = IIf(oRS.Fields(nItems).Value, "TRUE", "FALSE")
                         Case 5, 6, 7
-                            aItems(nItems) = "'" & Replace(myRes.Fields(nItems).Value, ",", ".") & "'"
+                            aItems(nItems) = "'" & Replace(oRS.Fields(nItems).Value, ",", ".") & "'"
                         Case 8
-                            myDT = myRes.Fields(nItems).Value
+                            myDT = oRS.Fields(nItems).Value
         
                             On Error Resume Next ' no format selected defaults to datetime
-                            sDTFmt = myRes.Fields(nItems).Properties("Format")
+                            sDTFmt = oRS.Fields(nItems).Properties("Format")
                             On Error GoTo 0
                             
                             Select Case sDTFmt
@@ -134,7 +134,7 @@ Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
                                     aItems(nItems) = "'" & ExportSQL_P_GetDateStrFromDate(myDT) & " " & ExportSQL_P_GetTimeStrFromDate(myDT) & "'"
                             End Select
                         Case Else
-                            aItems(nItems) = "'" & Replace(Replace(Replace(Replace(Replace(myRes.Fields(nItems).Value, "\", "\\"), "'", "\'"), Chr(34), "\" & Chr(34)) & "'", Chr(10), "\n"), Chr(13), "\r")
+                            aItems(nItems) = "'" & Replace(Replace(Replace(Replace(Replace(oRS.Fields(nItems).Value, "\", "\\"), "'", "\'"), Chr(34), "\" & Chr(34)) & "'", Chr(10), "\n"), Chr(13), "\r")
                     End Select
                 End If
             Next
@@ -149,7 +149,7 @@ Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
                 DoEvents
             End If
     
-            myRes.MoveNext
+            oRS.MoveNext
         Wend
     
         If nValues > 0 Then
@@ -160,7 +160,7 @@ Private Sub ExportSQL_P_TableDump(hFile As Long, sTableName As String)
         ExportSQL_P_Write hFile, ""
     End If
 
-    myRes.Close
+    oRS.Close
 End Sub
 
 Private Sub ExportSQL_P_TableWrite(hFile As Long, oTable As TableDef)
@@ -265,17 +265,17 @@ Private Sub ExportSQL_P_TableWrite(hFile As Long, oTable As TableDef)
     Next
 
     If sAutoInc <> "" Then
-        Dim myRes As DAO.Recordset
+        Dim oRS As DAO.Recordset
 
-        Set myRes = CurrentDb.OpenRecordset("SELECT MAX([" & sAutoInc & "])+1 AS [__AIV] FROM [" & oTable.Name & "];", dbOpenSnapshot)
+        Set oRS = CurrentDb().OpenRecordset("SELECT MAX([" & sAutoInc & "])+1 AS [__AIV] FROM [" & oTable.Name & "];", dbOpenSnapshot)
 
-        If myRes.RecordCount = 1 Then
-            sAutoInc = " AUTO_INCREMENT=" & CLng(myRes![__AIV])
+        If oRS.RecordCount = 1 And Not IsNull(oRS![__AIV]) Then
+            sAutoInc = " AUTO_INCREMENT=" & CLng(oRS![__AIV])
         Else
             sAutoInc = ""
         End If
 
-        myRes.Close
+        oRS.Close
     End If
 
     ExportSQL_P_Write hFile, Join(aTableItems, "," & vbCrLf)
@@ -294,20 +294,20 @@ Public Sub ExportSQL(Optional sTable As String = "", Optional sFileName As Strin
     hFile = INVALID_HANDLE_VALUE
 
     If sFileName <> "" Then
-        hFile = CreateFile(sFileName, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+        hFile = CreateFileW(StrPtr(sFileName), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
     End If
 
     If sTable <> "" Then
-        ExportSQL_P_TableWrite hFile, CurrentDb.TableDefs(sTable)
+        ExportSQL_P_TableWrite hFile, CurrentDb().TableDefs(sTable)
     Else
         ' tables
-        For Each oTable In CurrentDb.TableDefs
+        For Each oTable In CurrentDb().TableDefs
             If LCase(Left(oTable.Name, 4)) <> "msys" Then ' all but system tables
                 If sFileName <> "" Then Debug.Print oTable.Name
                 ExportSQL_P_TableWrite hFile, oTable
                 If sFileName <> "" Then Debug.Print "   OK"
-                DoEvents
             End If
+            DoEvents
         Next
         ' relations
         If sFileName <> "" Then Debug.Print "<Relations>"
