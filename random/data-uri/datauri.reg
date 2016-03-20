@@ -1,0 +1,12 @@
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\CLSID\{9AFB53E0-EBAD-11E5-A77F-0011096B4C08}]
+@="data: Asynchronous Pluggable Protocol Handler"
+
+[HKEY_CLASSES_ROOT\CLSID\{9AFB53E0-EBAD-11E5-A77F-0011096B4C08}\InprocServer32]
+"ThreadingModel"="Apartment"
+@="<<INSERT PATH TO DLL>>\\datauri.dll"
+
+[HKEY_CLASSES_ROOT\PROTOCOLS\Handler\data]
+@="data: Asynchronous Pluggable Protocol Handler"
+"CLSID"="{9AFB53E0-EBAD-11E5-A77F-0011096B4C08}"
