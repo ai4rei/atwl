@@ -570,7 +570,7 @@ static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)
 {// consider the following: we have no memory
     char szMessage[1024];
 
-    snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %lu bytes of memory.", lpMoi->luWantAlloc);
+    snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %lu bytes of memory.", lpMoi->uWantAlloc);
 
     if(MsgBox(NULL, szMessage, MB_RETRYCANCEL|MB_ICONSTOP|MB_SYSTEMMODAL)==IDRETRY)
     {
