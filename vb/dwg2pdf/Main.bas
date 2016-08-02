@@ -11,6 +11,7 @@ Option Explicit
 '
 ' ------------------------------------------------------------------
 
+' Windows API declarations
 Private Const GENERIC_WRITE = &H40000000
 Private Const CREATE_ALWAYS = &H2
 Private Const FILE_ATTRIBUTE_NORMAL = &H80
@@ -23,7 +24,16 @@ Private Declare Function AllocConsole Lib "kernel32.dll" () As Long
 Private Declare Function FreeConsole Lib "kernel32.dll" () As Long
 Private Declare Function GetStdHandle Lib "kernel32.dll" (ByVal nStdHandle As Long) As Long
 Private Declare Function WriteConsoleW Lib "kernel32.dll" (ByVal hHandle As Long, ByVal lpBuffer As Long, ByVal nNumberOfCharsToWrite As Long, ByRef lpNumberOfCharsWritten As Long, ByVal lpReserved As Long) As Long
+Private Declare Function SetConsoleCtrlHandler Lib "kernel32.dll" (ByVal lpfnHandler As Long, ByVal bAdd As Long) As Long
 
+' AutoCAD declarations
+Const acExtents = 1
+Const acMillimeters = 1
+Const ac0degrees = 0
+Const acScaleToFit = 0
+Const acActiveViewport = 0
+
+' other
 Private Declare Sub DWG2PDF_ProcessFiles Lib "dwg2pdf.dll" (ByVal lpszDirectory As Long, ByVal lpfnCallback As Long, ByVal nContext As Long)
 
 Enum MAKEPDFSTATUS
@@ -33,13 +43,6 @@ Enum MAKEPDFSTATUS
     MPS_SAVEFAILED = 3 ' PDF file could not be written for whatever reason
     MPS_OPENFAILED2 = 4 ' File could not be opened, but did not throw exception
 End Enum
-
-' AutoCAD declarations
-Const acExtents = 1
-Const acMillimeters = 1
-Const ac0degrees = 0
-Const acScaleToFit = 0
-Const acActiveViewport = 0
 
 Private Sub Display(sMsg As String)
     MsgBox sMsg, vbInformation, App.ProductName
@@ -248,16 +251,19 @@ End Function
 Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As Long) As Long
     Static oAcad As Object
 
-    On Error Resume Next
-
-    If oAcad Is Nothing Then Set oAcad = CreateObject("AutoCAD.Application")
     If oAcad Is Nothing Then
-        Display "Failed to initialize AutoCAD COM."
+        Set oAcad = CreateObject("AutoCAD.Application")
+    
+        If oAcad Is Nothing Then
+            Display "Failed to initialize AutoCAD server."
 
-        ' fatal failure
-        ForEachFileCallback = 0
-        Exit Function
-    ElseIf LCase(GetBaseName(sFilePath)) = ".quit" Then
+            ' fatal failure
+            ForEachFileCallback = 0
+            Exit Function
+        End If
+    End If
+    
+    If LCase(GetBaseName(sFilePath)) = ".quit" Then
         oAcad.Quit
         Set oAcad = Nothing
 
@@ -270,12 +276,17 @@ Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As
     Dim sLExt As String
     Let sLExt = LCase(Right(sFilePath, 4))
 
+    Dim nTries As Long
+
     If sLExt = ".dwg" Or sLExt = ".dxf" Then
         ShowMessage sFilePath
 
         Select Case MakePDF2(oAcad, sFilePath)
             Case MPS_SUCCESS
+                On Error GoTo L_RetryDelete
                 Kill sFilePath
+L_DoNotDelete:
+                On Error GoTo 0
                 ShowMessage " OK" & vbCrLf
             Case MPS_GENERAL
                 oAcad.Quit
@@ -297,6 +308,17 @@ Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As
 
     ' continue
     ForEachFileCallback = 1
+    Exit Function
+    
+L_RetryDelete:
+    If nTries > 120 Then
+        ShowMessage " *"
+        Resume L_DoNotDelete
+    End If
+
+    DoEvents
+    nTries = nTries + 1
+    Resume
 End Function
 
 Sub Main()
