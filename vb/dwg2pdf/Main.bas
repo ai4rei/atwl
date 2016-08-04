@@ -142,6 +142,14 @@ Private Function MakePDF2(oAcad As Object, sFileName As String) As MAKEPDFSTATUS
         On Error GoTo L_SaveFailed
         oDoc.Plot.PlotToFile Left(oDoc.FullName, Len(oDoc.FullName) - 4) & "-" & oLay.Name & ".pdf" ' <source name>-<layout name>
         On Error GoTo 0
+
+        oLay.PlotWithLineweights = False
+        oLay.RefreshPlotDeviceInfo
+
+        On Error GoTo L_SaveFailed
+        oDoc.Plot.PlotToFile Left(oDoc.FullName, Len(oDoc.FullName) - 4) & "-" & oLay.Name & "-X.pdf" ' <source name>-<layout name>-X
+        On Error GoTo 0
+
 L_Continue:
     Next
 
@@ -253,7 +261,7 @@ Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As
 
     If oAcad Is Nothing Then
         Set oAcad = CreateObject("AutoCAD.Application")
-    
+
         If oAcad Is Nothing Then
             Display "Failed to initialize AutoCAD server."
 
@@ -262,7 +270,7 @@ Public Function ForEachFileCallback(ByVal sFilePath As String, ByVal nContext As
             Exit Function
         End If
     End If
-    
+
     If LCase(GetBaseName(sFilePath)) = ".quit" Then
         oAcad.Quit
         Set oAcad = Nothing
@@ -309,7 +317,7 @@ L_DoNotDelete:
     ' continue
     ForEachFileCallback = 1
     Exit Function
-    
+
 L_RetryDelete:
     If nTries > 120 Then
         ShowMessage " *"
