@@ -102,6 +102,7 @@ int __cdecl main(int nArgc, char** lppszArgv)
             case 'h':
             case 'H':
                 Mode = MKLINK_MODE_HARDLINK;
+                break;
             case 's':
             case 'S':
                 printf("Symbolic links are not supported.\n");
