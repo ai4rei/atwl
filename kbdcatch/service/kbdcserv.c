@@ -21,7 +21,7 @@ extern LPCWSTR SERVICE_INSTALL_DISPLAYNAME  = L"Keyboard Catcher Service";
 extern LPCWSTR SERVICE_INSTALL_DEPENDENCIES = L"\0";
 extern LPCWSTR SERVICE_INSTALL_USERNAME     = L"NT AUTHORITY\\LocalService";
 extern LPCWSTR SERVICE_INSTALL_PASSWORD     = NULL;
-extern BOOL    SERVICE_INSTALL_DELAYSTART   = TRUE;
+extern BOOL    SERVICE_INSTALL_DELAYSTART   = FALSE;
 
 #ifdef _DEBUG
     #define KbdcPrint(_x_) BvDbgPrintf _x_
@@ -672,11 +672,6 @@ BOOL CALLBACK ServiceMain(DWORD dwArgc, LPTSTR* lppszArgv)
 
     BvServiceReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
-    if(!BvServiceActive())
-    {
-        SetConsoleCtrlHandler(&ServiceOnControl, TRUE);
-    }
-
     if((l_State.hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL))!=NULL)
     {
         if((l_State.hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL))!=NULL)
@@ -697,11 +692,6 @@ BOOL CALLBACK ServiceMain(DWORD dwArgc, LPTSTR* lppszArgv)
     else
     {
         bResult = FALSE;
-    }
-
-    if(!BvServiceActive())
-    {
-        SetConsoleCtrlHandler(&ServiceOnControl, FALSE);
     }
 
     return bResult;
