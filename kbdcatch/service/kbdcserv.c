@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include <windows.h>
-#include <accctrl.h>
 #include <aclapi.h>
 
 #include <btypes.h>
@@ -30,13 +29,6 @@ extern BOOL    SERVICE_INSTALL_DELAYSTART   = FALSE;
 #endif  /* _DEBUG */
 
 #pragma pack(push,1)
-typedef struct _SERVICEDATA
-{
-    SERVICE_STATUS Status;
-    SERVICE_STATUS_HANDLE StatusHandle;
-}
-SERVICEDATA,* PSERVICEDATA;
-
 typedef struct _KBDCSERVKEYSTATE
 {
     UBIT_T(ALT,2);
@@ -61,7 +53,6 @@ typedef struct _KBDCSERVSTATE
 {
     HANDLE hExitEvent;
     HANDLE hStopEvent;
-    SERVICEDATA ServiceData;
     BOOLEAN ServiceMode;
     BOOLEAN ServiceCreate;
     BOOLEAN ServiceDelete;
