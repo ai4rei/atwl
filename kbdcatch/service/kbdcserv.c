@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <aclapi.h>
+#include <tchar.h>
 
 #include <btypes.h>
 #include <bvargs.h>
@@ -12,7 +13,7 @@
 #include "../kbdctype.h"
 
 #define KBDCSERV_SIZE 100
-#define KBDCSERV_PIPENAME "\\\\.\\pipe\\KbdcData"
+#define KBDCSERV_PIPENAME _T("\\\\.\\pipe\\KbdcData")
 #define KBDCSERV_PIPESIZE 10
 
 extern LPCWSTR SERVICE_NAME                 = L"KbdcServ";
@@ -110,7 +111,7 @@ VOID __WDECL KbdcServPipeBroadcastData(PVOID pData, DWORD dwSize)
             }
         }
 
-        KbdcPrint(("Pipe %p schuduled to write packet.\n", hPipe));
+        KbdcPrint(("Pipe %p scheduled to write packet.\n", hPipe));
     }
 
     LeaveCriticalSection(&l_State.PipeCS);
@@ -256,7 +257,7 @@ DWORD CALLBACK KbdcServPipeManager(LPVOID lpParam)
         ExAcc.grfInheritance = NO_INHERITANCE;
         ExAcc.Trustee.TrusteeForm = TRUSTEE_IS_NAME;
         ExAcc.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-        ExAcc.Trustee.ptstrName = "Everyone";
+        ExAcc.Trustee.ptstrName = _T("Everyone");
 
         if((dwError = GetSecurityInfo(hPipe, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pACL, NULL, NULL))!=ERROR_SUCCESS)
         {
