@@ -454,14 +454,16 @@ VOID __WDECL KbdcServProcessPacket(PKBDCINPUTDATA pKid)
 
                 if(ucChar=='\n')
                 {
-                    KbdcPrint(("KbdcServProcessPacket: %d = [%c] [%c] [%c] [%c] [%c] [%c]\n",
+                    KbdcPrint(("KbdcServProcessPacket: %d = [%c] [%c] [%c] [%c] [%c] [%c] '%.*s'\n",
                         pKid->DeviceType,
                         pDS->KeyState.SHIFT ? '+' : ' ',
                         pDS->KeyState.CTRL ? '^' : ' ',
                         pDS->KeyState.ALT ? '!' : ' ',
                         pDS->KeyState.NUMLOCK ? '*' : ' ',
                         pDS->KeyState.CAPSLOCK ? '*' : ' ',
-                        pDS->KeyState.SCROLLLOCK ? '*' : ' '));
+                        pDS->KeyState.SCROLLLOCK ? '*' : ' ',
+                        pDS->CharBufferLength-1,
+                        pDS->CharBuffer));
 
                     KbdcServPipeBroadcastPacket(pDS);
                     pDS->CharBufferLength = 0;
