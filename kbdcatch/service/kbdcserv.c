@@ -109,6 +109,8 @@ VOID __WDECL KbdcServPipeBroadcastData(PVOID pData, DWORD dwSize)
                 uIdx--;
                 continue;
             }
+
+            GetOverlappedResult(hPipe, &Ovl, &dwRead, TRUE);
         }
 
         KbdcPrint(("Pipe %p scheduled to write packet.\n", hPipe));
@@ -529,6 +531,7 @@ UINT __WDECL KbdcServMain(VOID)
                             {
                                 KbdcPrint(("WaitForMultipleObjects during ReadFile completion failed (code=%#x).\n", GetLastError()));
                                 CancelIo(hFile);
+                                GetOverlappedResult(hFile, &Ovl, &dwRead, TRUE);  // wait for the cancel to complete
                                 break;
                             }
                             else if(dwWait==WAIT_OBJECT_0)
@@ -543,12 +546,14 @@ UINT __WDECL KbdcServMain(VOID)
                             {/* hExitEvent signaled */
                                 uExitCode = EXIT_SUCCESS;
                                 CancelIo(hFile);
+                                GetOverlappedResult(hFile, &Ovl, &dwRead, TRUE);
                                 break;
                             }
                             else
                             {
                                 KbdcPrint(("WaitForMultipleObjects returned unexpected value %#x (code=%#x).\n", dwWait, GetLastError()));
                                 CancelIo(hFile);
+                                GetOverlappedResult(hFile, &Ovl, &dwRead, TRUE);
                                 break;
                             }
                         }
