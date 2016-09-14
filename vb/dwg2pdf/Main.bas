@@ -18,6 +18,7 @@ Private Const FILE_ATTRIBUTE_NORMAL = &H80
 Private Const INVALID_HANDLE_VALUE = &HFFFFFFFF
 Private Const STD_OUTPUT_HANDLE = -11
 
+Private Declare Function CreateDirectoryW Lib "kernel32.dll" (ByVal lpszDirectory As Long, ByVal lpAttributes As Long) As Long
 Private Declare Function CloseHandle Lib "kernel32.dll" (ByVal hHandle As Long) As Long
 Private Declare Function CreateFileW Lib "kernel32.dll" (ByVal lpszFileName As Long, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
 Private Declare Function AllocConsole Lib "kernel32.dll" () As Long
@@ -97,6 +98,13 @@ Private Function MakePDF2(oAcad As Object, sFileName As String) As MAKEPDFSTATUS
         Exit Function
     End If
 
+    Dim sBaseName As String
+    Let sBaseName = GetBaseName(sFileName)
+    Let sBaseName = Left(sBaseName, Len(sBaseName) - 4)
+
+    Dim sBasePath As String
+    Let sBasePath = GetBasePath(sFileName)
+
     Dim vMin As Variant
     Dim vMax As Variant
     Dim oLay As Object ' AcadLayout
@@ -139,15 +147,19 @@ Private Function MakePDF2(oAcad As Object, sFileName As String) As MAKEPDFSTATUS
         oLay.RefreshPlotDeviceInfo
         oDoc.Regen acActiveViewport
 
+        CreateDirectoryW StrPtr(sBasePath & "\" & oLay.Name), 0
+
         On Error GoTo L_SaveFailed
-        oDoc.Plot.PlotToFile Left(oDoc.FullName, Len(oDoc.FullName) - 4) & "-" & oLay.Name & ".pdf" ' <source name>-<layout name>
+        oDoc.Plot.PlotToFile sBasePath & "\" & oLay.Name & "\" & sBaseName & ".pdf" ' <path>\<layout name>\<source name>
         On Error GoTo 0
 
         oLay.PlotWithLineweights = False
         oLay.RefreshPlotDeviceInfo
 
+        CreateDirectoryW StrPtr(sBasePath & "\" & oLay.Name & " (alt)"), 0
+
         On Error GoTo L_SaveFailed
-        oDoc.Plot.PlotToFile Left(oDoc.FullName, Len(oDoc.FullName) - 4) & "-" & oLay.Name & "-X.pdf" ' <source name>-<layout name>-X
+        oDoc.Plot.PlotToFile sBasePath & "\" & oLay.Name & " (alt)\" & sBaseName & ".pdf" ' <path>\<layout name>\<source name>
         On Error GoTo 0
 
 L_Continue:
