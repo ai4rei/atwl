@@ -1,0 +1,9 @@
+/nologo
+/W4
+/D_CRT_SECURE_NO_WARNINGS
+/Za
+/Zs
+/I../snippets
+/Foobj/
+
+src/RFB.cpp
