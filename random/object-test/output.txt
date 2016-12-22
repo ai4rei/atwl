@@ -1,0 +1,9 @@
+CObject::CObject
+CShape::CShape
+CTriangle::CTriangle
+CObject::Acquire
+CObject::Release
+CObject::Release
+CTriangle::~CTriangle
+CShape::~CShape
+CObject::~CObject

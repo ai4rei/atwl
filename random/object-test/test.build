@@ -1,0 +1,10 @@
+/nologo
+/Za
+/Wall
+/wd4514
+/Od
+
+test.cpp
+object.cpp
+shape.cpp
+triangle.cpp
