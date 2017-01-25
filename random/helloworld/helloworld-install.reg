@@ -1,0 +1,14 @@
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\CLSID\{3834A400-E26F-11E6-A781-0011096B4C08}]
+@="Hello World Example"
+
+[HKEY_CLASSES_ROOT\CLSID\{3834A400-E26F-11E6-A781-0011096B4C08}\InprocServer32]
+@="<<path>>\\helloworld.dll"
+"ThreadingModel"="Apartment"
+
+[HKEY_CLASSES_ROOT\HelloWorld.Example]
+@="Hello World Example"
+
+[HKEY_CLASSES_ROOT\HelloWorld.Example\CLSID]
+@="{3834A400-E26F-11E6-A781-0011096B4C08}"

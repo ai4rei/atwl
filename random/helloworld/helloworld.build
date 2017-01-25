@@ -1,0 +1,21 @@
+/nologo
+/W3
+/MD
+/O2x
+/Oy-
+/GD /LD
+/GF
+/Gy
+/EHsc
+/D _MBCS
+/D _USRDLL
+/D _WINDOWS
+/D NDEBUG
+/D WIN32
+
+helloworld.cpp
+
+/link /DLL /DEF:helloworld.def
+/link /OPT:REF /OPT:ICF,99
+
+user32.lib

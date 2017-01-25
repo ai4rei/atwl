@@ -1,0 +1,1 @@
+CreateObject("HelloWorld.Example").Hello
