@@ -1,4 +1,5 @@
 #define INITGUID
+#define MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS 0 /* overloads break ?: */
 
 #include <windows.h>
 
@@ -19,6 +20,7 @@ class CHelloWorldClassFactory;
 class CHelloWorld : public IHelloWorld
 {
 private:
+    ITypeInfo* m_TInfo;
     ULONG m_ulLocks;
 
 private:
@@ -26,6 +28,8 @@ private:
 
 protected:
     CHelloWorld();
+
+    STDMETHODIMP GetTInfo(ITypeInfo** lppTInfo);
 
 public:
     // IUnknown
@@ -58,6 +62,7 @@ public:
     STDMETHODIMP LockServer(BOOL fLock);
 };
 
+static HINSTANCE l_hSelf = NULL;
 static CHelloWorldClassFactory l_ClassFactory;
 static ULONG l_ulLocks = 0UL;
 
@@ -66,12 +71,50 @@ static ULONG l_ulLocks = 0UL;
 
 CHelloWorld::~CHelloWorld()
 {
-    ;
+    if(m_TInfo)
+    {
+        m_TInfo->Release();
+        m_TInfo = NULL;
+    }
 }
 
 CHelloWorld::CHelloWorld()
 {
+    m_TInfo   = NULL;
     m_ulLocks = 0UL;
+}
+
+STDMETHODIMP CHelloWorld::GetTInfo(ITypeInfo** lppTInfo)
+{
+    if(m_TInfo==NULL)
+    {
+        HRESULT hr;
+        ITypeLib* TLib;
+        OLECHAR szTypeLib[MAX_PATH+4];
+
+        GetModuleFileNameW(l_hSelf, szTypeLib, _ARRAYSIZE(szTypeLib));
+        wcscat(szTypeLib, L"\\1");
+
+        hr = LoadTypeLib(szTypeLib, &TLib);
+
+        if(FAILED(hr))
+        {
+            return hr;
+        }
+
+        hr = TLib->GetTypeInfoOfGuid(IID_IHelloWorld, &m_TInfo);
+
+        TLib->Release();
+
+        if(FAILED(hr))
+        {
+            return hr;
+        }
+    }
+
+    lppTInfo[0] = m_TInfo;
+
+    return S_OK;
 }
 
 STDMETHODIMP CHelloWorld::QueryInterface(REFIID riid, LPVOID* lppOut)
@@ -81,6 +124,11 @@ STDMETHODIMP CHelloWorld::QueryInterface(REFIID riid, LPVOID* lppOut)
         if(IsEqualIID(riid, IID_IUnknown))
         {
             lppOut[0] = static_cast< IUnknown* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IDispatch))
+        {
+            lppOut[0] = static_cast< IDispatch* >(this);
         }
         else
         if(IsEqualIID(riid, IID_IHelloWorld))
@@ -117,6 +165,87 @@ STDMETHODIMP_(ULONG) CHelloWorld::Release()
     }
 
     return ulResult;
+}
+
+STDMETHODIMP CHelloWorld::GetTypeInfoCount(UINT FAR* pctinfo)
+{
+    if(pctinfo)
+    {
+        pctinfo[0] = 1U;
+
+        return S_OK;
+    }
+
+    return E_INVALIDARG;
+}
+
+STDMETHODIMP CHelloWorld::GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR* FAR* pptinfo)
+{
+    if(pptinfo)
+    {
+        if(itinfo==0U)
+        {
+            ITypeInfo* lpTInfo;
+            HRESULT hr = GetTInfo(&lpTInfo);
+
+            if(FAILED(hr))
+            {
+                return hr;
+            }
+
+            lpTInfo->AddRef();
+
+            pptinfo[0] = lpTInfo;
+
+            return S_OK;
+        }
+
+        return DISP_E_BADINDEX;
+    }
+
+    return E_INVALIDARG;
+}
+
+STDMETHODIMP CHelloWorld::GetIDsOfNames(REFIID riid, OLECHAR FAR* FAR* rgszNames, UINT cNames, LCID lcid, DISPID FAR* rgDispId)
+{
+    ITypeInfo* lpTInfo;
+
+    /*
+    if(!IsEqualIID(riid, IID_NULL))
+    {
+        return DISP_E_UNKNOWNINTERFACE;
+    }
+    */
+
+    HRESULT hr = GetTInfo(&lpTInfo);
+
+    if(FAILED(hr))
+    {
+        return hr;
+    }
+
+    return DispGetIDsOfNames(lpTInfo, rgszNames, cNames, rgDispId);
+}
+
+STDMETHODIMP CHelloWorld::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* pDispParams, VARIANT FAR* pVarResult, EXCEPINFO FAR* pExcepInfo, UINT FAR* puArgErr)
+{
+    ITypeInfo* lpTInfo;
+
+    /*
+    if(!IsEqualIID(riid, IID_NULL))
+    {
+        return DISP_E_UNKNOWNINTERFACE;
+    }
+    */
+
+    HRESULT hr = GetTInfo(&lpTInfo);
+
+    if(FAILED(hr))
+    {
+        return hr;
+    }
+
+    return DispInvoke(this, lpTInfo, dispIdMember, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
 }
 
 STDMETHODIMP CHelloWorld::Hello()
@@ -244,9 +373,11 @@ BOOL CALLBACK DllMain(HINSTANCE hDll, DWORD dwReason, LPVOID lpReserved)
     switch(dwReason)
     {
         case DLL_PROCESS_ATTACH:
+            l_hSelf = hDll;
             DisableThreadLibraryCalls(hDll);
             break;
         case DLL_PROCESS_DETACH:
+            l_hSelf = NULL;
             break;
     }
 

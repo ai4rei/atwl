@@ -1,0 +1,19 @@
+import "unknwn.idl";
+
+[
+    uuid(3834A400-E26F-11E6-A781-0011096B4C09),
+    version(1.0)
+]
+library HelloWorldLib
+{
+    importlib("stdole32.tlb");
+
+    [
+        uuid(3834A400-E26F-11E6-A781-0011096B4C08),
+        version(1.0), oleautomation, dual
+    ]
+    interface IHelloWorld : IDispatch
+    {
+        HRESULT Hello();
+    };
+};
