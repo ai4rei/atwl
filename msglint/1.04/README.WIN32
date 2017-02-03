@@ -1,0 +1,27 @@
+= Message Lint for Windows =========================================
+
+win32/*         (portability hacks)
+build.bat       (calls CL)
+msglint.build   (MSVC build options)
+README.WIN32    (this)
+
+== About ==
+
+This is an inofficial non-intrusive (no change to original files)
+port of Message Lint to Windows*. To build the application, call
+
+    > build
+
+from the MSVC command line.
+
+== Known issues ==
+
+- Message Lint option -t does not work. Due to the absence of
+  sendmail on Windows*, no effort was made to make popen work.
+
+== Links ==
+
+Message Lint home page:
+    https://tools.ietf.org/tools/msglint/
+
+====================================================== 2017-02-03 ==
