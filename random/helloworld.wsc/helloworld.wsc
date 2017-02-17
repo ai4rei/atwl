@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+    <?component error="true" debug="true"?>
+    <registration description="HelloWorld" progid="HelloWorld.Example" version="1.00" classid="{4FCA6336-1B03-44AC-A247-32ED9C3266BA}"/>
+    <public>
+        <property name="Version">
+            <get/>
+        </property>
+        <method name="Hello">
+        </method>
+    </public>
+    <script language="vbscript">
+    <![CDATA[
+        ' JScript has no message box facility in this context, so
+        ' provide one with VBScript, since Script Components can
+        ' contain multiple script languages within one namespace.
+        Sub HelloWorldEcho(sText)
+            MsgBox sText
+        End Sub
+    ]]>
+    </script>
+    <script language="jscript">
+    <![CDATA[
+
+    // Constructor
+    // NOTE: Prototype definitions, like HelloWorld.prototype.get_Version = function(){}, do NOT work
+    function HelloWorld()
+    {
+        // Properties
+        this.get_Version = get_Version;
+
+        // Methods
+        this.Hello = Hello;
+    }
+
+    // Properties
+    var Version = '1.0';
+
+    function get_Version()
+    {
+        return Version;
+    }
+
+    // Methods
+    function Hello()
+    {
+        HelloWorldEcho('Hello World!');
+    }
+
+    ]]>
+    </script>
+</component>

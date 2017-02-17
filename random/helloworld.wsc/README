@@ -1,0 +1,17 @@
+====================================================================
+
+This is an illustration of how the helloworld COM component could
+be implemented as Windows Scripting Component, which is basically
+an interpreted COM component hosted by a COM DLL.
+This is experimental code, use it at YOUR OWN RISK.
+
+If you use this as framework for your own component, do not forget
+to change CLSID and ProgID.
+
+wz10en.exe is the Microsoft* Windows* Script Component Wizard. It
+generates the base .wsc file. Since it ceased being available from
+microsoft and it's hard to find in the web archives, I'm mirroring
+it here. It requires a quick installation, since it's implmented as
+a COM component itself.
+
+====================================================== 2017-02-17 ==
