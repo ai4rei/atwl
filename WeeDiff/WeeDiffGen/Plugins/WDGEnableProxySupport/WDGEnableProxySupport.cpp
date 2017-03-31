@@ -148,9 +148,9 @@ DiffData* WDGPlugin::GeneratePatch(void)
             /*000*/ "\xA1\x00\x00\x00\x00"       // MOV     EAX,DWORD PTR DS:[<g_SaveIP>]
             /*005*/ "\x85\xC0"                   // TEST    EAX,EAX
             /*007*/ "\x75\x08"                   // JNZ     SHORT OFFSET v
-            /*009*/ "\x8B\x46\x0C"               // MOV     EAX,DWORD PTR DS:[ESI+C]
+            /*009*/ "\x8B\x46\x0C"               // MOV     EAX,DWORD PTR DS:[ESI+C]        ; NOTE: On VC11 this is [EBX+C]
             /*00C*/ "\xA3\x00\x00\x00\x00"       // MOV     DWORD PTR DS:[<g_SaveIP>],EAX
-            /*011*/ "\x89\x46\x0C"               // MOV     DWORD PTR DS:[ESI+C],EAX
+            /*011*/ "\x89\x46\x0C"               // MOV     DWORD PTR DS:[ESI+C],EAX        ; ditto
             /*014*/ "\xFF\x25\x00\x00\x00\x00"   // JMP     [OFFSET] ^
             /*01A*/ ;
 
