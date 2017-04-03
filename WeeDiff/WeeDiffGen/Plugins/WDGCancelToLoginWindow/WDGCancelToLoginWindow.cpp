@@ -74,7 +74,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
 
     try
     {
-        // MISSING: Make the result from 'do you want to quit' go
+        // MISSION: Make the result from 'do you want to quit' go
         // for a return to login window rather than client quit.
 
         // Find korean 메시지 ( 'Message' )

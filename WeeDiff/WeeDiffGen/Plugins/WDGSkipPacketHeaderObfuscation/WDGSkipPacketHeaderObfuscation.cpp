@@ -77,7 +77,7 @@ DiffData* WDGPlugin::GeneratePatch(void)
     {
         // MISSION: Make the function, that initializes three
         // obfuscation keys, use always zero disregarding any
-        // arguments. There is no reason in hardcoding the constants
+        // arguments. There is no point in hardcoding the constants
         // as they change from time to time.
 
         // Locate string used as argument to Trace(), which is right
