@@ -484,11 +484,11 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                     if(ConfigGetInt("HashMD5"))
                     {// MD5
-                        uint8 ucHash[4*4];
-                        char szHexHash[4*4*2+1];
+                        MD5HASH Hash;
+                        char szHexHash[sizeof(Hash)*2+1];
 
-                        MD5_String(szPassWord, ucHash);
-                        XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), ucHash, __ARRAYSIZE(ucHash));
+                        MD5_String(szPassWord, &Hash);
+                        XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
 
                         InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
                     }
@@ -620,7 +620,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #endif
             {
                 CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
-                DlgTi.huFontSize = ConfigGetInt("FontSize");
+                DlgTi.wFontSize = ConfigGetInt("FontSize");
                 AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
                 //InitCommonControls();
                 DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
