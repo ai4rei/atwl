@@ -1,14 +1,14 @@
 // -----------------------------------------------------------------
 // RO Credentials (ROCred)
-// (c) 2012-2015 Ai4rei/AN
+// (c) 2012+ Ai4rei/AN
 //
 // -----------------------------------------------------------------
 
 #ifndef _ROCRED_H_
 #define _ROCRED_H_
 
-#define APP_VERSION "1.9.2.0"
-#define APP_VERSIONINFO_VERSION 1,9,2,0
+#define APP_VERSION "1.9.3.0"
+#define APP_VERSIONINFO_VERSION 1,9,3,0
 
 #define IDC_USERNAME                    101
 #define IDC_PASSWORD                    102

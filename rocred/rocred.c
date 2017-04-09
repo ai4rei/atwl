@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RO Credentials (ROCred)
-// (c) 2012-2015 Ai4rei/AN
+// (c) 2012+ Ai4rei/AN
 //
 // -----------------------------------------------------------------
 
@@ -542,13 +542,13 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DLGABOUTINFO Dai =
             {
                 hWnd,
-                MAKELONG(2012,2015),
+                MAKELONG(2012,2017),
                 "About ROCred...",
                 "ROCred",
                 APP_VERSION,
                 "Ai4rei/AN",
                 "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
-                "http://hercules.ws/board/index.php?showtopic=1466",
+                "http://ai4rei.net/p/rocredweb",
             };
 
             DlgAbout(&Dai);
