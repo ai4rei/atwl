@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 #include <htmlhelp.h>
 
@@ -218,7 +219,7 @@ BOOL CALLBACK UI::EnableToolTipsForEach(HWND hWnd, LPARAM lParam)
             break;
         }
 
-        if(!LoadStringA(GetModuleHandle(NULL), uID, szTestBuffer, __ARRAYSIZE(szTestBuffer)))
+        if(!LoadStringA(GetWindowInstance(hWndParent), uID, szTestBuffer, __ARRAYSIZE(szTestBuffer)))
         {// no such string
             break;
         }
@@ -248,7 +249,7 @@ void __stdcall UI::EnableToolTips(HWND hWnd, BOOL bEnable)
         RECT rcWnd;
 
         // first time initialization
-        hWndTT = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, "", TTS_NOPREFIX, 0, 0, 0, 0, hWnd, NULL, GetModuleHandle(NULL), NULL);
+        hWndTT = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, TTS_NOPREFIX|TTS_ALWAYSTIP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hWnd, NULL, GetWindowInstance(hWnd), NULL);
 
         // limit the tool tip width to the width of the main window
         GetWindowRect(hWnd, &rcWnd);
@@ -298,7 +299,7 @@ void __stdcall UI::HandleToolTips(LPNMHDR lpHdr)
             uID = lpHdr->idFrom;
         }
 
-        if(!LoadStringA(GetModuleHandle(NULL), uID, szLastMsg, __ARRAYSIZE(szLastMsg)))
+        if(!LoadStringA(GetWindowInstance(GetParent(lpHdr->hwndFrom), uID, szLastMsg, __ARRAYSIZE(szLastMsg)))
         {// no such string, should not happen
             DebugBreakHere();
             return;
