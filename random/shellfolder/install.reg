@@ -1,0 +1,17 @@
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\CLSID\{DC4AB720-C354-421E-9D20-358A58DD0E28}]
+@="Example Shell Folder"
+
+[HKEY_CLASSES_ROOT\CLSID\{DC4AB720-C354-421E-9D20-358A58DD0E28}\InProcServer32]
+@="<<path>>\\shellfolder.dll"
+"ThreadingModel"="Apartment"
+
+[HKEY_CLASSES_ROOT\CLSID\{DC4AB720-C354-421E-9D20-358A58DD0E28}\ShellFolder]
+"Attributes"=dword:20000030
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{DC4AB720-C354-421E-9D20-358A58DD0E28}]
+@="Example Shell Folder"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved]
+"{DC4AB720-C354-421E-9D20-358A58DD0E28}"="Example Shell Folder"
