@@ -9,7 +9,6 @@
 
 gzio.c
 
-..\snippets\bvcrc32.c
 ..\snippets\memory.c
 
 ..\snippets\bvdata.cpp
