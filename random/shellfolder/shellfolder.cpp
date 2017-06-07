@@ -10,47 +10,47 @@ DEFINE_GUID(CLSID_ExampleShellFolder,
 
 class CExampleShellFolder : public IShellFolder, IPersistFolder
 {
-	ULONG m_ulLocks;
+    ULONG m_ulLocks;
 
 public:
-	CExampleShellFolder();
-	~CExampleShellFolder();
+    CExampleShellFolder();
+    ~CExampleShellFolder();
 
-	// IUnknown
-	STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP_(ULONG) AddRef();
-	STDMETHODIMP_(ULONG) Release();
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP_(ULONG) AddRef();
+    STDMETHODIMP_(ULONG) Release();
 
-	// IShellFolder
-	STDMETHODIMP ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes);
-	STDMETHODIMP EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut);
-	STDMETHODIMP BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2);
-	STDMETHODIMP CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut);
-	STDMETHODIMP GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut);
-	STDMETHODIMP GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName);
-	STDMETHODIMP SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut);
+    // IShellFolder
+    STDMETHODIMP ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes);
+    STDMETHODIMP EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut);
+    STDMETHODIMP BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2);
+    STDMETHODIMP CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut);
+    STDMETHODIMP GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut);
+    STDMETHODIMP GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName);
+    STDMETHODIMP SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut);
 
-	// IPersist
-	STDMETHODIMP GetClassID(CLSID* pclsid);
+    // IPersist
+    STDMETHODIMP GetClassID(CLSID* pclsid);
 
-	// IPersistFolder
-	STDMETHODIMP Initialize(LPCITEMIDLIST lpidl);
+    // IPersistFolder
+    STDMETHODIMP Initialize(LPCITEMIDLIST lpidl);
 };
 
 class CExampleShellFolderClassFactory : public IClassFactory
 {
 public:
-	// IUnknown
-	STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP_(ULONG) AddRef();
-	STDMETHODIMP_(ULONG) Release();
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP_(ULONG) AddRef();
+    STDMETHODIMP_(ULONG) Release();
 
-	// IClassFactory
-	STDMETHODIMP CreateInstance(IUnknown* lpUnkOuter, REFIID riid, LPVOID* lppOut);
-	STDMETHODIMP LockServer(BOOL fLock);
+    // IClassFactory
+    STDMETHODIMP CreateInstance(IUnknown* lpUnkOuter, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP LockServer(BOOL fLock);
 };
 
 static CExampleShellFolderClassFactory l_ClassFactory;  // keep a single global instance
@@ -61,7 +61,7 @@ static ULONG l_ulLocks = 0;
 
 CExampleShellFolder::CExampleShellFolder()
 {
-	m_ulLocks = 0UL;
+    m_ulLocks = 0UL;
 }
 
 CExampleShellFolder::~CExampleShellFolder()
@@ -70,111 +70,111 @@ CExampleShellFolder::~CExampleShellFolder()
 
 STDMETHODIMP CExampleShellFolder::QueryInterface(REFIID riid, LPVOID* lppOut)
 {
-	if(lppOut)
-	{
-		if(IsEqualIID(riid, IID_IUnknown))
-		{
-			lppOut[0] = static_cast< IUnknown* >(static_cast< IShellFolder* >(this));
-		}
-		else
-		if(IsEqualIID(riid, IID_IShellFolder))
-		{
-			lppOut[0] = static_cast< IShellFolder* >(this);
-		}
-		else
-		{
-			lppOut[0] = NULL;
+    if(lppOut)
+    {
+        if(IsEqualIID(riid, IID_IUnknown))
+        {
+            lppOut[0] = static_cast< IUnknown* >(static_cast< IShellFolder* >(this));
+        }
+        else
+        if(IsEqualIID(riid, IID_IShellFolder))
+        {
+            lppOut[0] = static_cast< IShellFolder* >(this);
+        }
+        else
+        {
+            lppOut[0] = NULL;
 
-			return E_NOINTERFACE;
-		}
+            return E_NOINTERFACE;
+        }
 
-		AddRef();
+        AddRef();
 
-		return S_OK;
-	}
+        return S_OK;
+    }
 
-	return E_INVALIDARG;
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP_(ULONG) CExampleShellFolder::AddRef()
 {
-	return InterlockedIncrement((LPLONG)&m_ulLocks);
+    return InterlockedIncrement((LPLONG)&m_ulLocks);
 }
 
 STDMETHODIMP_(ULONG) CExampleShellFolder::Release()
 {
-	ULONG ulResult = InterlockedIncrement((LPLONG)&m_ulLocks);
+    ULONG ulResult = InterlockedIncrement((LPLONG)&m_ulLocks);
 
-	if(!ulResult)
-	{
-		delete this;
-	}
+    if(!ulResult)
+    {
+        delete this;
+    }
 
-	return ulResult;
+    return ulResult;
 }
 
 STDMETHODIMP CExampleShellFolder::ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut)
 {
-	lppEnumIDListOut[0] = NULL;
+    lppEnumIDListOut[0] = NULL;
 
-	return S_FALSE;  // no children
+    return S_FALSE;  // no children
 }
 
 STDMETHODIMP CExampleShellFolder::BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut)
 {
-	return E_NOTIMPL;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder::GetClassID(CLSID* pclsid)
 {
-	pclsid[0] = CLSID_ExampleShellFolder;
+    pclsid[0] = CLSID_ExampleShellFolder;
 
-	return S_OK;
+    return S_OK;
 }
 
 STDMETHODIMP CExampleShellFolder::Initialize(LPCITEMIDLIST lpidl)
 {
-	return S_OK;
+    return S_OK;
 }
 
 // CExampleShellFolderClassFactory
@@ -182,92 +182,92 @@ STDMETHODIMP CExampleShellFolder::Initialize(LPCITEMIDLIST lpidl)
 
 STDMETHODIMP CExampleShellFolderClassFactory::QueryInterface(REFIID riid, LPVOID* lppOut)
 {
-	if(lppOut)
-	{
-		if(IsEqualIID(riid, IID_IUnknown))
-		{
-			lppOut[0] = static_cast< IUnknown* >(this);
-		}
-		else
-		if(IsEqualIID(riid, IID_IClassFactory))
-		{
-			lppOut[0] = static_cast< IClassFactory* >(this);
-		}
-		else
-		{
-			lppOut[0] = NULL;
+    if(lppOut)
+    {
+        if(IsEqualIID(riid, IID_IUnknown))
+        {
+            lppOut[0] = static_cast< IUnknown* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IClassFactory))
+        {
+            lppOut[0] = static_cast< IClassFactory* >(this);
+        }
+        else
+        {
+            lppOut[0] = NULL;
 
-			return E_NOINTERFACE;
-		}
+            return E_NOINTERFACE;
+        }
 
-		AddRef();
+        AddRef();
 
-		return S_OK;
-	}
+        return S_OK;
+    }
 
-	return E_INVALIDARG;
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP_(ULONG) CExampleShellFolderClassFactory::AddRef()
 {
-	return InterlockedIncrement((LPLONG)&l_ulLocks);
+    return InterlockedIncrement((LPLONG)&l_ulLocks);
 }
 
 STDMETHODIMP_(ULONG) CExampleShellFolderClassFactory::Release()
 {
-	return InterlockedDecrement((LPLONG)&l_ulLocks);
+    return InterlockedDecrement((LPLONG)&l_ulLocks);
 }
 
 STDMETHODIMP CExampleShellFolderClassFactory::CreateInstance(IUnknown* lpUnkOuter, REFIID riid, LPVOID* lppOut)
 {
-	if(lppOut)
-	{
-		if(lpUnkOuter)
-		{
-			return CLASS_E_NOAGGREGATION;
-		}
+    if(lppOut)
+    {
+        if(lpUnkOuter)
+        {
+            return CLASS_E_NOAGGREGATION;
+        }
 
-		CExampleShellFolder* ExampleShellFolder = NULL;
+        CExampleShellFolder* ExampleShellFolder = NULL;
 
-		try
-		{
-			ExampleShellFolder = new CExampleShellFolder;
-		}
-		catch(...)
-		{
-			;
-		}
+        try
+        {
+            ExampleShellFolder = new CExampleShellFolder;
+        }
+        catch(...)
+        {
+            ;
+        }
 
-		if(ExampleShellFolder==NULL)
-		{
-			return E_OUTOFMEMORY;
-		}
+        if(ExampleShellFolder==NULL)
+        {
+            return E_OUTOFMEMORY;
+        }
 
-		HRESULT hr = ExampleShellFolder->QueryInterface(riid, lppOut);
+        HRESULT hr = ExampleShellFolder->QueryInterface(riid, lppOut);
 
-		if(FAILED(hr))
-		{
-			delete ExampleShellFolder;
-		}
+        if(FAILED(hr))
+        {
+            delete ExampleShellFolder;
+        }
 
-		return hr;
-	}
+        return hr;
+    }
 
-	return E_INVALIDARG;
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolderClassFactory::LockServer(BOOL fLock)
 {
-	if(fLock)
-	{
-		InterlockedIncrement((LPLONG)&l_ulLocks);
-	}
-	else
-	{
-		InterlockedDecrement((LPLONG)&l_ulLocks);
-	}
+    if(fLock)
+    {
+        InterlockedIncrement((LPLONG)&l_ulLocks);
+    }
+    else
+    {
+        InterlockedDecrement((LPLONG)&l_ulLocks);
+    }
 
-	return S_OK;
+    return S_OK;
 }
 
 // Public
@@ -275,22 +275,22 @@ STDMETHODIMP CExampleShellFolderClassFactory::LockServer(BOOL fLock)
 
 STDAPI DllCanUnloadNow()
 {
-	return l_ulLocks==0UL ? S_OK : S_FALSE;
+    return l_ulLocks==0UL ? S_OK : S_FALSE;
 }
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* lppOut)
 {
-	if(lppOut)
-	{
-		if(IsEqualCLSID(rclsid, CLSID_ExampleShellFolder))
-		{
-			return l_ClassFactory.QueryInterface(riid, lppOut);
-		}
+    if(lppOut)
+    {
+        if(IsEqualCLSID(rclsid, CLSID_ExampleShellFolder))
+        {
+            return l_ClassFactory.QueryInterface(riid, lppOut);
+        }
 
-		lppOut[0] = NULL;
+        lppOut[0] = NULL;
 
-		return CLASS_E_CLASSNOTAVAILABLE;
-	}
+        return CLASS_E_CLASSNOTAVAILABLE;
+    }
 
-	return E_INVALIDARG;
+    return E_INVALIDARG;
 }
