@@ -4,17 +4,17 @@
 #include <shlobj.h>
 #include <shobjidl.h>
 
-// {DC4AB720-C354-421E-9D20-358A58DD0E28}
-DEFINE_GUID(CLSID_ExampleShellFolder,
-0xDC4AB720, 0xC354, 0x421E, 0x9D, 0x20, 0x35, 0x8A, 0x58, 0xDD, 0x0E, 0x28);
+// {1A67366A-3641-4575-BCFF-8D574C6F68F0}
+DEFINE_GUID(CLSID_ExampleShellFolder2,
+0x1A67366A, 0x3641, 0x4575, 0xBC, 0xFF, 0x8D, 0x57, 0x4C, 0x6F, 0x68, 0xF0);
 
-class CExampleShellFolder : public IShellFolder, IPersistFolder
+class CExampleShellFolder2 : public IShellFolder2, IPersistFolder2  // No IShellDetails, because systems that need it do not have system-provided IShellView
 {
     ULONG m_ulLocks;
 
 public:
-    CExampleShellFolder();
-    ~CExampleShellFolder();
+    CExampleShellFolder2();
+    ~CExampleShellFolder2();
 
     // IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
@@ -33,11 +33,23 @@ public:
     STDMETHODIMP GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName);
     STDMETHODIMP SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut);
 
+    // IShellFolder2
+    STDMETHODIMP EnumSearches(IEnumExtraSearch** lppEnum);
+    STDMETHODIMP GetDefaultColumn(DWORD dwReserved, ULONG* lpulSort, ULONG* lpulDisplay);
+    STDMETHODIMP GetDefaultColumnState(UINT uColumn, SHCOLSTATEF* lpcsFlags);
+    STDMETHODIMP GetDefaultSearchGUID(GUID* lpGuid);
+    STDMETHODIMP GetDetailsEx(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut);
+    STDMETHODIMP GetDetailsOf(PCUITEMID_CHILD lpidl, UINT uColumn, SHELLDETAILS* lpSd);
+    STDMETHODIMP MapColumnToSCID(UINT uColumn, SHCOLUMNID* lpScid);
+
     // IPersist
     STDMETHODIMP GetClassID(CLSID* pclsid);
 
     // IPersistFolder
     STDMETHODIMP Initialize(LPCITEMIDLIST lpidl);
+
+    // IPersistFolder2
+    STDMETHODIMP GetCurFolder(LPITEMIDLIST* lppidl);
 };
 
 class CExampleShellFolderClassFactory : public IClassFactory
@@ -56,19 +68,19 @@ public:
 static CExampleShellFolderClassFactory l_ClassFactory;  // keep a single global instance
 static ULONG l_ulLocks = 0;
 
-// CExampleShellFolder
+// CExampleShellFolder2
 //
 
-CExampleShellFolder::CExampleShellFolder()
+CExampleShellFolder2::CExampleShellFolder2()
 {
     m_ulLocks = 0UL;
 }
 
-CExampleShellFolder::~CExampleShellFolder()
+CExampleShellFolder2::~CExampleShellFolder2()
 {
 }
 
-STDMETHODIMP CExampleShellFolder::QueryInterface(REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::QueryInterface(REFIID riid, LPVOID* lppOut)
 {
     if(lppOut)
     {
@@ -80,6 +92,26 @@ STDMETHODIMP CExampleShellFolder::QueryInterface(REFIID riid, LPVOID* lppOut)
         if(IsEqualIID(riid, IID_IShellFolder))
         {
             lppOut[0] = static_cast< IShellFolder* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IShellFolder2))
+        {
+            lppOut[0] = static_cast< IShellFolder* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IPersist))
+        {
+            lppOut[0] = static_cast< IPersist* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IPersistFolder))
+        {
+            lppOut[0] = static_cast< IPersistFolder* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IPersistFolder2))
+        {
+            lppOut[0] = static_cast< IPersistFolder2* >(this);
         }
         else
         {
@@ -96,12 +128,12 @@ STDMETHODIMP CExampleShellFolder::QueryInterface(REFIID riid, LPVOID* lppOut)
     return E_INVALIDARG;
 }
 
-STDMETHODIMP_(ULONG) CExampleShellFolder::AddRef()
+STDMETHODIMP_(ULONG) CExampleShellFolder2::AddRef()
 {
     return InterlockedIncrement((LPLONG)&m_ulLocks);
 }
 
-STDMETHODIMP_(ULONG) CExampleShellFolder::Release()
+STDMETHODIMP_(ULONG) CExampleShellFolder2::Release()
 {
     ULONG ulResult = InterlockedIncrement((LPLONG)&m_ulLocks);
 
@@ -113,68 +145,123 @@ STDMETHODIMP_(ULONG) CExampleShellFolder::Release()
     return ulResult;
 }
 
-STDMETHODIMP CExampleShellFolder::ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes)
+STDMETHODIMP CExampleShellFolder2::ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut)
+STDMETHODIMP CExampleShellFolder2::EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut)
 {
     lppEnumIDListOut[0] = NULL;
 
     return S_FALSE;  // no children
 }
 
-STDMETHODIMP CExampleShellFolder::BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2)
+STDMETHODIMP CExampleShellFolder2::CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut)
+{
+    IShellView* lpShellView = NULL;
+    SFV_CREATE Sfv = { sizeof(Sfv) };
+    HRESULT hr;
+
+    Sfv.pshf = static_cast< IShellFolder* >(this);
+
+    hr = SHCreateShellFolderView(&Sfv, &lpShellView);
+
+    if(!FAILED(hr))
+    {
+        hr = lpShellView->QueryInterface(riid, lppOut);
+
+        lpShellView->Release();
+    }
+
+    return hr;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut)
+STDMETHODIMP CExampleShellFolder2::GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName)
+STDMETHODIMP CExampleShellFolder2::SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut)
+STDMETHODIMP CExampleShellFolder2::EnumSearches(IEnumExtraSearch** lppEnum)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder::GetClassID(CLSID* pclsid)
+STDMETHODIMP CExampleShellFolder2::GetDefaultColumn(DWORD dwReserved, ULONG* lpulSort, ULONG* lpulDisplay)
 {
-    pclsid[0] = CLSID_ExampleShellFolder;
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetDefaultColumnState(UINT uColumn, SHCOLSTATEF* lpcsFlags)
+{
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetDefaultSearchGUID(GUID* lpGuid)
+{
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetDetailsEx(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut)
+{
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetDetailsOf(PCUITEMID_CHILD lpidl, UINT uColumn, SHELLDETAILS* lpSd)
+{
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::MapColumnToSCID(UINT uColumn, SHCOLUMNID* lpScid)
+{
+    return E_NOTIMPL;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetClassID(CLSID* pclsid)
+{
+    pclsid[0] = CLSID_ExampleShellFolder2;
 
     return S_OK;
 }
 
-STDMETHODIMP CExampleShellFolder::Initialize(LPCITEMIDLIST lpidl)
+STDMETHODIMP CExampleShellFolder2::Initialize(LPCITEMIDLIST lpidl)
 {
     return S_OK;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetCurFolder(LPITEMIDLIST* lppidl)
+{
+    return E_NOTIMPL;
 }
 
 // CExampleShellFolderClassFactory
@@ -227,11 +314,11 @@ STDMETHODIMP CExampleShellFolderClassFactory::CreateInstance(IUnknown* lpUnkOute
             return CLASS_E_NOAGGREGATION;
         }
 
-        CExampleShellFolder* ExampleShellFolder = NULL;
+        CExampleShellFolder2* ExampleShellFolder = NULL;
 
         try
         {
-            ExampleShellFolder = new CExampleShellFolder;
+            ExampleShellFolder = new CExampleShellFolder2;
         }
         catch(...)
         {
@@ -282,7 +369,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* lppOut)
 {
     if(lppOut)
     {
-        if(IsEqualCLSID(rclsid, CLSID_ExampleShellFolder))
+        if(IsEqualCLSID(rclsid, CLSID_ExampleShellFolder2))
         {
             return l_ClassFactory.QueryInterface(riid, lppOut);
         }

@@ -12,3 +12,5 @@ shellfolder.cpp
 /link /DLL /DEF:shellfolder.def
 /link /RELEASE /DEBUG
 /link /OPT:REF /OPT:ICF,99
+
+shell32.lib
