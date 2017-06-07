@@ -1,4 +1,5 @@
 #define INITGUID
+#define STRICT_TYPED_ITEMIDS
 
 #include <windows.h>
 #include <shlobj.h>
@@ -22,16 +23,16 @@ public:
     STDMETHODIMP_(ULONG) Release();
 
     // IShellFolder
-    STDMETHODIMP ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes);
+    STDMETHODIMP ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, PIDLIST_RELATIVE* lppidlOut, ULONG* lpulAttributes);
     STDMETHODIMP EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut);
-    STDMETHODIMP BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
-    STDMETHODIMP BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
-    STDMETHODIMP CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2);
+    STDMETHODIMP BindToObject(PCUIDLIST_RELATIVE lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP BindToStorage(PCUIDLIST_RELATIVE lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut);
+    STDMETHODIMP CompareIDs(LPARAM lParam, PCUIDLIST_RELATIVE lpidl1, PCUIDLIST_RELATIVE lpidl2);
     STDMETHODIMP CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut);
-    STDMETHODIMP GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut);
-    STDMETHODIMP GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut);
-    STDMETHODIMP GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName);
-    STDMETHODIMP SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut);
+    STDMETHODIMP GetAttributesOf(UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, SFGAOF* lpulInOut);
+    STDMETHODIMP GetUIObjectOf(HWND hWndOwner, UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut);
+    STDMETHODIMP GetDisplayNameOf(PCUITEMID_CHILD lpidl, SHGDNF dwFlags, LPSTRRET lpsrName);
+    STDMETHODIMP SetNameOf(HWND hWndOwner, PCUITEMID_CHILD lpidl, LPCOLESTR lpszName, SHGDNF dwFlags, PITEMID_CHILD* lppidlOut);
 
     // IShellFolder2
     STDMETHODIMP EnumSearches(IEnumExtraSearch** lppEnum);
@@ -46,10 +47,10 @@ public:
     STDMETHODIMP GetClassID(CLSID* pclsid);
 
     // IPersistFolder
-    STDMETHODIMP Initialize(LPCITEMIDLIST lpidl);
+    STDMETHODIMP Initialize(PCIDLIST_ABSOLUTE lpidl);
 
     // IPersistFolder2
-    STDMETHODIMP GetCurFolder(LPITEMIDLIST* lppidl);
+    STDMETHODIMP GetCurFolder(PIDLIST_ABSOLUTE* lppidl);
 };
 
 class CExampleShellFolderClassFactory : public IClassFactory
@@ -145,7 +146,7 @@ STDMETHODIMP_(ULONG) CExampleShellFolder2::Release()
     return ulResult;
 }
 
-STDMETHODIMP CExampleShellFolder2::ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, LPITEMIDLIST* lppidlOut, ULONG* lpulAttributes)
+STDMETHODIMP CExampleShellFolder2::ParseDisplayName(HWND hWndOwner, LPBC lpbcReserved, LPOLESTR lpszDisplayName, ULONG* lpulEaten, PIDLIST_RELATIVE* lppidlOut, ULONG* lpulAttributes)
 {
     return E_NOTIMPL;
 }
@@ -157,17 +158,17 @@ STDMETHODIMP CExampleShellFolder2::EnumObjects(HWND hWndOwner, DWORD dwFlags, LP
     return S_FALSE;  // no children
 }
 
-STDMETHODIMP CExampleShellFolder2::BindToObject(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::BindToObject(PCUIDLIST_RELATIVE lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder2::BindToStorage(LPCITEMIDLIST lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::BindToStorage(PCUIDLIST_RELATIVE lpidl, LPBC lpbcReserved, REFIID riid, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder2::CompareIDs(LPARAM lParam, LPCITEMIDLIST lpidl1, LPCITEMIDLIST lpidl2)
+STDMETHODIMP CExampleShellFolder2::CompareIDs(LPARAM lParam, PCUIDLIST_RELATIVE lpidl1, PCUIDLIST_RELATIVE lpidl2)
 {
     return E_NOTIMPL;
 }
@@ -192,22 +193,22 @@ STDMETHODIMP CExampleShellFolder2::CreateViewObject(HWND hWndOwner, REFIID riid,
     return hr;
 }
 
-STDMETHODIMP CExampleShellFolder2::GetAttributesOf(UINT uCount, LPCITEMIDLIST* lppidl, ULONG* lpulInOut)
+STDMETHODIMP CExampleShellFolder2::GetAttributesOf(UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, SFGAOF* lpulInOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder2::GetUIObjectOf(HWND hWndOwner, UINT uCount, LPCITEMIDLIST* lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
+STDMETHODIMP CExampleShellFolder2::GetUIObjectOf(HWND hWndOwner, UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder2::GetDisplayNameOf(LPCITEMIDLIST lpidl, DWORD dwFlags, LPSTRRET lpsrName)
+STDMETHODIMP CExampleShellFolder2::GetDisplayNameOf(PCUITEMID_CHILD lpidl, SHGDNF dwFlags, LPSTRRET lpsrName)
 {
     return E_NOTIMPL;
 }
 
-STDMETHODIMP CExampleShellFolder2::SetNameOf(HWND hWndOwner, LPCITEMIDLIST lpidl, LPCOLESTR lpszName, DWORD dwFlags, LPITEMIDLIST* lppidlOut)
+STDMETHODIMP CExampleShellFolder2::SetNameOf(HWND hWndOwner, PCUITEMID_CHILD lpidl, LPCOLESTR lpszName, SHGDNF dwFlags, PITEMID_CHILD* lppidlOut)
 {
     return E_NOTIMPL;
 }
@@ -254,12 +255,12 @@ STDMETHODIMP CExampleShellFolder2::GetClassID(CLSID* pclsid)
     return S_OK;
 }
 
-STDMETHODIMP CExampleShellFolder2::Initialize(LPCITEMIDLIST lpidl)
+STDMETHODIMP CExampleShellFolder2::Initialize(PCIDLIST_ABSOLUTE lpidl)
 {
     return S_OK;
 }
 
-STDMETHODIMP CExampleShellFolder2::GetCurFolder(LPITEMIDLIST* lppidl)
+STDMETHODIMP CExampleShellFolder2::GetCurFolder(PIDLIST_ABSOLUTE* lppidl)
 {
     return E_NOTIMPL;
 }
