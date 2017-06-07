@@ -13,6 +13,8 @@ class CExampleShellFolder2 : public IShellFolder2, IPersistFolder2  // No IShell
 {
     ULONG m_ulLocks;
 
+    PIDLIST_ABSOLUTE m_lpidlAbsoluteSelf;
+
 public:
     CExampleShellFolder2();
     ~CExampleShellFolder2();
@@ -75,10 +77,17 @@ static ULONG l_ulLocks = 0;
 CExampleShellFolder2::CExampleShellFolder2()
 {
     m_ulLocks = 0UL;
+
+    m_lpidlAbsoluteSelf = NULL;
 }
 
 CExampleShellFolder2::~CExampleShellFolder2()
 {
+    if(m_lpidlAbsoluteSelf)
+    {
+        ILFree(m_lpidlAbsoluteSelf);
+        m_lpidlAbsoluteSelf = NULL;
+    }
 }
 
 STDMETHODIMP CExampleShellFolder2::QueryInterface(REFIID riid, LPVOID* lppOut)
@@ -257,12 +266,48 @@ STDMETHODIMP CExampleShellFolder2::GetClassID(CLSID* pclsid)
 
 STDMETHODIMP CExampleShellFolder2::Initialize(PCIDLIST_ABSOLUTE lpidl)
 {
-    return S_OK;
+    if(m_lpidlAbsoluteSelf)
+    {
+        ILFree(m_lpidlAbsoluteSelf);
+        m_lpidlAbsoluteSelf = NULL;
+    }
+
+    m_lpidlAbsoluteSelf = ILCloneFull(lpidl);
+
+    if(m_lpidlAbsoluteSelf)
+    {
+        return S_OK;
+    }
+
+    return E_OUTOFMEMORY;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetCurFolder(PIDLIST_ABSOLUTE* lppidl)
 {
-    return E_NOTIMPL;
+    HRESULT hr;
+    PIDLIST_ABSOLUTE lpidl = NULL;
+
+    if(m_lpidlAbsoluteSelf)
+    {
+        lpidl = ILCloneFull(m_lpidlAbsoluteSelf);
+
+        if(lpidl)
+        {
+            hr = S_OK;
+        }
+        else
+        {
+            hr = E_OUTOFMEMORY;
+        }
+    }
+    else
+    {
+        hr = S_FALSE;
+    }
+
+    lppidl[0] = lpidl;
+
+    return hr;
 }
 
 // CExampleShellFolderClassFactory
