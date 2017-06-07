@@ -82,6 +82,16 @@ STDMETHODIMP CExampleShellFolder::QueryInterface(REFIID riid, LPVOID* lppOut)
             lppOut[0] = static_cast< IShellFolder* >(this);
         }
         else
+        if(IsEqualIID(riid, IID_IPersist))
+        {
+            lppOut[0] = static_cast< IPersist* >(this);
+        }
+        else
+        if(IsEqualIID(riid, IID_IPersistFolder))
+        {
+            lppOut[0] = static_cast< IPersistFolder* >(this);
+        }
+        else
         {
             lppOut[0] = NULL;
 
