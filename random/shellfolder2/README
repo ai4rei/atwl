@@ -1,0 +1,10 @@
+====================================================================
+
+This is bare minimum needed to create a shell namespace extension
+without ATL. This is experimental code, use it at YOUR OWN RISK. In
+the install script replace <<path>> with the actual path to the DLL.
+
+If you use this as framework for your own component, do not forget
+to change CLSID.
+
+====================================================== 2017-05-19 ==
