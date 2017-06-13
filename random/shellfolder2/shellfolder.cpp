@@ -4,6 +4,13 @@
 #include <windows.h>
 #include <shlobj.h>
 #include <shobjidl.h>
+#include <shlguid.h>
+#include <shlwapi.h>
+#include <stgprop.h>
+#include <strsafe.h>
+
+#include "enumpidl.h"
+#include "simplepidl.h"
 
 // {1A67366A-3641-4575-BCFF-8D574C6F68F0}
 DEFINE_GUID(CLSID_ExampleShellFolder2,
@@ -13,7 +20,10 @@ class CExampleShellFolder2 : public IShellFolder2, IPersistFolder2  // No IShell
 {
     ULONG m_ulLocks;
 
-    PIDLIST_ABSOLUTE m_lpidlAbsoluteSelf;
+    PIDLIST_ABSOLUTE m_lpidl;
+
+protected:
+    STDMETHODIMP P_GetColumnCaption(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut, LPWSTR lpszBuffer, UINT uBufferSize);
 
 public:
     CExampleShellFolder2();
@@ -74,19 +84,57 @@ static ULONG l_ulLocks = 0;
 // CExampleShellFolder2
 //
 
+STDMETHODIMP CExampleShellFolder2::P_GetColumnCaption(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut, LPWSTR lpszBuffer, UINT uBufferSize)
+{
+    HRESULT hr;
+
+    if(IsEqualGUID(lpScid->fmtid, FMTID_Storage))
+    {
+        switch(lpScid->pid)
+        {
+            case PID_STG_NAME:
+                // TODO: Obtain name from pidl
+                if(lpVarOut)
+                {
+                    lpVarOut->vt = VT_BSTR;
+                    lpVarOut->bstrVal = SysAllocString(L"Item Name (Variant)");
+
+                    hr = lpVarOut->bstrVal ? S_OK : E_OUTOFMEMORY;
+                }
+                else
+                {
+                    hr = StringCchCopyW(lpszBuffer, uBufferSize, L"Item Name (String)");
+                }
+
+                return hr;
+        }
+    }
+
+    if(lpVarOut)
+    {
+        VariantInit(lpVarOut);
+    }
+    else
+    {
+        lpszBuffer[0] = 0;
+    }
+
+    return S_OK;
+}
+
 CExampleShellFolder2::CExampleShellFolder2()
 {
     m_ulLocks = 0UL;
 
-    m_lpidlAbsoluteSelf = NULL;
+    m_lpidl = NULL;
 }
 
 CExampleShellFolder2::~CExampleShellFolder2()
 {
-    if(m_lpidlAbsoluteSelf)
+    if(m_lpidl)
     {
-        ILFree(m_lpidlAbsoluteSelf);
-        m_lpidlAbsoluteSelf = NULL;
+        ILFree(m_lpidl);
+        m_lpidl = NULL;
     }
 }
 
@@ -162,6 +210,16 @@ STDMETHODIMP CExampleShellFolder2::ParseDisplayName(HWND hWndOwner, LPBC lpbcRes
 
 STDMETHODIMP CExampleShellFolder2::EnumObjects(HWND hWndOwner, DWORD dwFlags, LPENUMIDLIST* lppEnumIDListOut)
 {
+    SHITEMID Shid[2] = { sizeof(SHITEMID) };
+    LPITEMIDLIST lpList[1];
+
+    lpList[0] = (LPITEMIDLIST)Shid;
+
+    if(_ARRAYSIZE(lpList))
+    {
+        return CreateEnumIDListFromArray(lpList, _ARRAYSIZE(lpList), IID_IEnumIDList, (LPVOID*)lppEnumIDListOut);
+    }
+
     lppEnumIDListOut[0] = NULL;
 
     return S_FALSE;  // no children
@@ -184,19 +242,27 @@ STDMETHODIMP CExampleShellFolder2::CompareIDs(LPARAM lParam, PCUIDLIST_RELATIVE 
 
 STDMETHODIMP CExampleShellFolder2::CreateViewObject(HWND hWndOwner, REFIID riid, LPVOID* lppOut)
 {
-    IShellView* lpShellView = NULL;
-    SFV_CREATE Sfv = { sizeof(Sfv) };
     HRESULT hr;
 
-    Sfv.pshf = static_cast< IShellFolder* >(this);
-
-    hr = SHCreateShellFolderView(&Sfv, &lpShellView);
-
-    if(!FAILED(hr))
+    if(IsEqualIID(riid, IID_IShellView))
     {
-        hr = lpShellView->QueryInterface(riid, lppOut);
+        IShellView* lpShellView = NULL;
+        SFV_CREATE Sfv = { sizeof(Sfv) };
 
-        lpShellView->Release();
+        Sfv.pshf = static_cast< IShellFolder* >(this);
+
+        hr = SHCreateShellFolderView(&Sfv, &lpShellView);
+
+        if(!FAILED(hr))
+        {
+            hr = lpShellView->QueryInterface(riid, lppOut);
+
+            lpShellView->Release();
+        }
+    }
+    else
+    {
+        hr = E_NOINTERFACE;
     }
 
     return hr;
@@ -204,37 +270,129 @@ STDMETHODIMP CExampleShellFolder2::CreateViewObject(HWND hWndOwner, REFIID riid,
 
 STDMETHODIMP CExampleShellFolder2::GetAttributesOf(UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, SFGAOF* lpulInOut)
 {
-    return E_NOTIMPL;
+    if(uCount==1U)
+    {
+        lpulInOut[0]&= 0;  // retrieved attributes
+
+        return S_OK;
+    }
+
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetUIObjectOf(HWND hWndOwner, UINT uCount, PCUITEMID_CHILD_ARRAY lppidl, REFIID riid, UINT* lpuInOut, LPVOID* lppOut)
 {
-    return E_NOTIMPL;
+    HRESULT hr;
+
+    if(IsEqualIID(riid, IID_IExtractIconA) || IsEqualIID(riid, IID_IExtractIconW))
+    {
+        wchar_t szDummyPath[MAX_PATH];
+
+        hr = StringCchPrintfW(szDummyPath, _ARRAYSIZE(szDummyPath), L"C:\\~%ls", L"Display name.txt");
+
+        if(!FAILED(hr))
+        {
+            WIN32_FIND_DATAW Wfd = { 0 };
+            PIDLIST_ABSOLUTE lpidl = NULL;
+
+            Wfd.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+
+            hr = CreateSimpleIDListFromPath(hWndOwner, szDummyPath, &Wfd, &lpidl);
+
+            if(!FAILED(hr))
+            {
+                IShellFolder* lpFolder = NULL;
+                PCUITEMID_CHILD lpidlChild = NULL;
+
+                hr = SHBindToParent(lpidl, IID_PPV_ARGS(&lpFolder), &lpidlChild);
+
+                if(!FAILED(hr))
+                {
+                    hr = lpFolder->GetUIObjectOf(hWndOwner, 1, &lpidlChild, riid, NULL, lppOut);
+
+                    lpFolder->Release();
+                }
+
+                ILFree(lpidl);
+            }
+        }
+    }
+    else
+    {
+        hr = E_NOINTERFACE;
+    }
+
+    return hr;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetDisplayNameOf(PCUITEMID_CHILD lpidl, SHGDNF dwFlags, LPSTRRET lpsrName)
 {
-    return E_NOTIMPL;
+    HRESULT hr;
+
+    if(lpidl && lpsrName)
+    {
+        hr = SHStrDupW(L"Display Name", &lpsrName->pOleStr);
+
+        if(!FAILED(hr))
+        {
+            lpsrName->uType = STRRET_WSTR;
+        }
+    }
+    else
+    {
+        hr = E_INVALIDARG;
+    }
+
+    return hr;
 }
 
 STDMETHODIMP CExampleShellFolder2::SetNameOf(HWND hWndOwner, PCUITEMID_CHILD lpidl, LPCOLESTR lpszName, SHGDNF dwFlags, PITEMID_CHILD* lppidlOut)
 {
+    lppidlOut[0] = NULL;
+
     return E_NOTIMPL;
 }
 
 STDMETHODIMP CExampleShellFolder2::EnumSearches(IEnumExtraSearch** lppEnum)
 {
-    return E_NOTIMPL;
+    if(lppEnum)
+    {
+        lppEnum[0] = NULL;
+
+        return E_NOINTERFACE;
+    }
+
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetDefaultColumn(DWORD dwReserved, ULONG* lpulSort, ULONG* lpulDisplay)
 {
-    return E_NOTIMPL;
+    if(lpulSort && lpulDisplay)
+    {
+        lpulSort[0] = 0UL;
+        lpulDisplay[0] = 0UL;
+
+        return S_OK;
+    }
+
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetDefaultColumnState(UINT uColumn, SHCOLSTATEF* lpcsFlags)
 {
-    return E_NOTIMPL;
+    if(lpcsFlags)
+    {
+        if(uColumn<1U)
+        {
+            lpcsFlags[0] = SHCOLSTATE_ONBYDEFAULT|SHCOLSTATE_TYPE_STR;
+
+            return S_OK;
+        }
+
+        return E_FAIL;
+    }
+
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetDefaultSearchGUID(GUID* lpGuid)
@@ -244,17 +402,92 @@ STDMETHODIMP CExampleShellFolder2::GetDefaultSearchGUID(GUID* lpGuid)
 
 STDMETHODIMP CExampleShellFolder2::GetDetailsEx(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut)
 {
-    return E_NOTIMPL;
+    HRESULT hr;
+
+    if(lpidl && lpScid && lpVarOut)
+    {
+        hr = P_GetColumnCaption(lpidl, lpScid, lpVarOut, NULL, 0);
+    }
+    else
+    {
+        hr = E_INVALIDARG;
+    }
+
+    return hr;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetDetailsOf(PCUITEMID_CHILD lpidl, UINT uColumn, SHELLDETAILS* lpSd)
 {
-    return E_NOTIMPL;
+    HRESULT hr;
+
+    if(lpSd)
+    {
+        wchar_t szBuffer[256];
+
+        lpSd->cxChar = 24;
+
+        if(lpidl==NULL)
+        {// NULL item means information about the columns themselves
+            switch(uColumn)
+            {
+                case 0:
+                    lpSd->fmt = LVCFMT_LEFT;
+
+                    hr = StringCchCopyW(szBuffer, _ARRAYSIZE(szBuffer), L"Name");
+                    break;
+                default:
+                    // end of column enumeration
+                    hr = E_FAIL;
+                    break;
+            }
+        }
+        else
+        {
+            SHCOLUMNID Scid = { 0 };
+
+            hr = MapColumnToSCID(uColumn, &Scid);
+
+            if(!FAILED(hr))
+            {
+                hr = P_GetColumnCaption(lpidl, &Scid, NULL, szBuffer, _ARRAYSIZE(szBuffer));
+            }
+        }
+
+        if(!FAILED(hr))
+        {
+            hr = SHStrDupW(szBuffer, &lpSd->str.pOleStr);
+
+            if(!FAILED(hr))
+            {
+                lpSd->str.uType = STRRET_WSTR;
+            }
+        }
+    }
+    else
+    {
+        hr = E_INVALIDARG;
+    }
+
+    return hr;
 }
 
 STDMETHODIMP CExampleShellFolder2::MapColumnToSCID(UINT uColumn, SHCOLUMNID* lpScid)
 {
-    return E_NOTIMPL;
+    if(lpScid)
+    {
+        switch(uColumn)
+        {
+            case 0:
+                lpScid->fmtid = FMTID_Storage;
+                lpScid->pid   = PID_STG_NAME;
+            default:
+                return E_FAIL;
+        }
+
+        return S_OK;
+    }
+
+    return E_INVALIDARG;
 }
 
 STDMETHODIMP CExampleShellFolder2::GetClassID(CLSID* pclsid)
@@ -266,32 +499,19 @@ STDMETHODIMP CExampleShellFolder2::GetClassID(CLSID* pclsid)
 
 STDMETHODIMP CExampleShellFolder2::Initialize(PCIDLIST_ABSOLUTE lpidl)
 {
-    if(m_lpidlAbsoluteSelf)
-    {
-        ILFree(m_lpidlAbsoluteSelf);
-        m_lpidlAbsoluteSelf = NULL;
-    }
-
-    m_lpidlAbsoluteSelf = ILCloneFull(lpidl);
-
-    if(m_lpidlAbsoluteSelf)
-    {
-        return S_OK;
-    }
-
-    return E_OUTOFMEMORY;
-}
-
-STDMETHODIMP CExampleShellFolder2::GetCurFolder(PIDLIST_ABSOLUTE* lppidl)
-{
     HRESULT hr;
-    PIDLIST_ABSOLUTE lpidl = NULL;
 
-    if(m_lpidlAbsoluteSelf)
+    if(lpidl)
     {
-        lpidl = ILCloneFull(m_lpidlAbsoluteSelf);
+        if(m_lpidl)
+        {
+            ILFree(m_lpidl);
+            m_lpidl = NULL;
+        }
 
-        if(lpidl)
+        m_lpidl = ILCloneFull(lpidl);
+
+        if(m_lpidl)
         {
             hr = S_OK;
         }
@@ -302,10 +522,44 @@ STDMETHODIMP CExampleShellFolder2::GetCurFolder(PIDLIST_ABSOLUTE* lppidl)
     }
     else
     {
-        hr = S_FALSE;
+        hr = E_INVALIDARG;
     }
 
-    lppidl[0] = lpidl;
+    return hr;
+}
+
+STDMETHODIMP CExampleShellFolder2::GetCurFolder(PIDLIST_ABSOLUTE* lppidl)
+{
+    HRESULT hr;
+
+    if(lppidl)
+    {
+        PIDLIST_ABSOLUTE lpidl = NULL;
+
+        if(m_lpidl)
+        {
+            lpidl = ILCloneFull(m_lpidl);
+
+            if(lpidl)
+            {
+                hr = S_OK;
+            }
+            else
+            {
+                hr = E_OUTOFMEMORY;
+            }
+        }
+        else
+        {
+            hr = S_FALSE;
+        }
+
+        lppidl[0] = lpidl;
+    }
+    else
+    {
+        hr = E_INVALIDARG;
+    }
 
     return hr;
 }
