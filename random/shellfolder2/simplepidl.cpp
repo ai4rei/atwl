@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <shlobj.h>
 
+#include "simplepidl.h"
+
 class CFileSystemBindData : public IFileSystemBindData
 {
 private:
@@ -76,6 +78,7 @@ public:
 
         return S_OK;
     }
+
     STDMETHODIMP GetFindData(WIN32_FIND_DATAW* lpWfd)
     {
         lpWfd[0] = m_Wfd;
