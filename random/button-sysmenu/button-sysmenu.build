@@ -1,0 +1,7 @@
+/nologo
+/W3
+/O2x
+
+button-sysmenu.c
+
+user32.lib
