@@ -9,12 +9,30 @@ static BOOL CALLBACK WndProcOnCreate(HWND hWnd, LPCREATESTRUCT lpCreateStruct)
 {
     for(;;)
     {
-        if(!CreateWindowEx(0, WC_BUTTON, "CloseWindow()", WS_VISIBLE|WS_CHILD|BS_PUSHBUTTON, 14, 14, 100, 24, hWnd, (HMENU)IDOK, GetWindowInstance(hWnd), NULL))
+        if(!CreateWindowEx(0, WC_BUTTON, "CloseWindow()", WS_VISIBLE|WS_CHILD|BS_PUSHBUTTON, 14, 14, 292, 24, hWnd, (HMENU)1, GetWindowInstance(hWnd), NULL))
         {
             break;
         }
 
-        SendMessage(GetDlgItem(hWnd, IDOK), WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
+        if(!CreateWindowEx(0, WC_BUTTON, "ShowWindow(SW_MINIMIZE)", WS_VISIBLE|WS_CHILD|BS_PUSHBUTTON, 14, 44, 292, 24, hWnd, (HMENU)2, GetWindowInstance(hWnd), NULL))
+        {
+            break;
+        }
+
+        if(!CreateWindowEx(0, WC_BUTTON, "ShowWindow(SW_SHOWMINIMIZED)", WS_VISIBLE|WS_CHILD|BS_PUSHBUTTON, 14, 74, 292, 24, hWnd, (HMENU)3, GetWindowInstance(hWnd), NULL))
+        {
+            break;
+        }
+
+        if(!CreateWindowEx(0, WC_BUTTON, "ShowWindow(SW_SHOWMINNOACTIVE)", WS_VISIBLE|WS_CHILD|BS_PUSHBUTTON, 14, 104, 292, 24, hWnd, (HMENU)4, GetWindowInstance(hWnd), NULL))
+        {
+            break;
+        }
+
+        SendMessage(GetDlgItem(hWnd, 1), WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
+        SendMessage(GetDlgItem(hWnd, 2), WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
+        SendMessage(GetDlgItem(hWnd, 3), WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
+        SendMessage(GetDlgItem(hWnd, 4), WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
 
         return TRUE;
     }
@@ -35,8 +53,17 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
 {
     switch(nId)
     {
-        case IDOK:
+        case 1:
             CloseWindow(hWnd);
+            break;
+        case 2:
+            ShowWindow(hWnd, SW_MINIMIZE);
+            break;
+        case 3:
+            ShowWindow(hWnd, SW_SHOWMINIMIZED);
+            break;
+        case 4:
+            ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
             break;
         default:
             FORWARD_WM_COMMAND(hWnd, nId, hWndCtl, uCodeNotify, &DefWindowProc);
@@ -68,7 +95,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpszCmdLi
 
     if(RegisterClass(&Wc))
     {
-        if(CreateWindowEx(0, TEST_WINDOW_CLASS, _T("CloseWindow() Test"), WS_VISIBLE|WS_POPUPWINDOW|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX, 100, 100, 320, 240, NULL, NULL, hInstance, NULL))
+        if(CreateWindowEx(0, TEST_WINDOW_CLASS, _T("Minimize Test"), WS_VISIBLE|WS_POPUPWINDOW|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX, 100, 100, 320, 240, NULL, NULL, hInstance, NULL))
         {
             MSG Msg;
 
