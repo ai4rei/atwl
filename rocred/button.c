@@ -86,7 +86,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
 
             Sei.fMask        = SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszFile) ? SEE_MASK_CONNECTNETDRV : 0);
             Sei.hwnd         = hWnd;
-            Sei.lpVerb       = "open";
+            Sei.lpVerb       = NULL;
             Sei.lpFile       = lpszFile;
             Sei.lpParameters = lpszParam;
             Sei.nShow        = SW_SHOWNORMAL;

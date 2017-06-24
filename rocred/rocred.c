@@ -197,7 +197,7 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
 
     Sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszApplication) ? SEE_MASK_CONNECTNETDRV : 0)|SEE_MASK_CLASSNAME;
     Sei.hwnd = hWnd;
-    Sei.lpVerb = "open";
+    Sei.lpVerb = NULL;
     Sei.lpFile = lpszApplication;
     Sei.lpParameters = szBuffer;
     Sei.nShow = SW_SHOWNORMAL;
