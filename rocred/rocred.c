@@ -590,56 +590,66 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
     // memory
     Memory_SetStatusInfo();
-    Memory_AddOptionBits(MEMORY_OPT_EXCEPTIO|MEMORY_OPT_STOPNULL|MEMORY_OPT_YIELDLCK);
+    Memory_AddOptionBits(MEMORY_OPT_EXCEPTIO|MEMORY_OPT_STOPBAAD|MEMORY_OPT_STOPNULL|MEMORY_OPT_YIELDLCK);
     Memory_SetOOMHandler(&OnOOM, NULL);
 
     // global window title
     LoadStringA(hInstance, IDS_TITLE, l_szAppTitle, __ARRAYSIZE(l_szAppTitle));
 
     // start up
-    if(ConfigInit())
+    if(!FAILED(CoInitialize(NULL)))
     {
-        if(AppMutexAcquire(&hMutex))
+        if(ConfigInit())
         {
-#if 0
-            if(lpszCmdLine[0]=='/')
+            if(AppMutexAcquire(&hMutex))
             {
-                if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
+#if 0
+                if(lpszCmdLine[0]=='/')
                 {
-                    if(ConfigSave())
+                    if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
                     {
-                        MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
-                    }
-                    else
-                    {
-                        MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
+                        if(ConfigSave())
+                        {
+                            MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
+                        }
+                        else
+                        {
+                            MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
+                        }
                     }
                 }
-            }
-            else
+                else
 #endif
-            {
-                CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
-                DlgTi.wFontSize = ConfigGetInt("FontSize");
-                AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
-                //InitCommonControls();
-                DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
-                ButtonFree();
+                {
+                    CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
+                    DlgTi.wFontSize = ConfigGetInt("FontSize");
+                    AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
+                    InitCommonControls();
+                    DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+                    ButtonFree();
+                }
+
+                AppMutexRelease(&hMutex);
             }
 
-            AppMutexRelease(&hMutex);
+            ConfigQuit();
+        }
+        else
+        {
+            LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
+            MsgBox(NULL, szErrMsg, MB_OK|MB_ICONSTOP);
         }
 
-        ConfigQuit();
+        CoUninitialize();
     }
     else
     {
-        LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
+        LoadStringA(hInstance, IDS_COINIT_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
         MsgBox(NULL, szErrMsg, MB_OK|MB_ICONSTOP);
     }
 
     // memory again
     AssertHere(!Memory_GetStatusLeak());
 
-    return 0;
+    return EXIT_SUCCESS;
 }

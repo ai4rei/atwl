@@ -47,4 +47,5 @@ BEGIN
     IDS_MISCINFO_PROMPT_PREFIX,     "Everytime you log-in, information will be made available to the server as part of the entered authentification credentials.\n\nFollowing information will be shared:"
     IDS_MISCINFO_PROMPT_SUFFIX,     "Do you agree to providing this information? If you choose 'No', you will not log-in and will not be able to, until you agree."
     IDS_MISCINFO_OPT_MACADDRESS,    "MAC address (hardware identification of the primary network adapter)"
+    IDS_COINIT_ERROR,               "COM initialization failed."
 END

@@ -7,8 +7,8 @@
 #ifndef _ROCRED_H_
 #define _ROCRED_H_
 
-#define APP_VERSION "1.9.3.0"
-#define APP_VERSIONINFO_VERSION 1,9,3,0
+#define APP_VERSION "1.10.0.0"
+#define APP_VERSIONINFO_VERSION 1,10,0,0
 
 #define IDC_USERNAME                    101
 #define IDC_PASSWORD                    102
@@ -31,6 +31,7 @@
 #define IDS_MISCINFO_PROMPT_PREFIX      1014
 #define IDS_MISCINFO_PROMPT_SUFFIX      1015
 #define IDS_MISCINFO_OPT_MACADDRESS     1016
+#define IDS_COINIT_ERROR                1017
 
 #define MAX_REGISTRY_KEY_SIZE 255
 
