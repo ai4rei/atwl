@@ -58,11 +58,13 @@ static const UINT l_uMiscInfoOptName[] =
     IDS_MISCINFO_OPT_MACADDRESS,
 };
 
-static char l_szAppTitle[1024] = { 0 };
-
 int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
 {
-    return MessageBoxA(hWnd, lpszText, l_szAppTitle, dwFlags);
+    char szTitle[64];
+
+    LoadStringA(GetWindowInstance(hWnd), IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
+
+    return MessageBoxA(hWnd, lpszText, szTitle, dwFlags);
 }
 
 bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize)
@@ -308,7 +310,7 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
         }
 
         MapDialogRect(hWnd, &rcBtn);
-   
+
         if(ButtonCreate(hWnd, rcBtn.left, rcBtn.top, rcBtn.right /* width */, rcBtn.bottom /* height */, lpszDisplayName, lpszName, nActionType, lpszActionData, lpszActionHandler))
         {
             SetWindowFont(GetDlgItem(hWnd, ButtonGetId(lpszName)), GetWindowFont(hWnd), TRUE);
@@ -334,14 +336,15 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             char szBuffer[4096];
             BOOL bCheckSave, bSetFocus = TRUE;
-            HINSTANCE hInstance = GetModuleHandleA(NULL);
+            HINSTANCE hInstance = GetWindowInstance(hWnd);
 
             SendMessage(hWnd, WM_SETICON, ICON_BIG,
                 (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
             SendMessage(hWnd, WM_SETICON, ICON_SMALL,
                 (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
 
-            SetWindowTextA(hWnd, l_szAppTitle);
+            LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
+            SetWindowTextA(hWnd, szBuffer);
 
             LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
             SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
@@ -579,9 +582,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     Memory_SetStatusInfo();
     Memory_AddOptionBits(MEMORY_OPT_EXCEPTIO|MEMORY_OPT_STOPBAAD|MEMORY_OPT_STOPNULL|MEMORY_OPT_YIELDLCK);
     Memory_SetOOMHandler(&OnOOM, NULL);
-
-    // global window title
-    LoadStringA(hInstance, IDS_TITLE, l_szAppTitle, __ARRAYSIZE(l_szAppTitle));
 
     // start up
     if(!FAILED(CoInitialize(NULL)))
