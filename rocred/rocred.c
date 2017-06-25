@@ -5,7 +5,9 @@
 // -----------------------------------------------------------------
 
 #include <stdio.h>
+
 #include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 
 #include <btypes.h>
@@ -273,34 +275,44 @@ static void __stdcall AppMutexRelease(HANDLE* lphMutex)
 
 static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContext)
 {
-    const char* lpszName = lpszSection+15;  // skip "ROCred.Buttons."
+    const char* const lpszName = lpszSection+15;  // skip "ROCred.Buttons."
     HWND hWnd = (HWND)lpContext;
 
     if(ButtonCheckName(lpszName))
     {
-        char szBuffer[4096];  // STRINGTABLE limit, which is probably more than you will ever need
+        char szBufferDisplayName[4096], szBufferActionData[4096];  // STRINGTABLE limit, which is probably more than you will ever need
         const char* lpszDisplayName;
-        unsigned int uBtnId = ButtonGetId(lpszName);
+        const char* lpszActionData;
+        const char* lpszActionHandler;
+        int nActionType;
         RECT rcBtn;
 
         rcBtn.left   = ConfigGetIntFromSection(lpszSection, "X");
         rcBtn.top    = ConfigGetIntFromSection(lpszSection, "Y");
         rcBtn.right  = ConfigGetIntFromSection(lpszSection, "W");
         rcBtn.bottom = ConfigGetIntFromSection(lpszSection, "H");
-
-        MapDialogRect(hWnd, &rcBtn);
-
-        lpszDisplayName = ConfigGetStrFromSection(lpszSection, "DisplayName");
+        nActionType  = ConfigGetIntFromSection(lpszSection, "ActionType");
+        lpszDisplayName   = ConfigGetStrFromSection(lpszSection, "DisplayName");
+        lpszActionData    = ConfigGetStrFromSection(lpszSection, "ActionData");
+        lpszActionHandler = ConfigGetStrFromSection(lpszSection, "ActionHandler");
 
         if(lpszDisplayName[0]=='#')
         {
-            LoadStringA(GetModuleHandle(NULL), BvStrToULongA(lpszDisplayName+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
-            lpszDisplayName = szBuffer;
+            LoadStringA(GetWindowInstance(hWnd), BvStrToULongA(lpszDisplayName+1, NULL, 10), szBufferDisplayName, __ARRAYSIZE(szBufferDisplayName));
+            lpszDisplayName = szBufferDisplayName;
         }
 
-        if(CreateWindowA(WC_BUTTON, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, rcBtn.left, rcBtn.top, rcBtn.right /* width */, rcBtn.bottom /* height */, hWnd, (HMENU)(IDB_CUSTOM_BASE+uBtnId), GetModuleHandle(NULL), NULL))
+        if(lpszActionData[0]=='#')
         {
-            SendMessage(GetDlgItem(hWnd, IDB_CUSTOM_BASE+uBtnId), WM_SETFONT, SendMessage(hWnd, WM_GETFONT, 0, 0), MAKELPARAM(TRUE, 0));
+            LoadStringA(GetWindowInstance(hWnd), BvStrToULongA(lpszActionData+1, NULL, 10), szBufferActionData, __ARRAYSIZE(szBufferActionData));
+            lpszActionData = szBufferActionData;
+        }
+
+        MapDialogRect(hWnd, &rcBtn);
+   
+        if(ButtonCreate(hWnd, rcBtn.left, rcBtn.top, rcBtn.right /* width */, rcBtn.bottom /* height */, lpszDisplayName, lpszName, nActionType, lpszActionData, lpszActionHandler))
+        {
+            SetWindowFont(GetDlgItem(hWnd, ButtonGetId(lpszName)), GetWindowFont(hWnd), TRUE);
         }
         else
         {
@@ -507,7 +519,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     EndDialog(hWnd, 0);
                     break;
                 default:
-                    if(ButtonAction(hWnd, LOWORD(wParam)-IDB_CUSTOM_BASE))
+                    if(ButtonAction(hWnd, LOWORD(wParam)))
                     {
                         break;
                     }
@@ -626,7 +638,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                     AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
                     InitCommonControls();
                     DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
-                    ButtonFree();
                 }
 
                 AppMutexRelease(&hMutex);

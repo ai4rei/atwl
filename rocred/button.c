@@ -5,52 +5,124 @@
 // -----------------------------------------------------------------
 
 #include <windows.h>
+#include <windowsx.h>
+#include <commctrl.h>
 
 #include <btypes.h>
 #include <bvcstr.h>
 #include <memory.h>
+#include <memtaf.h>
 #include <xf_slash.h>
 
 #include "button.h"
 #include "config.h"
 #include "rocred.h"
 
-enum BUTTON_ACTION
+BEGINENUM(BUTTON_ACTION)
 {
     BUTTON_ACTION_SHELLEXEC = 0,
     BUTTON_ACTION_SHELLEXEC_CLOSE,
     BUTTON_ACTION_CLOSE,
     BUTTON_ACTION_MSGBOX,
     BUTTON_ACTION_MAX
-};
+}
+CLOSEENUM(BUTTON_ACTION);
 
-static char* l_lpszBtnId2Name = NULL;  // array of indexed zero-terminated character strings (item1\0item2\0\0)
-
-bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
+BEGINSTRUCT(BUTTON_DATA)
 {
-    const char* lpszBtnName = ButtonGetName(uBtnId);
+    WNDPROC lpfnPrevWndProc;
+    char* lpszName;
+    char* lpszActionData;
+    char* lpszActionHandler;
+    int nActionType;
+}
+CLOSESTRUCT(BUTTON_DATA);
 
-    while(lpszBtnName)
+static LRESULT CALLBACK Button_P_SubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    CONTEXTCAST(LPBUTTON_DATA,lpBd,GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+    if(lpBd)
     {
-        char szBuffer[4096];
-        const char* lpszActionData;
-        const char* lpszActionHandler;
-        int nActionType;
-        SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+        WNDPROC lpfnPrevWndProc = lpBd->lpfnPrevWndProc;
 
-        wsprintf(szBuffer, "ROCred.Buttons.%s", lpszBtnName);
+        if(uMsg==WM_DESTROY || uMsg==WM_NCDESTROY)
+        {// cleanup
+            if(GetWindowLongPtr(hWnd, GWLP_WNDPROC)==(LONG_PTR)&Button_P_SubclassWndProc)
+            {
+                SubclassWindow(hWnd, lpfnPrevWndProc);
+                SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
 
-        nActionType       = ConfigGetIntFromSection(szBuffer, "ActionType");
-        lpszActionData    = ConfigGetStrFromSection(szBuffer, "ActionData");
-        lpszActionHandler = ConfigGetStrFromSection(szBuffer, "ActionHandler");
-
-        if(lpszActionData[0]=='#')
-        {
-            LoadStringA(GetModuleHandle(NULL), BvStrToULongA(lpszActionData+1, NULL, 10), szBuffer, __ARRAYSIZE(szBuffer));
-            lpszActionData = szBuffer;
+                MemTFree(&lpBd);
+            }
         }
 
-        if(nActionType==BUTTON_ACTION_SHELLEXEC || nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE)
+        return CallWindowProc(lpfnPrevWndProc, hWnd, uMsg, wParam, lParam);
+    }
+
+    // should not happen
+    DebugBreakHere();
+
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const int nWidth, const int nHeight, const char* const lpszDisplayName, const char* const lpszName, const int nActionType, const char* const lpszActionData, const char* const lpszActionHandler)
+{
+    ubyte_t* lpucDataBuffer = NULL;
+    BUTTON_DATA* lpBd = NULL;
+    const size_t uNameLength          = strlen(lpszName);
+    const size_t uActionDataLength    = strlen(lpszActionData);
+    const size_t uActionHandlerLength = strlen(lpszActionHandler);
+    const size_t uDataBufferSize      = sizeof(lpBd[0])
+                                      + __STRINGSIZEEX(lpszName,uNameLength+1U)
+                                      + __STRINGSIZEEX(lpszActionData,uActionDataLength+1U)
+                                      + __STRINGSIZEEX(lpszActionHandler,uActionHandlerLength+1U)
+                                      ;
+
+    if(MemTAllocEx(&lpucDataBuffer, uDataBufferSize))
+    {
+        HWND hWnd = CreateWindowEx(0, WC_BUTTON, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtom(lpszName), GetWindowInstance(hWndParent), NULL);
+
+        if(hWnd)
+        {
+            lpBd = (BUTTON_DATA*)lpucDataBuffer;
+
+            lpBd->lpszName          = (char*)&lpBd[1];
+            lpBd->lpszActionData    = &lpBd->lpszName[uNameLength+1U];
+            lpBd->lpszActionHandler = &lpBd->lpszActionData[uActionDataLength+1U];
+            lpBd->nActionType       = nActionType;
+
+            strcpy(lpBd->lpszName, lpszName);
+            strcpy(lpBd->lpszActionData, lpszActionData);
+            strcpy(lpBd->lpszActionHandler, lpszActionHandler);
+
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)lpBd);
+            lpBd->lpfnPrevWndProc = SubclassWindow(hWnd, &Button_P_SubclassWndProc);
+
+            return true;
+        }
+
+        MemTFree(&lpucDataBuffer);
+    }
+
+    return false;
+}
+
+bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
+{
+    HWND hWndButton = GetDlgItem(hWnd, uBtnId);
+
+    while(hWndButton)
+    {
+        BUTTON_DATA* lpBd = (BUTTON_DATA*)GetWindowLongPtr(hWndButton, GWLP_USERDATA);
+        SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+
+        if(!lpBd)
+        {
+            break;
+        }
+
+        if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC || lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE)
         {
             char* lpszBuf;
             char* lpszIdx;
@@ -59,7 +131,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
             BOOL bSuccess;
 
-            lpszIdx = lpszBuf = Memory_DuplicateString(lpszActionData);
+            lpszIdx = lpszBuf = Memory_DuplicateString(lpBd->lpszActionData);
 
             if(lpszIdx[0]=='"')
             {
@@ -91,15 +163,15 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             Sei.lpParameters = lpszParam;
             Sei.nShow        = SW_SHOWNORMAL;
 
-            if(lpszActionHandler[0])
+            if(lpBd->lpszActionHandler[0])
             {
-                if(GetFileClassFromExtension(lpszActionHandler, szFileClass, __ARRAYSIZE(szFileClass)))
+                if(GetFileClassFromExtension(lpBd->lpszActionHandler, szFileClass, __ARRAYSIZE(szFileClass)))
                 {
                     Sei.lpClass = szFileClass;
                 }
                 else
                 {// not a recognized extension, maybe not an extension at all
-                    Sei.lpClass = lpszActionHandler;
+                    Sei.lpClass = lpBd->lpszActionHandler;
                 }
 
                 // override file class
@@ -116,14 +188,14 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             }
         }
 
-        if(nActionType==BUTTON_ACTION_MSGBOX)
+        if(lpBd->nActionType==BUTTON_ACTION_MSGBOX)
         {
             char* lpszMsg;
-            size_t uLen = lstrlenA(lpszActionData)+1;
+            size_t uLen = lstrlenA(lpBd->lpszActionData)+1;
 
             lpszMsg = Memory_Alloc(uLen);
 
-            if(XF_SlashesSub(lpszMsg, &uLen, lpszActionData, NULL))
+            if(XF_SlashesSub(lpszMsg, &uLen, lpBd->lpszActionData, NULL))
             {
                 MsgBox(hWnd, lpszMsg, MB_OK);
             }
@@ -131,7 +203,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
             Memory_FreeEx(&lpszMsg);
         }
 
-        if(nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE || nActionType==BUTTON_ACTION_CLOSE)
+        if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE || lpBd->nActionType==BUTTON_ACTION_CLOSE)
         {
             DestroyWindow(hWnd);
         }
@@ -142,7 +214,7 @@ bool __stdcall ButtonAction(HWND hWnd, unsigned int uBtnId)
     return false;
 }
 
-bool __stdcall ButtonCheckName(const char* lpszName)
+bool __stdcall ButtonCheckName(const char* const lpszName)
 {
     const char* lpszIdx;
 
@@ -152,57 +224,19 @@ bool __stdcall ButtonCheckName(const char* lpszName)
     return (bool)(0==lpszIdx[0]);
 }
 
-const char* __stdcall ButtonGetName(unsigned int uBtnId)
+const char* __stdcall ButtonGetName(const unsigned int uBtnId, char* const lpszBuffer, const size_t uBufferSize)
 {
-    const char* lpszIdx;
-    unsigned int uId = 0;
+    lpszBuffer[0] = 0;
 
-    if(l_lpszBtnId2Name)
+    if(GetAtomNameA(uBtnId, lpszBuffer, uBufferSize)!=0U)
     {
-        for(lpszIdx = l_lpszBtnId2Name; lpszIdx[0] && uId!=uBtnId; lpszIdx = &lpszIdx[lstrlenA(lpszIdx)+1], uId++);
-
-        if(lpszIdx[0])
-        {// found
-            return lpszIdx;
-        }
+        return lpszBuffer;
     }
 
     return NULL;
 }
 
-unsigned int __stdcall ButtonGetId(const char* lpszName)
+unsigned int __stdcall ButtonGetId(const char* const lpszName)
 {
-    // NOTE: This is not very efficient method to do it, but we are
-    //       not doing anything that asks for high performance...
-    const char* lpszIdx;
-    unsigned int uId = 0;
-    size_t uLen = 0, uNameLen;
-
-    if(l_lpszBtnId2Name)
-    {
-        for(lpszIdx = l_lpszBtnId2Name; lpszIdx[0] && lstrcmp(lpszIdx, lpszName); lpszIdx = &lpszIdx[lstrlenA(lpszIdx)+1], uId++);
-
-        if(lpszIdx[0])
-        {// found
-            return uId;
-        }
-
-        uLen = lpszIdx-l_lpszBtnId2Name;
-    }
-
-    uNameLen         = lstrlenA(lpszName);
-    l_lpszBtnId2Name = Memory_Realloc(l_lpszBtnId2Name, sizeof(l_lpszBtnId2Name)*(uLen+1+uNameLen+1));
-
-    lstrcpyA(&l_lpszBtnId2Name[uLen], lpszName);
-    l_lpszBtnId2Name[uLen+1+uNameLen] = 0; // EOA
-
-    return uId;
-}
-
-void __stdcall ButtonFree(void)
-{
-    if(l_lpszBtnId2Name)
-    {
-        Memory_FreeEx(&l_lpszBtnId2Name);
-    }
+    return FindAtomA(lpszName);
 }

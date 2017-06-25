@@ -332,7 +332,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 continue;
             }
 
-            lpszName = ButtonGetName(uBtnId-IDB_CUSTOM_BASE, szBuffer, __ARRAYSIZE(szBuffer));
+            lpszName = ButtonGetName(uBtnId, szBuffer, __ARRAYSIZE(szBuffer));
 
             if(lpszName)
             {// custom button
