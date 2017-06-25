@@ -5,13 +5,15 @@
 // -----------------------------------------------------------------
 
 #include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 
 #include <btypes.h>
-#include <bvector.h>
 #include <bvcstr.h>
+#include <bvllst.h>
 #include <bvpars.h>
 #include <memory.h>
+#include <memtaf.h>
 #include <regionui.h>
 #include <w32ui.h>
 #include <w32uxt.h>
@@ -21,17 +23,17 @@
 #include "config.h"
 #include "rocred.h"
 
-typedef struct BUTTONSKININFO
+BEGINSTRUCT(BUTTONSKININFO)
 {
+    BVLLISTNODE Node;
     UINT uID;
     HBITMAP hbmLook;
 }
-BUTTONSKININFO,* LPBUTTONSKININFO;
-typedef const BUTTONSKININFO* LPCBUTTONSKININFO;
+CLOSESTRUCT(BUTTONSKININFO);
 
 static HBITMAP l_hbmBackground = NULL;
 static HBRUSH l_hbrEditBack = NULL;
-static struct bvector* l_SkinDB = NULL;  // id -> LPBGSKININFO
+static BVLLIST l_SkinList = { 0 };  // id -> LPBGSKININFO
 
 static const char* __stdcall BgSkin_P_ButtonId2Name(UINT uId)
 {
@@ -68,11 +70,11 @@ static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
 
 static HBITMAP __stdcall BgSkin_P_GetSkin(UINT uID)
 {
-    unsigned long luIdx;
+    LPBVLLISTNODE Item;
 
-    for(luIdx = 0; luIdx<l_SkinDB->size(l_SkinDB); luIdx++)
+    for(Item = l_SkinList.Head; Item!=NULL; Item = Item->Next)
     {
-        LPBUTTONSKININFO lpBsi = (LPBUTTONSKININFO)(l_SkinDB->at(l_SkinDB, luIdx)[0]);
+        CONTEXTCAST(LPCBUTTONSKININFO,lpBsi,Item);
 
         if(lpBsi->uID==uID)
         {
@@ -204,18 +206,6 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
     return false;
 }
 
-static void __cdecl BgSkin_P_ReleaseSkinInfo(void* lpPtr)
-{
-    LPBUTTONSKININFO lpBsi = (LPBUTTONSKININFO)lpPtr;
-
-    if(lpBsi->hbmLook)
-    {
-        DeleteObject(lpBsi->hbmLook);
-    }
-
-    Memory_FreeEx(&lpBsi);
-}
-
 static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
 {
     char szFileName[MAX_PATH];
@@ -228,12 +218,21 @@ static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const cha
 
     if(hbmLook)
     {
-        LPBUTTONSKININFO lpBsi = Memory_Alloc(sizeof(lpBsi[0]));
+        LPBUTTONSKININFO lpBsi = NULL;
+        
+        if(MemTAlloc(&lpBsi))
+        {
+            BvLListNodeInit(&lpBsi->Node);
 
-        lpBsi->uID     = uBtnId;
-        lpBsi->hbmLook = hbmLook;
+            lpBsi->uID     = uBtnId;
+            lpBsi->hbmLook = hbmLook;
 
-        l_SkinDB->push_back(l_SkinDB, lpBsi);
+            BvLListInsert(&l_SkinList, &lpBsi->Node);
+        }
+        else
+        {
+            DeleteBitmap(hbmLook);
+        }
     }
 }
 
@@ -282,12 +281,10 @@ bool __stdcall BgSkinInit(HWND hWnd)
             }
         }
 
-        l_SkinDB = bvector_alloc(16, &memory_alloc, &memory_free);
-        l_SkinDB->set_releaser(l_SkinDB, &BgSkin_P_ReleaseSkinInfo);
-
         // process all child windows
         while((hChildWnd = FindWindowExA(hWnd, hChildWnd, NULL, NULL))!=NULL)
         {
+            char szBuffer[128];
             const char* lpszName;
             unsigned int uBtnId = GetDlgCtrlID(hChildWnd);
             int nX, nY, nW, nH;
@@ -335,7 +332,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 continue;
             }
 
-            lpszName = ButtonGetName(uBtnId-IDB_CUSTOM_BASE);
+            lpszName = ButtonGetName(uBtnId-IDB_CUSTOM_BASE, szBuffer, __ARRAYSIZE(szBuffer));
 
             if(lpszName)
             {// custom button
@@ -368,13 +365,21 @@ bool __stdcall BgSkinInit(HWND hWnd)
     return true;
 }
 
+static void __WDECL BgSkin_P_ReleaseSkin(LPBVLLISTNODE Node, void* lpContext)
+{
+    CONTEXTCAST(LPBUTTONSKININFO,lpBsi,Node);
+
+    if(lpBsi->hbmLook)
+    {
+        DeleteBitmap(lpBsi->hbmLook);
+    }
+
+    MemTFree(&lpBsi);
+}
+
 void __stdcall BgSkinFree(void)
 {
-    if(l_SkinDB)
-    {
-        l_SkinDB->destroy(l_SkinDB);
-        l_SkinDB = NULL;
-    }
+    BvLListClear(&l_SkinList, BgSkin_P_ReleaseSkin, NULL);
 
     if(l_hbrEditBack)
     {
