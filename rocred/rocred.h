@@ -13,7 +13,6 @@
 #define IDC_USERNAME                    101
 #define IDC_PASSWORD                    102
 #define IDC_CHECKSAVE                   103
-#define IDB_REPLAY                      104
 #define IDB_CUSTOM_BASE                 200
 #define IDS_USERNAME                    1001
 #define IDS_PASSWORD                    1002
@@ -26,7 +25,6 @@
 #define IDS_PASS_NONE                   1009
 #define IDS_PASS_SHRT                   1010
 #define IDS_EXE_ERROR                   1011
-#define IDS_REPLAY                      1012
 #define IDS_CONFIG_ERROR                1013
 #define IDS_MISCINFO_PROMPT_PREFIX      1014
 #define IDS_MISCINFO_PROMPT_SUFFIX      1015

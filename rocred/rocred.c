@@ -33,7 +33,6 @@ static const DLGTEMPLATEITEMINFO l_DlgItems[] =
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   73,     43, 110,    10, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_DEFPUSHBUTTON|WS_TABSTOP,                        0, IDOK,            79,     61, 50,     14, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_PUSHBUTTON|WS_TABSTOP,                           0, IDCANCEL,        133,    61, 50,     14, },
-    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_PUSHBUTTON|WS_TABSTOP,                           0, IDB_REPLAY,      7,      61, 50,     14, },
 };
 static const DLGTEMPLATEINFO l_DlgTempl =
 {
@@ -381,16 +380,6 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
             SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
 
-            if(ConfigGetInt("PolicyNoReplay"))
-            {
-                ShowWindow(GetDlgItem(hWnd, IDB_REPLAY), SW_HIDE);
-            }
-            else
-            {
-                LoadStringA(hInstance, IDS_REPLAY, szBuffer, __ARRAYSIZE(szBuffer));
-                SetWindowTextA(GetDlgItem(hWnd, IDB_REPLAY), szBuffer);
-            }
-
             // load custom buttons if any
             ConfigForEachSectionMatch("ROCred.Buttons.", &CreateCustomButton, hWnd);
 
@@ -406,20 +395,6 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else switch(LOWORD(wParam))
             {
-                case IDB_REPLAY:
-                {
-                    char szExePath[MAX_PATH];
-                    const char* lpszExeName = ConfigGetStr("ExeName");
-                    const char* lpszExeType = ConfigGetStr("ExeType");
-
-                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
-
-                    // Replay mode
-                    InvokeProcess(hWnd, szExePath, "-t:Replay %s", lpszExeType);
-
-                    //EndDialog(hWnd, 1);
-                    break;
-                }
                 case IDOK:
                 {
                     char szUserName[24];

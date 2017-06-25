@@ -46,7 +46,6 @@ static const char* __stdcall BgSkin_P_ButtonId2Name(UINT uId)
         C2N(IDS_PASSWORD);
         C2N(IDC_PASSWORD);
         C2N(IDC_CHECKSAVE);
-        C2N(IDB_REPLAY);
     }
 
     return NULL;
@@ -301,7 +300,6 @@ bool __stdcall BgSkinInit(HWND hWnd)
 
                 switch(uBtnId)
                 {// button
-                    case IDB_REPLAY: BgSkin_P_RegisterButtonSkin(uBtnId, "BTNREPLAY"); break;
                     case IDOK:       BgSkin_P_RegisterButtonSkin(uBtnId, "BTNSTART"); break;
                     case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
                 }
