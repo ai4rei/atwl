@@ -61,8 +61,16 @@ static const UINT l_uMiscInfoOptName[] =
 int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
 {
     char szTitle[64];
+    char szMessage[4096];
+    HINSTANCE hInstance = hWnd ? GetWindowInstance(hWnd) : GetModuleHandle(NULL);
 
-    LoadStringA(GetWindowInstance(hWnd), IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
+    LoadStringA(hInstance, IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
+
+    if((size_t)lpszText<=(WORD)-1)
+    {// resource string, see MAKEINTRESOURCE on how this works
+        LoadStringA(hInstance, (size_t)lpszText, szMessage, __ARRAYSIZE(szMessage));
+        lpszText = szMessage;
+    }
 
     return MessageBoxA(hWnd, lpszText, szTitle, dwFlags);
 }
@@ -95,7 +103,7 @@ static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
     char szPrefix[256], szSuffix[256], szInfo[256] = { 0 };
     int nMiscInfo, nMiscInfoAgree;
     unsigned long luIdx;
-    HINSTANCE hInstance = GetModuleHandle(NULL);
+    HINSTANCE hInstance = GetWindowInstance(hWnd);
 
     nMiscInfo = ConfigGetInt("MiscInfo");
     nMiscInfoAgree = ConfigGetInt("_MiscInfoLastAgreed");
@@ -142,7 +150,7 @@ static void __stdcall CombineExePathName(char* lpszExePath, unsigned long luExeP
 static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 {
     bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
-    HINSTANCE hInstance = GetModuleHandle(NULL);
+    HINSTANCE hInstance = GetWindowInstance(hWnd);
     NOTIFYICONDATA Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
 
     ShowWindow(hWnd, SW_MINIMIZE);
@@ -230,7 +238,7 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
         char szError[1024];
 
         FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szError, __ARRAYSIZE(szError), NULL);
-        LoadStringA(GetModuleHandle(NULL), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
+        LoadStringA(GetWindowInstance(hWnd), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
         wsprintfA(szMessage, szFormat, lpszApplication, szBuffer, szError);
         MsgBox(hWnd, szMessage, MB_ICONSTOP|MB_OK);
     }
@@ -404,18 +412,16 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     char szPassWord[24];
                     char szExePath[MAX_PATH];
                     char szMiscInfo[128] = { 0 };
-                    char szBuffer[4096];
                     const char* lpszExeName;
                     const char* lpszExeType;
                     BOOL bCheckSave;
-                    HINSTANCE hInstance = GetModuleHandleA(NULL);
+                    HINSTANCE hInstance = GetWindowInstance(hWnd);
 
                     GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
 
                     if(lstrlenA(szUserName)<4)
                     {
-                        LoadStringA(hInstance, szUserName[0] ? IDS_USER_SHRT : IDS_USER_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                        MsgBox(hWnd, szBuffer, MB_OK|MB_ICONINFORMATION);
+                        MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
                         break;
                     }
 
@@ -423,8 +429,7 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                     if(lstrlenA(szPassWord)<4)
                     {
-                        LoadStringA(hInstance, szPassWord[0] ? IDS_PASS_SHRT : IDS_PASS_NONE, szBuffer, __ARRAYSIZE(szBuffer));
-                        MsgBox(hWnd, szBuffer, MB_OK|MB_ICONINFORMATION);
+                        MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
                         break;
                     }
 
@@ -572,7 +577,6 @@ static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
-    char szErrMsg[256];
     unsigned char ucDlgBuf[264];
     unsigned long luDlgBufSize = sizeof(ucDlgBuf);
     DLGTEMPLATEINFO DlgTi;
@@ -612,7 +616,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                     DlgTi.wFontSize = ConfigGetInt("FontSize");
                     AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
                     InitCommonControls();
-                    DialogBoxIndirectParam(GetModuleHandle(NULL), (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+                    DialogBoxIndirectParam(hInstance, (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
                 }
 
                 AppMutexRelease(&hMutex);
@@ -622,16 +626,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         }
         else
         {
-            LoadStringA(hInstance, IDS_CONFIG_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
-            MsgBox(NULL, szErrMsg, MB_OK|MB_ICONSTOP);
+            MsgBox(NULL, MAKEINTRESOURCE(IDS_CONFIG_ERROR), MB_OK|MB_ICONSTOP);
         }
 
         CoUninitialize();
     }
     else
     {
-        LoadStringA(hInstance, IDS_COINIT_ERROR, szErrMsg, __ARRAYSIZE(szErrMsg));
-        MsgBox(NULL, szErrMsg, MB_OK|MB_ICONSTOP);
+        MsgBox(NULL, MAKEINTRESOURCE(IDS_COINIT_ERROR), MB_OK|MB_ICONSTOP);
     }
 
     // memory again
