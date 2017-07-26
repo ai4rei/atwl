@@ -72,7 +72,8 @@ DiffData *WDGPlugin::GeneratePatch()
 		m_offsets = &offsets;
 
 		ZeroMemory(&sFindData, sizeof(sFindData));
-		sFindData.lpData = "C7 40 AB 46";
+		sFindData.lpData = "C7 40 AB 46 00 00 00";  // TODO: 'C780 80000000 46000000' in newer clients
+
 		sFindData.chWildCard = '\xAB';
 		sFindData.lpszSection = ".text";
 		sFindData.uMask = WFD_PATTERN | WFD_SECTION | WFD_WILDCARD;
