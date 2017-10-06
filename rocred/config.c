@@ -25,7 +25,7 @@ static KVDB l_ConfigDB = { 0 };
 
 #define CONFIG_MAIN_SECTION "ROCred"
 
-static bool __stdcall Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* lpszSection, void* lpContext)
+static bool __stdcall Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
 {
     struct LPFOREACHSECTIONCONTEXT* lpCtx = (struct LPFOREACHSECTIONCONTEXT*)lpContext;
 
@@ -36,7 +36,7 @@ void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTI
 {
     struct LPFOREACHSECTIONCONTEXT Ctx = { Func, lpContext };
 
-    KvForEachSectionMatch(&l_ConfigDB, lpszMatch, Config_P_ForEachSection, &Ctx);
+    KvForEachSectionMatch(&l_ConfigDB, lpszMatch, &Config_P_ForEachSection, &Ctx);
 }
 
 void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
@@ -144,7 +144,7 @@ bool __stdcall ConfigSave(void)
     return bSuccess;
 }
 
-static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* lpszSection, LPKVDBKEY Key, const char* lpszKey, void* lpContext)
+static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSection, LPKVDBKEY Key, const char* const lpszKey, void* lpContext)
 {
     if(lpszKey[0]=='_')
     {
@@ -154,7 +154,7 @@ static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* lpszSection, L
     return true;
 }
 
-static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* lpszSection, void* lpContext)
+static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
 {
     KvForEachKey(NULL, Section, NULL, &Config_P_FoilEachKey, NULL);
     return true;
