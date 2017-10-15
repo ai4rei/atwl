@@ -8,7 +8,6 @@
 
 #include <btypes.h>
 #include <kvdb.h>
-#include <kvdb/win32ini.h>
 
 #include "config.h"
 #include "rocred.h"
