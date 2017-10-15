@@ -181,7 +181,7 @@ BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
     return FALSE;
 }
 
-bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis)
+bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
 {
     HBITMAP hbmLook;
     HDC hdcBitmap;

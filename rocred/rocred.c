@@ -336,229 +336,257 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
     return true;  // next
 }
 
+static BOOL CALLBACK DlgProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
+{
+    char szBuffer[4096];
+    BOOL bCheckSave, bSetFocus = TRUE;
+    HINSTANCE hInstance = GetWindowInstance(hWnd);
+
+    SendMessage(hWnd, WM_SETICON, ICON_BIG,
+        (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
+    SendMessage(hWnd, WM_SETICON, ICON_SMALL,
+        (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
+
+    LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
+    SetWindowTextA(hWnd, szBuffer);
+
+    LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
+    SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
+
+    LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
+    SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
+
+    if(ConfigGetInt("PolicyNoCheckSave"))
+    {
+        ShowWindow(GetDlgItem(hWnd, IDC_CHECKSAVE), SW_HIDE);
+    }
+    else
+    {
+        LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
+        SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
+
+        bCheckSave = ConfigGetInt("CheckSave");
+        SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
+
+        if(bCheckSave)
+        {
+            const char* lpszUserName = ConfigGetStr("UserName");
+
+            if(lpszUserName[0])
+            {
+                SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), lpszUserName);
+                SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
+                bSetFocus = FALSE;
+            }
+        }
+    }
+
+    LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
+    SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
+
+    LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
+    SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
+
+    // load custom buttons if any
+    ConfigForEachSectionMatch("ROCred.Buttons.", &CreateCustomButton, hWnd);
+
+    // apply available skins
+    BgSkinInit(hWnd);
+
+    return bSetFocus;
+}
+
+static BOOL CALLBACK DlgProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCodeNotify)
+{
+    if(uCodeNotify!=1  && uCodeNotify!=0)
+    {
+        return FALSE;
+    }
+    else switch(nId)
+    {
+        case IDOK:
+        {
+            char szUserName[24];
+            char szPassWord[24];
+            char szExePath[MAX_PATH];
+            char szMiscInfo[128] = { 0 };
+            const char* lpszExeName;
+            const char* lpszExeType;
+            BOOL bCheckSave;
+            HINSTANCE hInstance = GetWindowInstance(hWnd);
+
+            GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
+
+            if(lstrlenA(szUserName)<4)
+            {
+                MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
+                break;
+            }
+
+            GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
+
+            if(lstrlenA(szPassWord)<4)
+            {
+                MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
+                break;
+            }
+
+            if(ConfigGetInt("PolicyNoSessionPassword"))
+            {
+                SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
+            }
+
+            bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, 103), BM_GETCHECK, 0, 0)==BST_CHECKED);
+            ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
+
+            if(bCheckSave)
+            {// save
+                ConfigSetStr("UserName", szUserName);
+            }
+            else
+            {// delete
+                ConfigSetStr("UserName", NULL);
+            }
+
+            lpszExeName = ConfigGetStr("ExeName");
+            lpszExeType = ConfigGetStr("ExeType");
+            CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
+
+            // miscellaneous information for the server
+            if(ConfigGetInt("MiscInfo"))
+            {
+                if(MiscInfoAgreePrompt(hWnd))
+                {// agreed
+                    int nInfo = ConfigGetInt("MiscInfo");
+
+                    if(nInfo&MISCINFO_OPT_MACADDRESS)
+                    {
+                        MACADDRESS Mac;
+                        MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
+
+                        wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
+                    }
+
+                    lstrcatA(szMiscInfo, "key=");
+                }
+                else
+                {// did not agree
+                    break;
+                }
+            }
+
+            if(ConfigGetInt("HashMD5"))
+            {// MD5
+                MD5HASH Hash;
+                char szHexHash[sizeof(Hash)*2+1];
+
+                MD5_String(szPassWord, &Hash);
+                XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
+
+                InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
+            }
+            else
+            {// Plaintext
+                InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
+            }
+
+            // get rid of the password after it has been used
+            ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
+
+            //EndDialog(hWnd, 1);
+            break;
+        }
+        case IDCANCEL:
+            EndDialog(hWnd, 0);
+            break;
+        default:
+            if(ButtonAction(hWnd, nId))
+            {
+                break;
+            }
+
+            return FALSE;
+    }
+    return TRUE;
+}
+
+static BOOL CALLBACK DlgProcOnEraseBkGnd(HWND hWnd, HDC hDC)
+{
+    if(!BgSkinOnEraseBkGnd(hWnd, hDC))
+    {
+        return FALSE;  // default background
+    }
+    return TRUE;
+}
+
+static BOOL CALLBACK DlgProcOnLButtonDown(HWND hWnd)
+{
+    if(!BgSkinOnLButtonDown(hWnd))
+    {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static BOOL CALLBACK DlgProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChild)
+{
+    return BgSkinOnCtlColorStatic(hDC, hWndChild);
+}
+
+static BOOL CALLBACK DlgProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild)
+{
+    return BgSkinOnCtlColorEdit(hDC, hWndChild);
+}
+
+static BOOL CALLBACK DlgProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawItem)
+{
+    if(!BgSkinOnDrawItem(lpDrawItem->CtlID, lpDrawItem))
+    {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static BOOL CALLBACK DlgProcOnHelp(HWND hWnd, LPHELPINFO lphi)
+{
+    DLGABOUTINFO Dai =
+    {
+        hWnd,
+        MAKELONG(2012,2017),
+        "About ROCred...",
+        "ROCred",
+        APP_VERSION,
+        "Ai4rei/AN",
+        "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
+        "http://ai4rei.net/p/rocredweb",
+    };
+
+    DlgAbout(&Dai);
+    return TRUE;
+}
+
+static BOOL CALLBACK DlgProcOnDestroy(HWND hWnd)
+{
+    BgSkinFree();
+    return TRUE;
+}
+
 static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
     {
-        case WM_INITDIALOG:
-        {
-            char szBuffer[4096];
-            BOOL bCheckSave, bSetFocus = TRUE;
-            HINSTANCE hInstance = GetWindowInstance(hWnd);
-
-            SendMessage(hWnd, WM_SETICON, ICON_BIG,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
-            SendMessage(hWnd, WM_SETICON, ICON_SMALL,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
-
-            LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(hWnd, szBuffer);
-
-            LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
-
-            LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
-
-            if(ConfigGetInt("PolicyNoCheckSave"))
-            {
-                ShowWindow(GetDlgItem(hWnd, IDC_CHECKSAVE), SW_HIDE);
-            }
-            else
-            {
-                LoadStringA(hInstance, IDS_CHECKSAVE, szBuffer, __ARRAYSIZE(szBuffer));
-                SetWindowTextA(GetDlgItem(hWnd, IDC_CHECKSAVE), szBuffer);
-
-                bCheckSave = ConfigGetInt("CheckSave");
-                SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_SETCHECK, (WPARAM)bCheckSave, 0);
-
-                if(bCheckSave)
-                {
-                    const char* lpszUserName = ConfigGetStr("UserName");
-
-                    if(lpszUserName[0])
-                    {
-                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), lpszUserName);
-                        SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
-                        bSetFocus = FALSE;
-                    }
-                }
-            }
-
-            LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
-
-            LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
-            SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
-
-            // load custom buttons if any
-            ConfigForEachSectionMatch("ROCred.Buttons.", &CreateCustomButton, hWnd);
-
-            // apply available skins
-            BgSkinInit(hWnd);
-
-            return bSetFocus;
-        }
-        case WM_COMMAND:
-            if(HIWORD(wParam)!=1  && HIWORD(wParam)!=0)
-            {
-                return FALSE;
-            }
-            else switch(LOWORD(wParam))
-            {
-                case IDOK:
-                {
-                    char szUserName[24];
-                    char szPassWord[24];
-                    char szExePath[MAX_PATH];
-                    char szMiscInfo[128] = { 0 };
-                    const char* lpszExeName;
-                    const char* lpszExeType;
-                    BOOL bCheckSave;
-                    HINSTANCE hInstance = GetWindowInstance(hWnd);
-
-                    GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
-
-                    if(lstrlenA(szUserName)<4)
-                    {
-                        MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
-                        break;
-                    }
-
-                    GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
-
-                    if(lstrlenA(szPassWord)<4)
-                    {
-                        MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
-                        break;
-                    }
-
-                    if(ConfigGetInt("PolicyNoSessionPassword"))
-                    {
-                        SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
-                    }
-
-                    bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, 103), BM_GETCHECK, 0, 0)==BST_CHECKED);
-                    ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
-
-                    if(bCheckSave)
-                    {// save
-                        ConfigSetStr("UserName", szUserName);
-                    }
-                    else
-                    {// delete
-                        ConfigSetStr("UserName", NULL);
-                    }
-
-                    lpszExeName = ConfigGetStr("ExeName");
-                    lpszExeType = ConfigGetStr("ExeType");
-                    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
-
-                    // miscellaneous information for the server
-                    if(ConfigGetInt("MiscInfo"))
-                    {
-                        if(MiscInfoAgreePrompt(hWnd))
-                        {// agreed
-                            int nInfo = ConfigGetInt("MiscInfo");
-
-                            if(nInfo&MISCINFO_OPT_MACADDRESS)
-                            {
-                                MACADDRESS Mac;
-                                MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
-
-                                wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
-                            }
-
-                            lstrcatA(szMiscInfo, "key=");
-                        }
-                        else
-                        {// did not agree
-                            break;
-                        }
-                    }
-
-                    if(ConfigGetInt("HashMD5"))
-                    {// MD5
-                        MD5HASH Hash;
-                        char szHexHash[sizeof(Hash)*2+1];
-
-                        MD5_String(szPassWord, &Hash);
-                        XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
-
-                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
-                    }
-                    else
-                    {// Plaintext
-                        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
-                    }
-
-                    // get rid of the password after it has been used
-                    ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
-
-                    //EndDialog(hWnd, 1);
-                    break;
-                }
-                case IDCANCEL:
-                    EndDialog(hWnd, 0);
-                    break;
-                default:
-                    if(ButtonAction(hWnd, LOWORD(wParam)))
-                    {
-                        break;
-                    }
-
-                    return FALSE;
-            }
-            break;
-        case WM_ERASEBKGND:
-            if(!BgSkinOnEraseBkGnd(hWnd, (HDC)wParam))
-            {
-                return FALSE;  // default background
-            }
-            break;
-        case WM_LBUTTONDOWN:
-            if(!BgSkinOnLButtonDown(hWnd))
-            {
-                return FALSE;
-            }
-            break;
-        case WM_CTLCOLORSTATIC:
-            return BgSkinOnCtlColorStatic((HDC)wParam, (HWND)lParam);
-        case WM_CTLCOLOREDIT:
-            return BgSkinOnCtlColorEdit((HDC)wParam, (HWND)lParam);
-        case WM_DRAWITEM:
-            if(!BgSkinOnDrawItem(wParam, (LPDRAWITEMSTRUCT)lParam))
-            {
-                return FALSE;
-            }
-            break;
-        case WM_HELP:
-        {
-            DLGABOUTINFO Dai =
-            {
-                hWnd,
-                MAKELONG(2012,2017),
-                "About ROCred...",
-                "ROCred",
-                APP_VERSION,
-                "Ai4rei/AN",
-                "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
-                "http://ai4rei.net/p/rocredweb",
-            };
-
-            DlgAbout(&Dai);
-            break;
-        }
-        case WM_DESTROY:
-        {
-            BgSkinFree();
-            break;
-        }
-        default:
-            return FALSE;
+        case WM_INITDIALOG:     return DlgProcOnInitDialog(hWnd, (HWND)wParam, lParam);
+        case WM_COMMAND:        return DlgProcOnCommand(hWnd, LOWORD(wParam), (HWND)lParam, HIWORD(wParam));
+        case WM_ERASEBKGND:     return DlgProcOnEraseBkGnd(hWnd, (HDC)wParam);
+        case WM_LBUTTONDOWN:    return DlgProcOnLButtonDown(hWnd);
+        case WM_CTLCOLORSTATIC: return DlgProcOnCtlColorStatic(hWnd, (HDC)wParam, (HWND)lParam);
+        case WM_CTLCOLOREDIT:   return DlgProcOnCtlColorEdit(hWnd, (HDC)wParam, (HWND)lParam);
+        case WM_DRAWITEM:       return DlgProcOnDrawItem(hWnd, (LPDRAWITEMSTRUCT)lParam);
+        case WM_HELP:           return DlgProcOnHelp(hWnd, (LPHELPINFO)lParam);
+        case WM_DESTROY:        return DlgProcOnDestroy(hWnd);
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)

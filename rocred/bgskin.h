@@ -13,7 +13,7 @@ bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC);
 bool __stdcall BgSkinOnLButtonDown(HWND hWnd);
 BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd);
 BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd);
-bool __stdcall BgSkinOnDrawItem(UINT uID, LPDRAWITEMSTRUCT lpDis);
+bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis);
 bool __stdcall BgSkinInit(HWND hWnd);
 void __stdcall BgSkinFree(void);
 
