@@ -528,14 +528,17 @@ static BOOL CALLBACK DlgProcOnLButtonDown(HWND hWnd)
     return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChild)
+static BOOL CALLBACK DlgProcOnCtlColor(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
 {
-    return BgSkinOnCtlColorStatic(hDC, hWndChild);
-}
+    switch(nType)
+    {
+        case CTLCOLOR_STATIC:
+            return BgSkinOnCtlColorStatic(hDC, hWndChild);
+        case CTLCOLOR_EDIT:
+            return BgSkinOnCtlColorEdit(hDC, hWndChild);
+    }
 
-static BOOL CALLBACK DlgProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild)
-{
-    return BgSkinOnCtlColorEdit(hDC, hWndChild);
+    return FALSE;
 }
 
 static BOOL CALLBACK DlgProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawItem)
@@ -579,8 +582,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:        return DlgProcOnCommand(hWnd, LOWORD(wParam), (HWND)lParam, HIWORD(wParam));
         case WM_ERASEBKGND:     return DlgProcOnEraseBkGnd(hWnd, (HDC)wParam);
         case WM_LBUTTONDOWN:    return DlgProcOnLButtonDown(hWnd);
-        case WM_CTLCOLORSTATIC: return DlgProcOnCtlColorStatic(hWnd, (HDC)wParam, (HWND)lParam);
-        case WM_CTLCOLOREDIT:   return DlgProcOnCtlColorEdit(hWnd, (HDC)wParam, (HWND)lParam);
+        case WM_CTLCOLORSTATIC: return DlgProcOnCtlColor(hWnd, (HDC)wParam, (HWND)lParam, CTLCOLOR_STATIC);
+        case WM_CTLCOLOREDIT:   return DlgProcOnCtlColor(hWnd, (HDC)wParam, (HWND)lParam, CTLCOLOR_EDIT);
         case WM_DRAWITEM:       return DlgProcOnDrawItem(hWnd, (LPDRAWITEMSTRUCT)lParam);
         case WM_HELP:           return DlgProcOnHelp(hWnd, (LPHELPINFO)lParam);
         case WM_DESTROY:        return DlgProcOnDestroy(hWnd);
