@@ -1,0 +1,157 @@
+#include <stdio.h>
+
+#define _WIN32_WINNT 0x500
+#include <windows.h>
+#include <windowsx.h>
+
+#define IDD_MAINDLG 1
+#define IDC_LEFT_CLICK 1000
+#define IDC_MIDDLE_CLICK 1001
+#define IDC_MIDDLE_WHEEL 1002
+#define IDC_RIGHT_CLICK 1003
+#define IDC_X1_CLICK 1004
+#define IDC_X2_CLICK 1005
+
+#ifdef RC_INVOKED
+
+// RC /FoMouseTest.res MouseTest.rc
+
+IDD_MAINDLG DIALOG DISCARDABLE 0, 0, 90, 18
+STYLE DS_SHELLFONT|DS_CENTER|DS_SETFONT|WS_POPUPWINDOW|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX
+CAPTION "Mouse Test"
+FONT 36,"Tahoma"
+BEGIN
+    CTEXT, "0", IDC_LEFT_CLICK, 0, 0, 30, 9, SS_SUNKEN
+    CTEXT, "0", IDC_MIDDLE_CLICK, 30, 0, 30, 9, SS_SUNKEN
+    CTEXT, "0", IDC_RIGHT_CLICK, 60, 0, 30, 9, SS_SUNKEN
+    CTEXT, "0.00", IDC_MIDDLE_WHEEL, 30, 9, 30, 9, SS_SUNKEN
+    CTEXT, "0", IDC_X1_CLICK, 0, 9, 30, 9, SS_SUNKEN
+    CTEXT, "0", IDC_X2_CLICK, 60, 9, 30, 9, SS_SUNKEN
+END
+
+1 24 DISCARDABLE
+BEGIN
+    "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
+    "<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
+        "<assemblyIdentity name=""" "MouseTest" """ processorArchitecture=""x86"" version=""" "1.0.0.0" """ type=""win32""/>"
+        "<dependency>"
+            "<dependentAssembly>"
+                "<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" version=""6.0.0.0"" processorArchitecture=""x86"" publicKeyToken=""6595b64144ccf1df"" language=""*""/>"
+            "</dependentAssembly>"
+        "</dependency>"
+    "</assembly>"
+END
+
+#else  /* RC_INVOKED */
+
+// CL /nologo /W3 /O2x /GF /ML /Zi /TC MouseTest.rc /link MouseTest.res user32.lib /RELEASE /OPT:REF /OPT:ICF /MACHINE:IX86
+
+typedef struct STATE
+{
+    unsigned long ulLC;
+    unsigned long ulMC;
+    long lMW;
+    unsigned long ulRC;
+    unsigned long ulX1;
+    unsigned long ulX2;
+}
+STATE;
+
+static const char* F2S(const float nNumber)
+{
+    static char szBuffer[128];
+
+    sprintf(szBuffer, "%.2f", nNumber);
+
+    return szBuffer;
+}
+
+static const char* N2S(const unsigned long ulNumber)
+{
+    static char szBuffer[128];
+
+    sprintf(szBuffer, "%lu", ulNumber);
+
+    return szBuffer;
+}
+
+static void ProcessEvent(HWND hWnd, WPARAM wParam)
+{
+    int nId = 0;
+    unsigned long* lpulValue = NULL;
+    STATE* State = (STATE*)GetWindowLongPtr(hWnd, DWL_USER);
+
+    switch(wParam)
+    {
+        case MK_LBUTTON:  lpulValue = &State->ulLC; nId = IDC_LEFT_CLICK; break;
+        case MK_MBUTTON:  lpulValue = &State->ulMC; nId = IDC_MIDDLE_CLICK; break;
+        case MK_RBUTTON:  lpulValue = &State->ulRC; nId = IDC_RIGHT_CLICK; break;
+        case MK_XBUTTON1: lpulValue = &State->ulX1; nId = IDC_X1_CLICK; break;
+        case MK_XBUTTON2: lpulValue = &State->ulX2; nId = IDC_X2_CLICK; break;
+    }
+
+    if(nId)
+    {
+        lpulValue[0]++;
+        SetDlgItemTextA(hWnd, nId, N2S(lpulValue[0]));
+    }
+}
+
+static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+        case WM_INITDIALOG:
+            SetWindowLongPtr(hWnd, DWL_USER, lParam);
+            break;
+        case WM_COMMAND:
+            if(GET_WM_COMMAND_ID(wParam, lParam)==IDCANCEL)
+            {
+                EndDialog(hWnd, 0);
+            }
+            break;
+        case WM_LBUTTONUP:
+            ProcessEvent(hWnd, MK_LBUTTON);
+            break;
+        case WM_MBUTTONUP:
+            ProcessEvent(hWnd, MK_MBUTTON);
+            break;
+        case WM_RBUTTONUP:
+            ProcessEvent(hWnd, MK_RBUTTON);
+            break;
+        case WM_XBUTTONUP:
+            switch(GET_XBUTTON_WPARAM(wParam))
+            {
+                case XBUTTON1:
+                    ProcessEvent(hWnd, MK_XBUTTON1);
+                    break;
+                case XBUTTON2:
+                    ProcessEvent(hWnd, MK_XBUTTON2);
+                    break;
+            }
+            break;
+        case WM_MOUSEWHEEL:
+        {
+            int nDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+            STATE* State = (STATE*)GetWindowLongPtr(hWnd, DWL_USER);
+
+            State->lMW+= nDelta;
+
+            SetDlgItemTextA(hWnd, IDC_MIDDLE_WHEEL, F2S((float)State->lMW/(float)WHEEL_DELTA));
+            break;
+        }
+        default:
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpszCmdLine, int nShowCmd)
+{
+    STATE State = { 0 };
+
+    return DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_MAINDLG), NULL, &DlgProc, (LPARAM)&State);
+}
+
+#endif  /* RC_INVOKED */
