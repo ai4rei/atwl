@@ -3,6 +3,7 @@
 #define _WIN32_WINNT 0x500
 #include <windows.h>
 #include <windowsx.h>
+#include <commctrl.h>
 
 #define IDD_MAINDLG 1
 #define IDC_LEFT_CLICK 1000
@@ -33,7 +34,7 @@ END
 BEGIN
     "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
     "<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">"
-        "<assemblyIdentity name=""" "MouseTest" """ processorArchitecture=""x86"" version=""" "1.0.0.0" """ type=""win32""/>"
+        "<assemblyIdentity name=""" "MouseTest" """ processorArchitecture=""x86"" version=""" "1.0.1.0" """ type=""win32""/>"
         "<dependency>"
             "<dependentAssembly>"
                 "<assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" version=""6.0.0.0"" processorArchitecture=""x86"" publicKeyToken=""6595b64144ccf1df"" language=""*""/>"
@@ -44,7 +45,7 @@ END
 
 #else  /* RC_INVOKED */
 
-// CL /nologo /W3 /O2x /GF /ML /Zi /TC MouseTest.rc /link MouseTest.res user32.lib /RELEASE /OPT:REF /OPT:ICF /MACHINE:IX86
+// CL /nologo /W3 /O2x /GF /ML /Zi /TC MouseTest.rc /link MouseTest.res user32.lib comctl32.lib /RELEASE /OPT:REF /OPT:ICF /MACHINE:IX86
 
 typedef struct STATE
 {
@@ -150,6 +151,8 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpszCmdLine, int nShowCmd)
 {
     STATE State = { 0 };
+
+    InitCommonControls();
 
     return DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_MAINDLG), NULL, &DlgProc, (LPARAM)&State);
 }
