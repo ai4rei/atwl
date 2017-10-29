@@ -5,11 +5,11 @@
 /Gy
 /I..\snippets
 /I..\zlibstatic
-/DMEMORY_DEFAULTMGR
 
 gzio.c
 
-..\snippets\memory.c
+..\snippets\mem.c
+..\snippets\_mem\mem.win32.heap.c
 
 ..\snippets\bvdata.cpp
 ..\snippets\bvgzio.cpp

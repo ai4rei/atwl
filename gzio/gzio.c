@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#ifdef __GNUC__
+#include <unistd.h>  /* unlink */
+#endif  /* __GNUC__ */
 
 #include <btypes.h>
 #include <bvgzio.h>
