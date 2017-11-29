@@ -17,6 +17,8 @@
 #include <macaddr.h>
 #include <md5.h>
 #include <memtaf.h>
+#include <w32ex.h>
+#include <w32ui.h>
 #include <xf_binhex.h>
 
 #include "bgskin.h"
@@ -57,6 +59,10 @@ static const UINT l_uMiscInfoOptName[] =
 {
     IDS_MISCINFO_OPT_MACADDRESS,
 };
+
+// DefDlgEx: DialogProc message cracker system (WindowsX).
+static BOOL l_bDefDlgEx = FALSE;
+static LRESULT CALLBACK DefWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
 {
@@ -336,16 +342,14 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
     return true;  // next
 }
 
-static BOOL CALLBACK DlgProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
+static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
 {
     char szBuffer[4096];
     BOOL bCheckSave, bSetFocus = TRUE;
     HINSTANCE hInstance = GetWindowInstance(hWnd);
 
-    SendMessage(hWnd, WM_SETICON, ICON_BIG,
-        (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(1), IMAGE_ICON, 32, 32, LR_SHARED));
-    SendMessage(hWnd, WM_SETICON, ICON_SMALL,
-        (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED));
+    SetWindowLargeIcon(hWnd, LoadLargeIcon(hInstance, MAKEINTRESOURCE(1)));
+    SetWindowSmallIcon(hWnd, LoadSmallIcon(hInstance, MAKEINTRESOURCE(1)));
 
     LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
     SetWindowTextA(hWnd, szBuffer);
@@ -396,7 +400,7 @@ static BOOL CALLBACK DlgProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
     return bSetFocus;
 }
 
-static BOOL CALLBACK DlgProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCodeNotify)
+static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCodeNotify)
 {
     if(uCodeNotify==0U || uCodeNotify==1U)
     {
@@ -498,58 +502,68 @@ static BOOL CALLBACK DlgProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
                 EndDialog(hWnd, 0);
                 break;
             default:
-                if(ButtonAction(hWnd, nId))
-                {
-                    break;
-                }
-
-                return FALSE;
+                ButtonAction(hWnd, nId);
+                break;
         }
     }
-    return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnEraseBkGnd(HWND hWnd, HDC hDC)
+static BOOL CALLBACK WndProcOnEraseBkgnd(HWND hWnd, HDC hDC)
 {
     if(!BgSkinOnEraseBkGnd(hWnd, hDC))
     {
-        return FALSE;  // default background
+        return FORWARD_WM_ERASEBKGND(hWnd, hDC, &DefWndProc);  // default background
     }
+
     return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnLButtonDown(HWND hWnd)
+static void CALLBACK WndProcOnLButtonDown(HWND hWnd, BOOL bDoubleClick, int nX, int nY, UINT uKeyFlags)
 {
     if(!BgSkinOnLButtonDown(hWnd))
     {
-        return FALSE;
+        FORWARD_WM_LBUTTONDOWN(hWnd, bDoubleClick, nX, nY, uKeyFlags, &DefWndProc);
     }
-    return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnCtlColor(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
+static HBRUSH CALLBACK WndProcOnCtlColor(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
 {
+    HBRUSH hbrBackground = NULL;
+
     switch(nType)
     {
         case CTLCOLOR_STATIC:
-            return BgSkinOnCtlColorStatic(hDC, hWndChild);
+            hbrBackground = BgSkinOnCtlColorStatic(hDC, hWndChild);
+
+            if(hbrBackground==NULL)
+            {
+                hbrBackground = FORWARD_WM_CTLCOLORSTATIC(hWnd, hDC, hWndChild, &DefWndProc);
+            }
+
+            break;
         case CTLCOLOR_EDIT:
-            return BgSkinOnCtlColorEdit(hDC, hWndChild);
+            hbrBackground = BgSkinOnCtlColorEdit(hDC, hWndChild);
+
+            if(hbrBackground==NULL)
+            {
+                hbrBackground = FORWARD_WM_CTLCOLOREDIT(hWnd, hDC, hWndChild, &DefWndProc);
+            }
+
+            break;
     }
 
-    return FALSE;
+    return hbrBackground;
 }
 
-static BOOL CALLBACK DlgProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawItem)
+static void CALLBACK WndProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawItem)
 {
     if(!BgSkinOnDrawItem(lpDrawItem->CtlID, lpDrawItem))
     {
-        return FALSE;
+        FORWARD_WM_DRAWITEM(hWnd, lpDrawItem, &DefWndProc);
     }
-    return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnHelp(HWND hWnd, LPHELPINFO lphi)
+static void CALLBACK WndProcOnHelp(HWND hWnd, LPHELPINFO lphi)
 {
     DLGABOUTINFO Dai =
     {
@@ -564,31 +578,41 @@ static BOOL CALLBACK DlgProcOnHelp(HWND hWnd, LPHELPINFO lphi)
     };
 
     DlgAbout(&Dai);
-    return TRUE;
 }
 
-static BOOL CALLBACK DlgProcOnDestroy(HWND hWnd)
+static void CALLBACK WndProcOnDestroy(HWND hWnd)
 {
     BgSkinFree();
-    return TRUE;
+}
+
+static LRESULT CALLBACK DefWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    return DefDlgProcEx(hWnd, uMsg, wParam, lParam, &l_bDefDlgEx);
+}
+
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+        HANDLE_MSG(hWnd, WM_INITDIALOG,     &WndProcOnInitDialog);
+        HANDLE_MSG(hWnd, WM_COMMAND,        &WndProcOnCommand);
+        HANDLE_MSG(hWnd, WM_ERASEBKGND,     &WndProcOnEraseBkgnd);
+        HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    &WndProcOnLButtonDown);
+        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, &WndProcOnCtlColor);
+        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   &WndProcOnCtlColor);
+        HANDLE_MSG(hWnd, WM_DRAWITEM,       &WndProcOnDrawItem);
+        HANDLE_MSG(hWnd, WM_HELP,           &WndProcOnHelp);
+        HANDLE_MSG(hWnd, WM_DESTROY,        &WndProcOnDestroy);
+    }
+
+    return DefWndProc(hWnd, uMsg, wParam, lParam);
 }
 
 static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    switch(uMsg)
-    {
-        case WM_INITDIALOG:     return DlgProcOnInitDialog(hWnd, (HWND)wParam, lParam);
-        case WM_COMMAND:        return DlgProcOnCommand(hWnd, LOWORD(wParam), (HWND)lParam, HIWORD(wParam));
-        case WM_ERASEBKGND:     return DlgProcOnEraseBkGnd(hWnd, (HDC)wParam);
-        case WM_LBUTTONDOWN:    return DlgProcOnLButtonDown(hWnd);
-        case WM_CTLCOLORSTATIC: return DlgProcOnCtlColor(hWnd, (HDC)wParam, (HWND)lParam, CTLCOLOR_STATIC);
-        case WM_CTLCOLOREDIT:   return DlgProcOnCtlColor(hWnd, (HDC)wParam, (HWND)lParam, CTLCOLOR_EDIT);
-        case WM_DRAWITEM:       return DlgProcOnDrawItem(hWnd, (LPDRAWITEMSTRUCT)lParam);
-        case WM_HELP:           return DlgProcOnHelp(hWnd, (LPHELPINFO)lParam);
-        case WM_DESTROY:        return DlgProcOnDestroy(hWnd);
-    }
+    CheckDefDlgRecursion(&l_bDefDlgEx);
 
-    return FALSE;
+    return SetDlgMsgResult(hWnd, uMsg, WndProc(hWnd, uMsg, wParam, lParam));
 }
 
 static MEM_OUTOFMEMORY_ACTION __WDECL OnOOM(LPCMEMOUTOFMEMORYINFO const lpInfo, LPCMEMSTATISTICS const lpStats, void* lpContext)

@@ -139,19 +139,19 @@ bool __stdcall BgSkinOnLButtonDown(HWND hWnd)
     return false;
 }
 
-BOOL __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
+HBRUSH __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
 {
     if(BgSkin_P_IsActive())
     {
         SetBkMode(hDC, TRANSPARENT);
 
-        return (BOOL)GetStockObject(NULL_BRUSH);
+        return GetStockObject(NULL_BRUSH);
     }
 
-    return FALSE;
+    return NULL;
 }
 
-BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
+HBRUSH __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
 {
     if(BgSkin_P_IsActive())
     {
@@ -160,7 +160,7 @@ BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
             case 1:
                 SetBkMode(hDC, TRANSPARENT);
 
-                return (BOOL)GetStockObject(NULL_BRUSH);
+                return GetStockObject(NULL_BRUSH);
             case 2:
                 SetBkMode(hDC, TRANSPARENT);
 
@@ -173,11 +173,11 @@ BOOL __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
 
                 l_hbrEditBack = CreateSolidBrush(BvStrToRgbA(ConfigGetStr("EditBackgroundColor"), NULL));
 
-                return (BOOL)l_hbrEditBack;
+                return l_hbrEditBack;
         }
     }
 
-    return FALSE;
+    return NULL;
 }
 
 bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
