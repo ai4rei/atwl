@@ -16,7 +16,7 @@
 #include <dlgtempl.h>
 #include <macaddr.h>
 #include <md5.h>
-#include <memory.h>
+#include <memtaf.h>
 #include <xf_binhex.h>
 
 #include "bgskin.h"
@@ -591,18 +591,18 @@ static BOOL CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
-static MEMORY_OOMACTIONS __stdcall OnOOM(LPCMEMORYOOMINFO lpMoi)
+static MEM_OUTOFMEMORY_ACTION __WDECL OnOOM(LPCMEMOUTOFMEMORYINFO const lpInfo, LPCMEMSTATISTICS const lpStats, void* lpContext)
 {// consider the following: we have no memory
-    char szMessage[1024];
+    char szMessage[128];
 
-    snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %lu bytes of memory.", lpMoi->uWantAlloc);
+    snprintf(szMessage, __ARRAYSIZE(szMessage), "Failed to allocate %u+%u bytes of memory.", lpInfo->uWantAvail, lpInfo->uWantBytes-lpInfo->uWantAvail);
 
     if(MsgBox(NULL, szMessage, MB_RETRYCANCEL|MB_ICONSTOP|MB_SYSTEMMODAL)==IDRETRY)
     {
-        return MEMORY_OOM_RETRY;
+        return MEM_OOM_RETRY;
     }
 
-    return MEMORY_OOM_DEFAULT;
+    return MEM_OOM_DEFAULT;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
@@ -613,9 +613,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     HANDLE hMutex = NULL;
 
     // memory
-    Memory_SetStatusInfo();
-    Memory_AddOptionBits(MEMORY_OPT_EXCEPTIO|MEMORY_OPT_STOPBAAD|MEMORY_OPT_STOPNULL|MEMORY_OPT_YIELDLCK);
-    Memory_SetOOMHandler(&OnOOM, NULL);
+    MemSetOptions(MEM_OPT_EXCEPTIO|MEM_OPT_STOPBAAD|MEM_OPT_STOPNULL|MEM_OPT_STOPZERO);
+    MemSetHandler(&OnOOM, NULL);
 
     // start up
     if(!FAILED(CoInitialize(NULL)))
@@ -667,7 +666,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     }
 
     // memory again
-    AssertHere(!Memory_GetStatusLeak());
+    AssertHere(!MemIsLeaked());
 
     return EXIT_SUCCESS;
 }

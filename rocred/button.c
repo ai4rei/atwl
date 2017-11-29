@@ -10,7 +10,6 @@
 
 #include <btypes.h>
 #include <bvcstr.h>
-#include <memory.h>
 #include <memtaf.h>
 #include <xf_slash.h>
 
@@ -131,7 +130,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
             char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
             BOOL bSuccess;
 
-            lpszIdx = lpszBuf = Memory_DuplicateString(lpBd->lpszActionData);
+            lpszIdx = lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
 
             if(lpszIdx[0]=='"')
             {
@@ -180,7 +179,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
 
             bSuccess = ShellExecuteEx(&Sei);
 
-            Memory_FreeEx(&lpszBuf);
+            MemTFree(&lpszBuf);
 
             if(!bSuccess)
             {
@@ -193,14 +192,14 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
             char* lpszMsg;
             size_t uLen = lstrlenA(lpBd->lpszActionData)+1;
 
-            lpszMsg = Memory_Alloc(uLen);
+            lpszMsg = MemAlloc(uLen);
 
             if(XF_SlashesSub(lpszMsg, &uLen, lpBd->lpszActionData, NULL))
             {
                 MsgBox(hWnd, lpszMsg, MB_OK);
             }
 
-            Memory_FreeEx(&lpszMsg);
+            MemTFree(&lpszMsg);
         }
 
         if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE || lpBd->nActionType==BUTTON_ACTION_CLOSE)

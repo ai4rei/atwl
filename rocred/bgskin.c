@@ -12,7 +12,6 @@
 #include <bvcstr.h>
 #include <bvllst.h>
 #include <bvpars.h>
-#include <memory.h>
 #include <memtaf.h>
 #include <regionui.h>
 #include <w32ui.h>
