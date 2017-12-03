@@ -124,61 +124,42 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
 
         if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC || lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE)
         {
+            bool bSuccess = false;
             char* lpszBuf;
-            char* lpszIdx;
             const char* lpszFile;
             const char* lpszParam = "";
             char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
-            BOOL bSuccess;
 
-            lpszIdx = lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
+            lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
+            
+            lpszFile = BvStrSkipQuoteA(lpszBuf, 0, &lpszParam);
 
-            if(lpszIdx[0]=='"')
+            if(lpszFile)
             {
-                for(lpszFile = ++lpszIdx; lpszIdx[0] && lpszIdx[0]!='"'; lpszIdx++);
+                Sei.fMask        = SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszFile) ? SEE_MASK_CONNECTNETDRV : 0);
+                Sei.hwnd         = hWnd;
+                Sei.lpVerb       = NULL;
+                Sei.lpFile       = lpszFile;
+                Sei.lpParameters = lpszParam;
+                Sei.nShow        = SW_SHOWNORMAL;
 
-                if(lpszIdx[0]=='"' && lpszIdx[1]==' ')
+                if(lpBd->lpszActionHandler[0])
                 {
-                    lpszParam = lpszIdx+2;
+                    if(GetFileClassFromExtension(lpBd->lpszActionHandler, szFileClass, __ARRAYSIZE(szFileClass)))
+                    {
+                        Sei.lpClass = szFileClass;
+                    }
+                    else
+                    {// not a recognized extension, maybe not an extension at all
+                        Sei.lpClass = lpBd->lpszActionHandler;
+                    }
+
+                    // override file class
+                    Sei.fMask|= SEE_MASK_CLASSNAME;
                 }
 
-                lpszIdx[0] = 0;
+                bSuccess = ShellExecuteEx(&Sei)!=FALSE;
             }
-            else
-            {
-                for(lpszFile = lpszIdx; lpszIdx[0] && lpszIdx[0]!=' '; lpszIdx++);
-
-                if(lpszIdx[0]==' ')
-                {
-                    lpszParam = lpszIdx+1;
-                }
-
-                lpszIdx[0] = 0;
-            }
-
-            Sei.fMask        = SEE_MASK_FLAG_NO_UI|(ISUNCPATH(lpszFile) ? SEE_MASK_CONNECTNETDRV : 0);
-            Sei.hwnd         = hWnd;
-            Sei.lpVerb       = NULL;
-            Sei.lpFile       = lpszFile;
-            Sei.lpParameters = lpszParam;
-            Sei.nShow        = SW_SHOWNORMAL;
-
-            if(lpBd->lpszActionHandler[0])
-            {
-                if(GetFileClassFromExtension(lpBd->lpszActionHandler, szFileClass, __ARRAYSIZE(szFileClass)))
-                {
-                    Sei.lpClass = szFileClass;
-                }
-                else
-                {// not a recognized extension, maybe not an extension at all
-                    Sei.lpClass = lpBd->lpszActionHandler;
-                }
-
-                // override file class
-                Sei.fMask|= SEE_MASK_CLASSNAME;
-            }
-
-            bSuccess = ShellExecuteEx(&Sei);
 
             MemTFree(&lpszBuf);
 
@@ -191,7 +172,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
         if(lpBd->nActionType==BUTTON_ACTION_MSGBOX)
         {
             char* lpszMsg;
-            size_t uLen = lstrlenA(lpBd->lpszActionData)+1;
+            size_t uLen = strlen(lpBd->lpszActionData)+1U;
 
             lpszMsg = MemAlloc(uLen);
 
