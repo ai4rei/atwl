@@ -348,8 +348,8 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
     BOOL bCheckSave, bSetFocus = TRUE;
     HINSTANCE hInstance = GetWindowInstance(hWnd);
 
-    SetWindowLargeIcon(hWnd, LoadLargeIcon(hInstance, MAKEINTRESOURCE(1)));
-    SetWindowSmallIcon(hWnd, LoadSmallIcon(hInstance, MAKEINTRESOURCE(1)));
+    SetWindowLargeIcon(hWnd, LoadLargeIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON)));
+    SetWindowSmallIcon(hWnd, LoadSmallIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON)));
 
     LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
     SetWindowTextA(hWnd, szBuffer);
@@ -631,8 +631,6 @@ static MEM_OUTOFMEMORY_ACTION __WDECL OnOOM(LPCMEMOUTOFMEMORYINFO const lpInfo, 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
-    unsigned char ucDlgBuf[264];
-    unsigned long luDlgBufSize = sizeof(ucDlgBuf);
     DLGTEMPLATEINFO DlgTi;
     HANDLE hMutex = NULL;
 
@@ -667,9 +665,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                 {
                     CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
                     DlgTi.wFontSize = ConfigGetInt("FontSize");
-                    AssertHere(DlgTemplate(&DlgTi, ucDlgBuf, &luDlgBufSize));
+
                     InitCommonControls();
-                    DialogBoxIndirectParam(hInstance, (LPCDLGTEMPLATE)ucDlgBuf, NULL, &DlgProc, 0);
+
+                    DlgTemplateExBoxParam(hInstance, &DlgTi, NULL, &DlgProc, 0);
                 }
 
                 AppMutexRelease(&hMutex);

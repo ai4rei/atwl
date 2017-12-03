@@ -10,6 +10,7 @@
 #define APP_VERSION "1.10.0.0"
 #define APP_VERSIONINFO_VERSION 1,10,0,0
 
+#define IDI_MAINICON                    1
 #define IDC_USERNAME                    101
 #define IDC_PASSWORD                    102
 #define IDC_CHECKSAVE                   103
