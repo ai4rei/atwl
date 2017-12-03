@@ -23,6 +23,7 @@ BEGINENUM(BUTTON_ACTION)
     BUTTON_ACTION_SHELLEXEC_CLOSE,
     BUTTON_ACTION_CLOSE,
     BUTTON_ACTION_MSGBOX,
+    BUTTON_ACTION_MINIMIZE = 5,
     BUTTON_ACTION_MAX
 }
 CLOSEENUM(BUTTON_ACTION);
@@ -205,6 +206,11 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
         if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLOSE || lpBd->nActionType==BUTTON_ACTION_CLOSE)
         {
             DestroyWindow(hWnd);
+        }
+
+        if(lpBd->nActionType==BUTTON_ACTION_MINIMIZE)
+        {
+            ShowWindow(hWnd, SW_MINIMIZE);
         }
 
         return true;
