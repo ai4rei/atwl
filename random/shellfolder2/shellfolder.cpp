@@ -16,7 +16,7 @@
 DEFINE_GUID(CLSID_ExampleShellFolder2,
 0x1A67366A, 0x3641, 0x4575, 0xBC, 0xFF, 0x8D, 0x57, 0x4C, 0x6F, 0x68, 0xF0);
 
-class CExampleShellFolder2 : public IShellFolder2, IPersistFolder2  // No IShellDetails, because systems that need it do not have system-provided IShellView
+class CExampleShellFolder2 : public IShellFolder2, public IPersistFolder2  // No IShellDetails, because systems that need it do not have system-provided IShellView
 {
     ULONG m_ulLocks;
 

@@ -8,7 +8,7 @@
 DEFINE_GUID(CLSID_ExampleShellFolder,
 0xDC4AB720, 0xC354, 0x421E, 0x9D, 0x20, 0x35, 0x8A, 0x58, 0xDD, 0x0E, 0x28);
 
-class CExampleShellFolder : public IShellFolder, IPersistFolder
+class CExampleShellFolder : public IShellFolder, public IPersistFolder
 {
     ULONG m_ulLocks;
 
