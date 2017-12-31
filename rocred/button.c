@@ -23,7 +23,8 @@ BEGINENUM(BUTTON_ACTION)
     BUTTON_ACTION_SHELLEXEC_CLOSE,
     BUTTON_ACTION_CLOSE,
     BUTTON_ACTION_MSGBOX,
-    BUTTON_ACTION_MINIMIZE = 5,
+    BUTTON_ACTION_SHELLEXEC_CLIENT,
+    BUTTON_ACTION_MINIMIZE,
     BUTTON_ACTION_MAX
 }
 CLOSEENUM(BUTTON_ACTION);
@@ -131,7 +132,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
             char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
 
             lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
-            
+
             lpszFile = BvStrSkipQuoteA(lpszBuf, 0, &lpszParam);
 
             if(lpszFile)
@@ -159,6 +160,30 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
                 }
 
                 bSuccess = ShellExecuteEx(&Sei)!=FALSE;
+            }
+
+            MemTFree(&lpszBuf);
+
+            if(!bSuccess)
+            {
+                break;
+            }
+        }
+
+        if(lpBd->nActionType==BUTTON_ACTION_SHELLEXEC_CLIENT)
+        {
+            bool bSuccess = false;
+            char* lpszBuf;
+            const char* lpszFile;
+            const char* lpszParam = "";
+
+            lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
+
+            lpszFile = BvStrSkipQuoteA(lpszBuf, 0, &lpszParam);
+
+            if(lpszFile)
+            {
+                bSuccess = (StartClient(hWnd, lpszFile, lpszParam), true);  // TODO: Real result.
             }
 
             MemTFree(&lpszBuf);

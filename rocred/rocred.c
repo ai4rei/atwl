@@ -342,6 +342,96 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
     return true;  // next
 }
 
+void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
+{
+    char szUserName[24];
+    char szPassWord[24];
+    char szExePath[MAX_PATH];
+    char szMiscInfo[128] = { 0 };
+    const char* lpszExeName;
+    const char* lpszExeType;
+    BOOL bCheckSave;
+    HINSTANCE hInstance = GetWindowInstance(hWnd);
+
+    GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
+
+    if(lstrlenA(szUserName)<4)
+    {
+        MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
+        return;
+    }
+
+    GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
+
+    if(lstrlenA(szPassWord)<4)
+    {
+        MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
+        return;
+    }
+
+    if(ConfigGetInt("PolicyNoSessionPassword"))
+    {
+        SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
+    }
+
+    bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_GETCHECK, 0, 0)==BST_CHECKED);
+    ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
+
+    if(bCheckSave)
+    {// save
+        ConfigSetStr("UserName", szUserName);
+    }
+    else
+    {// delete
+        ConfigSetStr("UserName", NULL);
+    }
+
+    lpszExeName = lpszExecutable;
+    lpszExeType = lpszParameters;
+    CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
+
+    // miscellaneous information for the server
+    if(ConfigGetInt("MiscInfo"))
+    {
+        if(MiscInfoAgreePrompt(hWnd))
+        {// agreed
+            int nInfo = ConfigGetInt("MiscInfo");
+
+            if(nInfo&MISCINFO_OPT_MACADDRESS)
+            {
+                MACADDRESS Mac;
+                MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
+
+                wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
+            }
+
+            lstrcatA(szMiscInfo, "key=");
+        }
+        else
+        {// did not agree
+            return;
+        }
+    }
+
+    if(ConfigGetInt("HashMD5"))
+    {// MD5
+        MD5HASH Hash;
+        char szHexHash[sizeof(Hash)*2+1];
+
+        MD5_String(szPassWord, &Hash);
+        XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
+
+        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
+    }
+    else
+    {// Plaintext
+        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
+    }
+
+    // get rid of the password after it has been used
+    ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
+}
+
 static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
 {
     char szBuffer[4096];
@@ -407,97 +497,8 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
         switch(nId)
         {
             case IDOK:
-            {
-                char szUserName[24];
-                char szPassWord[24];
-                char szExePath[MAX_PATH];
-                char szMiscInfo[128] = { 0 };
-                const char* lpszExeName;
-                const char* lpszExeType;
-                BOOL bCheckSave;
-                HINSTANCE hInstance = GetWindowInstance(hWnd);
-
-                GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
-
-                if(lstrlenA(szUserName)<4)
-                {
-                    MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
-                    break;
-                }
-
-                GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
-
-                if(lstrlenA(szPassWord)<4)
-                {
-                    MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
-                    break;
-                }
-
-                if(ConfigGetInt("PolicyNoSessionPassword"))
-                {
-                    SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
-                }
-
-                bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_GETCHECK, 0, 0)==BST_CHECKED);
-                ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
-
-                if(bCheckSave)
-                {// save
-                    ConfigSetStr("UserName", szUserName);
-                }
-                else
-                {// delete
-                    ConfigSetStr("UserName", NULL);
-                }
-
-                lpszExeName = ConfigGetStr("ExeName");
-                lpszExeType = ConfigGetStr("ExeType");
-                CombineExePathName(szExePath, __ARRAYSIZE(szExePath), lpszExeName);
-
-                // miscellaneous information for the server
-                if(ConfigGetInt("MiscInfo"))
-                {
-                    if(MiscInfoAgreePrompt(hWnd))
-                    {// agreed
-                        int nInfo = ConfigGetInt("MiscInfo");
-
-                        if(nInfo&MISCINFO_OPT_MACADDRESS)
-                        {
-                            MACADDRESS Mac;
-                            MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
-
-                            wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
-                        }
-
-                        lstrcatA(szMiscInfo, "key=");
-                    }
-                    else
-                    {// did not agree
-                        break;
-                    }
-                }
-
-                if(ConfigGetInt("HashMD5"))
-                {// MD5
-                    MD5HASH Hash;
-                    char szHexHash[sizeof(Hash)*2+1];
-
-                    MD5_String(szPassWord, &Hash);
-                    XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
-
-                    InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
-                }
-                else
-                {// Plaintext
-                    InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
-                }
-
-                // get rid of the password after it has been used
-                ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
-
-                //EndDialog(hWnd, 1);
+                StartClient(hWnd, ConfigGetStr("ExeName"), ConfigGetStr("ExeType"));
                 break;
-            }
             case IDCANCEL:
                 EndDialog(hWnd, 0);
                 break;

@@ -36,5 +36,6 @@
 
 int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags);
 bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
+void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters);
 
 #endif  /* _ROCRED_H_ */
