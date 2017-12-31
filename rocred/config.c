@@ -4,14 +4,18 @@
 //
 // -----------------------------------------------------------------
 
+#include <stdio.h>
+
 #include <windows.h>
 
 #include <btypes.h>
 #include <kvdb.h>
+#include <memtaf.h>
+#include <rsrcio.h>
+#include <w32ex.h>
 
 #include "config.h"
 #include "rocred.h"
-#include "rsrcio.h"
 
 struct LPFOREACHSECTIONCONTEXT
 {
@@ -48,6 +52,7 @@ void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
     {
         KvKeyDelete(&l_ConfigDB, NULL, CONFIG_MAIN_SECTION, NULL, lpszKey);
     }
+
     KvSave(&l_ConfigDB, l_szIniFile);
 }
 
@@ -55,7 +60,7 @@ void __stdcall ConfigSetInt(const char* lpszKey, int nValue)
 {
     char szBuffer[16];
 
-    wsprintfA(szBuffer, "%d", nValue);
+    snprintf(szBuffer, __ARRAYSIZE(szBuffer), "%d", nValue);
     ConfigSetStr(lpszKey, szBuffer);
 }
 
@@ -63,7 +68,7 @@ void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
 {
     char szBuffer[16];
 
-    wsprintfA(szBuffer, "%u", uValue);
+    snprintf(szBuffer, __ARRAYSIZE(szBuffer), "%u", uValue);
     ConfigSetStr(lpszKey, szBuffer);
 }
 
@@ -100,44 +105,50 @@ unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
 bool __stdcall ConfigSave(void)
 {
     bool bSuccess = false;
-    unsigned long luLen, luRead;
-    void* lpData;
-    HANDLE hFile = INVALID_HANDLE_VALUE;
+    HANDLE hFile;
 
     // load configuration
-    if((hFile = CreateFileA(l_szIniFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL))!=INVALID_HANDLE_VALUE)
-    {
-        luLen = GetFileSize(hFile, NULL);
+    hFile = CreateFileA(l_szIniFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
-        if((lpData = LocalAlloc(0, luLen))!=NULL)
+    if(hFile!=INVALID_HANDLE_VALUE)
+    {
+        ubyte_t* lpucBuffer = NULL;
+        DWORD dwFileSize = GetFileSize(hFile, NULL);  // if your config is over 4GB, you are doing something wrong
+
+        if(dwFileSize && MemTAllocEx(&lpucBuffer, dwFileSize))
         {
-            if(ReadFile(hFile, lpData, luLen, &luRead, NULL) && luLen==luRead)
+            DWORD dwRead;
+
+            if(ReadFile(hFile, lpucBuffer, dwFileSize, &dwRead, NULL))
             {
                 char szSrcName[MAX_PATH];
-                char szDstName[MAX_PATH];
 
-                GetModuleFileNameA(NULL, szSrcName, __ARRAYSIZE(szSrcName));
-                wsprintfA(szDstName, "%s.embed.exe", szSrcName);
-
-                if(CopyFileA(szSrcName, szDstName, FALSE))
+                if(GetModuleFileNameSpecificPathA(NULL, szSrcName, __ARRAYSIZE(szSrcName), NULL, NULL))
                 {
-                    // persist as resource
-                    if(ResourceStore(szDstName, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", lpData, luLen))
-                    {
-                        bSuccess = true;
-                    }
+                    char szDstName[MAX_PATH];
 
-                    if(!bSuccess)
+                    if(GetModuleFileNameSpecificPathA(NULL, szDstName, __ARRAYSIZE(szDstName), NULL, "embed.exe"))
                     {
-                        DeleteFileA(szDstName);
+                        if(CopyFileA(szSrcName, szDstName, FALSE))
+                        {
+                            // persist as resource
+                            if(ResourceStore(szDstName, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
+                            {
+                                bSuccess = true;
+                            }
+                            else
+                            {
+                                DeleteFileA(szDstName);
+                            }
+                        }
                     }
                 }
             }
 
-            LocalFree(lpData);
+            MemTFree(&lpucBuffer);
         }
 
-        CloseHandle(hFile);
+        CloseFile(&hFile);
     }
 
     return bSuccess;
@@ -161,11 +172,9 @@ static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section,
 
 bool __stdcall ConfigInit(void)
 {
-    bool bSuccess = true;
-    char szMbdFile[MAX_PATH];
+    bool bSuccess = false;
     const void* lpData;
     unsigned long luLen, luWritten;
-    HANDLE hFile;
 
     // set defaults
     KvInit(&l_ConfigDB, &g_Win32PrivateProfileAdapter);
@@ -176,42 +185,47 @@ bool __stdcall ConfigInit(void)
     // load embedded/admin configuration
     if(ResourceFetch(NULL, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", &lpData, &luLen))
     {
-        char szTmpPath[MAX_PATH];
-        unsigned int uUniq = 0;
-
-        GetTempPathA(__ARRAYSIZE(szTmpPath), szTmpPath);
-
-        do
+        for(;;)
         {
-            wsprintfA(szMbdFile, "%s\\~rcd%04x.ini", szTmpPath, uUniq++);
+            char szTmpPath[MAX_PATH];
+            char szMbdFile[MAX_PATH];
+            HANDLE hFile;
 
-            hFile = CreateFileA(szMbdFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_TEMPORARY|FILE_FLAG_WRITE_THROUGH, NULL);
-        }
-        while(hFile==INVALID_HANDLE_VALUE && GetLastError()==ERROR_FILE_EXISTS && uUniq<=0xFFFF);
-
-        if(hFile!=INVALID_HANDLE_VALUE)
-        {
-            if(WriteFile(hFile, lpData, luLen, &luWritten, NULL))
+            if(!GetTempPathExA(szTmpPath, __ARRAYSIZE(szTmpPath)))
             {
-                CloseHandle(hFile);
-
-                KvLoad(&l_ConfigDB, szMbdFile);
-
-                // foil attempts to override protected defaults
-                KvForEachSection(&l_ConfigDB, &Config_P_FoilEachSection, NULL);
+                break;
             }
-            else
+
+            if(!GetTempFileNameExA(szTmpPath, "~rcd", 0, szMbdFile, __ARRAYSIZE(szMbdFile)) || GetLastError()!=ERROR_SUCCESS)
             {
-                bSuccess = false;
-                CloseHandle(hFile);
+                break;
+            }
+
+            hFile = CreateFileA(szMbdFile, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_NONE, NULL, OPEN_EXISTING /* GetTempFileNameEx created it */, 0, NULL);
+
+            if(hFile!=INVALID_HANDLE_VALUE)
+            {
+                if(WriteFile(hFile, lpData, luLen, &luWritten, NULL))
+                {
+                    CloseFile(&hFile);
+
+                    if(KvLoad(&l_ConfigDB, szMbdFile))
+                    {
+                        // foil attempts to override protected defaults
+                        KvForEachSection(&l_ConfigDB, &Config_P_FoilEachSection, NULL);
+
+                        bSuccess = true;
+                    }
+                }
+                else
+                {
+                    CloseFile(&hFile);
+                }
             }
 
             // clean up the evidence
             DeleteFileA(szMbdFile);
-        }
-        else
-        {
-            bSuccess = false;
+            break;
         }
 
         if(!bSuccess)
@@ -222,9 +236,10 @@ bool __stdcall ConfigInit(void)
     }
 
     // external/user configuration
-    luLen = GetModuleFileNameA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile));
-    lstrcpyA((luLen>4 && l_szIniFile[luLen-4]=='.') ? &l_szIniFile[luLen-4] : &l_szIniFile[luLen], ".ini");
-    KvLoad(&l_ConfigDB, l_szIniFile);
+    if(GetModuleFileNameSpecificPathA(NULL, l_szIniFile, __ARRAYSIZE(l_szIniFile), NULL, "ini"))
+    {
+        KvLoad(&l_ConfigDB, l_szIniFile);
+    }
 
     return true;
 }
