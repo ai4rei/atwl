@@ -7,8 +7,8 @@
 #ifndef _ROCRED_H_
 #define _ROCRED_H_
 
-#define APP_VERSION "1.10.0.0"
-#define APP_VERSIONINFO_VERSION 1,10,0,0
+#define APP_VERSION "1.10.0.110"
+#define APP_VERSIONINFO_VERSION 1,10,0,110
 
 #define IDI_MAINICON                    1
 #define IDC_USERNAME                    101

@@ -14,7 +14,7 @@ IDI_MAINICON ICON DISCARDABLE "app-1002.ico"
 #define APP_PRODUCTNAME "RO Credentials"
 #define APP_DESCRIPTION "Minimalist Client Launcher"
 #define APP_HAS_UI
-#define APP_COPYYEAR "2012-2017"
+#define APP_COPYYEAR "2012-2018"
 #define APP_INTERNALNAME "ROCred"
 #define APP_ORIGINALNAME "rocred.exe"
 
