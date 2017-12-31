@@ -132,7 +132,7 @@ bool __stdcall ConfigSave(void)
                         if(CopyFileA(szSrcName, szDstName, FALSE))
                         {
                             // persist as resource
-                            if(ResourceStore(szDstName, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
+                            if(ResourceStoreA(szDstName, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
                             {
                                 bSuccess = true;
                             }
@@ -183,7 +183,7 @@ bool __stdcall ConfigInit(void)
     KvDirty(&l_ConfigDB, false);
 
     // load embedded/admin configuration
-    if(ResourceFetch(NULL, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", &lpData, &luLen))
+    if(ResourceFetchA(NULL, MAKEINTRESOURCE(RT_RCDATA), "CONFIG", &lpData, &luLen))
     {
         for(;;)
         {
