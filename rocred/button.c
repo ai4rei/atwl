@@ -183,7 +183,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
 
             if(lpszFile)
             {
-                bSuccess = (StartClient(hWnd, lpszFile, lpszParam), true);  // TODO: Real result.
+                bSuccess = StartClient(hWnd, lpszFile, lpszParam);
             }
 
             MemTFree(&lpszBuf);

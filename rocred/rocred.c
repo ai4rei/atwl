@@ -202,8 +202,9 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 }
 
 // Run and execute process.
-static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
+static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
 {
+    bool bSuccess = false;
     char szBuffer[1024], szFileClass[MAX_REGISTRY_KEY_SIZE+1];
     va_list lpVl;
     SHELLEXECUTEINFO Sei = { sizeof(Sei) };
@@ -235,6 +236,8 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
         {
             IdleWaitProcess(hWnd, Sei.hProcess);
             CloseHandle(Sei.hProcess);
+
+            bSuccess = true;
         }
     }
     else if(GetLastError()==ERROR_CANCELLED)
@@ -256,7 +259,13 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
         LoadStringA(GetWindowInstance(hWnd), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
         wsprintfA(szMessage, szFormat, lpszApplication, szBuffer, szError);
         MsgBox(hWnd, szMessage, MB_ICONSTOP|MB_OK);
+
+        ZeroMemory((void*)(volatile void*)szMessage, sizeof(szMessage));
     }
+
+    ZeroMemory((void*)(volatile void*)szBuffer, sizeof(szBuffer));
+
+    return bSuccess;
 }
 
 static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
@@ -351,8 +360,9 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
     return true;  // next
 }
 
-void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
+bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
 {
+    bool bSuccess = false;
     char szUserName[24];
     char szPassWord[24];
     char szExePath[MAX_PATH];
@@ -367,7 +377,7 @@ void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
     if(lstrlenA(szUserName)<4)
     {
         MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
-        return;
+        return false;
     }
 
     GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
@@ -375,7 +385,7 @@ void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
     if(lstrlenA(szPassWord)<4)
     {
         MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
-        return;
+        return false;
     }
 
     if(ConfigGetInt("PolicyNoSessionPassword"))
@@ -418,7 +428,7 @@ void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
         }
         else
         {// did not agree
-            return;
+            return false;
         }
     }
 
@@ -430,15 +440,17 @@ void __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
         MD5_String(szPassWord, &Hash);
         XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
 
-        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
+        bSuccess = InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
     }
     else
     {// Plaintext
-        InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
+        bSuccess = InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szPassWord, szUserName, lpszExeType);
     }
 
     // get rid of the password after it has been used
     ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
+
+    return bSuccess;
 }
 
 static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
