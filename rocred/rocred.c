@@ -237,6 +237,15 @@ static void __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
             CloseHandle(Sei.hProcess);
         }
     }
+    else if(GetLastError()==ERROR_CANCELLED)
+    {
+        // Purpose: The user explicitely canceled a shell UI, such
+        // as "Find application to run this file" or UAC prompt,
+        // preceding the actual process invocation. As per UX
+        // guidelines, such action should not result in a follow up
+        // error message.
+        ;
+    }
     else
     {
         char szMessage[4096];
