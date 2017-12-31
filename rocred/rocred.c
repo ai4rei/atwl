@@ -490,7 +490,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
             if(lpszUserName[0])
             {
                 SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), lpszUserName);
-                SetFocus(GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
+                SetDialogFocus(hWnd, GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
                 bSetFocus = FALSE;
             }
         }
