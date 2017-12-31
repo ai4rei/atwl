@@ -331,12 +331,12 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
         }
         else
         {
-            MessageBox(NULL, "Failed to create button.", lpszName, MB_ICONSTOP|MB_OK);
+            MessageBoxA(hWnd, "Failed to create button.", lpszName, MB_ICONSTOP|MB_OK);
         }
     }
     else
     {
-        MessageBoxA(NULL, "Invalid button identifier.", lpszSection, MB_ICONSTOP|MB_OK);
+        MessageBoxA(hWnd, "Invalid button identifier.", lpszSection, MB_ICONSTOP|MB_OK);
     }
 
     return true;  // next
