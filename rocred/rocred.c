@@ -438,7 +438,7 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
                     SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), "");
                 }
 
-                bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, 103), BM_GETCHECK, 0, 0)==BST_CHECKED);
+                bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_GETCHECK, 0, 0)==BST_CHECKED);
                 ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
 
                 if(bCheckSave)
