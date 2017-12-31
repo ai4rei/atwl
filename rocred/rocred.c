@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <wincred.h>
 
 #include <btypes.h>
 #include <bvcstr.h>
@@ -17,6 +18,8 @@
 #include <macaddr.h>
 #include <md5.h>
 #include <memtaf.h>
+#include <w32dll.h>  /* needed for w32cred */
+#include <w32cred.h>
 #include <w32ex.h>
 #include <w32ui.h>
 #include <xf_binhex.h>
@@ -367,6 +370,7 @@ bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
     char szPassWord[24];
     char szExePath[MAX_PATH];
     char szMiscInfo[128] = { 0 };
+    char szTargetName[128];
     const char* lpszExeName;
     const char* lpszExeType;
     BOOL bCheckSave;
@@ -396,13 +400,34 @@ bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
     bCheckSave = (BOOL)(SendMessage(GetDlgItem(hWnd, IDC_CHECKSAVE), BM_GETCHECK, 0, 0)==BST_CHECKED);
     ConfigSetStr("CheckSave", bCheckSave ? "1" : "0");
 
+    szTargetName[0] = 0;
+    if(ConfigGetInt("CheckSavePassword"))
+    {
+        const char* lpszConfigID = ConfigGetStr("ConfigID");
+
+        if(lpszConfigID[0])
+        {
+            snprintf(szTargetName, __ARRAYSIZE(szTargetName), "%s%s", ROCRED_TARGET_NAME, lpszConfigID);
+        }
+    }
+
     if(bCheckSave)
     {// save
         ConfigSetStr("UserName", szUserName);
+
+        if(szTargetName[0])
+        {
+            WinCredSaveA(szTargetName, szUserName, szPassWord, CRED_PERSIST_LOCAL_MACHINE);
+        }
     }
     else
     {// delete
         ConfigSetStr("UserName", NULL);
+
+        if(szTargetName[0])
+        {
+            WinCredDeleteA(szTargetName, CRED_TYPE_GENERIC, 0);
+        }
     }
 
     lpszExeName = lpszExecutable;
@@ -492,6 +517,30 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
                 SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), lpszUserName);
                 SetDialogFocus(hWnd, GetDlgItem(hWnd, IDC_PASSWORD));  // move focus to password
                 bSetFocus = FALSE;
+            }
+
+            if(ConfigGetInt("CheckSavePassword"))
+            {// check credential manager
+                const char* lpszConfigID = ConfigGetStr("ConfigID");
+
+                if(lpszConfigID[0])
+                {
+                    char szUserName[24];
+                    char szPassWord[24];
+                    char szTargetName[128];
+
+                    snprintf(szTargetName, __ARRAYSIZE(szTargetName), "%s%s", ROCRED_TARGET_NAME, lpszConfigID);
+
+                    if(WinCredLoadA(szTargetName, szUserName, __ARRAYSIZE(szUserName), szPassWord, __ARRAYSIZE(szPassWord)))
+                    {
+                        SetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord);
+                        ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
+
+                        SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName);
+                        SetDialogFocus(hWnd, GetDlgItem(hWnd, IDOK));
+                        bSetFocus = FALSE;
+                    }
+                }
             }
         }
     }
