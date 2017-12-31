@@ -166,7 +166,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     if(bTrayIcon)
     {
         // set up notification icon (no 'auto restore' or 'load later')
-        Nid.hIcon = LoadImage(hInstance, MAKEINTRESOURCE(2), IMAGE_ICON, 16, 16, LR_SHARED);
+        Nid.hIcon = LoadSmallIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON));
         LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
         Shell_NotifyIcon(NIM_ADD, &Nid);
     }
@@ -645,7 +645,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         {
             if(AppMutexAcquire(&hMutex))
             {
-#if 0
+#ifdef WITH_RESOURCE_EMBEDDING
                 if(lpszCmdLine[0]=='/')
                 {
                     if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
@@ -661,7 +661,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
                     }
                 }
                 else
-#endif
+#endif  /* WITH_RESOURCE_EMBEDDING */
                 {
                     CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
                     DlgTi.wFontSize = ConfigGetInt("FontSize");
