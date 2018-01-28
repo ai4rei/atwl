@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -27,7 +27,7 @@
 
 #include "opensetup.h"
 
-static const char* l_lpszSignature = "$ RagnarokOnline OpenSetup, "APP_VERSION", build on "__DATE__" @ "__TIME__", (c) 2010-2014 Ai4rei/AN $";
+static const char* l_lpszSignature = "$ RagnarokOnline OpenSetup, "APP_VERSION", build on "__DATE__" @ "__TIME__", (c) 2010-2017 Ai4rei/AN $";
 
 static const unsigned int l_lpuNumSampleTypes[] =
 {
@@ -160,6 +160,7 @@ static void __stdcall OnChangeDevice(HWND hWnd)
 static inline bool __stdcall IsZeroGUID(REFGUID rguid)
 {
     static const GUID zguid = { 0 };
+
     return IsEqualGUID(rguid, zguid)!=FALSE;
 }
 
@@ -689,8 +690,8 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
                             SHELLEXECUTEINFO Sei = { sizeof(Sei) };
 
                             Sei.hwnd = hWnd;
-                            Sei.lpVerb = "open";
-                            Sei.lpFile = "http://nn.nachtwolke.com/dev/opensetup/";
+                            Sei.lpVerb = NULL;
+                            Sei.lpFile = "http://ai4rei.net/p/opensetup";
                             Sei.nShow = SW_SHOWNORMAL;
 
                             EnableWindow(GetDlgItem(hWnd, IDHOMEPAGE), FALSE);
@@ -714,6 +715,7 @@ static BOOL CALLBACK AboutTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 static void __stdcall OnChangeSettingsEngine(HWND hWnd)
 {
+    HICON hOldIcon = NULL;
     HINSTANCE hInstance = GetModuleHandle(NULL);
     SETTINGENGINEID nEngineID = Settings->GetEngineID();
 
@@ -726,13 +728,18 @@ static void __stdcall OnChangeSettingsEngine(HWND hWnd)
     switch(nEngineID)
     {
         case SENGINE_LUA:
-            SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_LUA), IMAGE_ICON, 0, 0, LR_SHARED));
+            hOldIcon = (HICON)SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_LUA), IMAGE_ICON, 0, 0, 0));
             break;
         case SENGINE_REG:
-            SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_REG), IMAGE_ICON, 0, 0, LR_SHARED));
+            hOldIcon = (HICON)SendMessage(GetDlgItem(hWnd, IDELOGO), STM_SETIMAGE, IMAGE_ICON,
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ENGINE_REG), IMAGE_ICON, 0, 0, 0));
             break;
+    }
+    if(hOldIcon)
+    {
+        DestroyIcon(hOldIcon);
+        hOldIcon = NULL;
     }
 
     // recall storage
@@ -800,9 +807,9 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
             // give the dialog window icons
             SendMessage(hWnd, WM_SETICON, ICON_BIG,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_APPLICATION_LARGE), IMAGE_ICON, 32, 32, LR_SHARED));
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_MAINICON), IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0));
             SendMessage(hWnd, WM_SETICON, ICON_SMALL,
-                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_APPLICATION_SMALL), IMAGE_ICON, 16, 16, LR_SHARED));
+                (LPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_MAINICON), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0));
 
             // initialize tab manager
             if(TabMgr.Init(hInstance, hWnd, 16, IDB_IMAGELIST_MASK, IMI_MAX))
@@ -962,8 +969,11 @@ static BOOL CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     return TRUE;
 }
 
-static int __cdecl DX7E_P_GetInfoSort(LPCDX7EDISPLAYMODE lpModeA, LPCDX7EDISPLAYMODE lpModeB)
+static int __cdecl DX7E_P_GetInfoSort(const void* lpOne, const void* lpTwo)
 {
+    LPCDX7EDISPLAYMODE const lpModeA = static_cast< LPCDX7EDISPLAYMODE >(lpOne);
+    LPCDX7EDISPLAYMODE const lpModeB = static_cast< LPCDX7EDISPLAYMODE >(lpTwo);
+
     if(lpModeA->luWidth==lpModeB->luWidth)
     {
         return lpModeA->luHeight-lpModeB->luHeight;
@@ -999,36 +1009,41 @@ static bool __stdcall DX7E_P_GetInfo(void)
     // sort out irrelevant stuff
     for(luDrivers=0; luDrivers<l_DI.luDrivers; luDrivers++)
     {
-        unsigned long luPrevModes = l_DI.Driver[luDrivers].luModes;
+        DX7EDISPLAYDRIVER* const lpDriver = &l_DI.Driver[luDrivers];
+        unsigned long luPrevModes = lpDriver->luModes;
 
-        for(luModes = l_DI.Driver[luDrivers].luModes; luModes>0; luModes--)
+        for(luModes = lpDriver->luModes; luModes>0; luModes--)
         {
-            if(l_DI.Driver[luDrivers].Mode[luModes-1].luWidth<640 || l_DI.Driver[luDrivers].Mode[luModes-1].luHeight<480 || l_DI.Driver[luDrivers].Mode[luModes-1].luBitDepth!=luBitDepthFlt)
+            const DX7EDISPLAYMODE* const lpMode = &lpDriver->Mode[luModes-1];
+
+            if(lpMode->luWidth<640 || lpMode->luHeight<480 || lpMode->luBitDepth!=luBitDepthFlt)
             {// setup imposed limitations
-                if(luModes<l_DI.Driver[luDrivers].luModes)
+                if(luModes<lpDriver->luModes)
                 {
-                    MoveMemory(&l_DI.Driver[luDrivers].Mode[luModes-1], &l_DI.Driver[luDrivers].Mode[luModes], (l_DI.Driver[luDrivers].luModes-luModes)*sizeof(l_DI.Driver[0].Mode[0]));
+                    MoveMemory(&lpDriver->Mode[luModes-1], &lpDriver->Mode[luModes], (lpDriver->luModes-luModes)*sizeof(lpDriver->Mode[0]));
                 }
-                l_DI.Driver[luDrivers].luModes--;
+
+                lpDriver->luModes--;
             }
         }
-        if(l_DI.Driver[luDrivers].luModes)
+
+        if(lpDriver->luModes)
         {// setup sorts modes
-            qsort(l_DI.Driver[luDrivers].Mode, l_DI.Driver[luDrivers].luModes, sizeof(l_DI.Driver[0].Mode[0]), (int (__cdecl*)(const void*,const void*))&DX7E_P_GetInfoSort);
+            qsort(lpDriver->Mode, lpDriver->luModes, sizeof(l_DI.Driver[0].Mode[0]), &DX7E_P_GetInfoSort);
         }
 
-        g_Log.LogInfo("Driver '%s': %lu video modes (%lu filtered), %lu hw devices, %lu sw devices", l_DI.Driver[luDrivers].szName, luPrevModes, luPrevModes-l_DI.Driver[luDrivers].luModes, l_DI.Driver[luDrivers].luDevicesHW, l_DI.Driver[luDrivers].luDevicesSW);
+        g_Log.LogInfo("Driver '%s': %lu video modes (%lu filtered), %lu hw devices, %lu sw devices", lpDriver->szName, luPrevModes, luPrevModes-lpDriver->luModes, lpDriver->luDevicesHW, lpDriver->luDevicesSW);
 
         g_Log.IncrementLevel();
 
-        for(luDevices = 0; luDevices<l_DI.Driver[luDrivers].luDevicesHW; luDevices++)
+        for(luDevices = 0; luDevices<lpDriver->luDevicesHW; luDevices++)
         {
-            g_Log.LogInfo("HW Device '%s': Type %d", l_DI.Driver[luDrivers].DeviceHW[luDevices].szName, l_DI.Driver[luDrivers].DeviceHW[luDevices].nType);
+            g_Log.LogInfo("HW Device '%s': Type %d", lpDriver->DeviceHW[luDevices].szName, lpDriver->DeviceHW[luDevices].nType);
         }
 
-        for(luDevices = 0; luDevices<l_DI.Driver[luDrivers].luDevicesSW; luDevices++)
+        for(luDevices = 0; luDevices<lpDriver->luDevicesSW; luDevices++)
         {
-            g_Log.LogInfo("SW Device '%s': Type %d", l_DI.Driver[luDrivers].DeviceSW[luDevices].szName, l_DI.Driver[luDrivers].DeviceSW[luDevices].nType);
+            g_Log.LogInfo("SW Device '%s': Type %d", lpDriver->DeviceSW[luDevices].szName, lpDriver->DeviceSW[luDevices].nType);
         }
 
         g_Log.DecrementLevel();

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -10,8 +10,7 @@
 
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 
-IDI_APPLICATION_LARGE ICON "appicon_l.ico"
-IDI_APPLICATION_SMALL ICON "appicon_s.ico"
+IDI_MAINICON ICON "appicon_l.ico"
 IDI_ENGINE_REG ICON "engine_reg.ico"
 IDI_ENGINE_LUA ICON "engine_lua.ico"
 IDI_PROBLEM ICON "warning.ico"
@@ -180,7 +179,7 @@ EXSTYLE WS_EX_CONTROLPARENT
 FONT DLG_FONT_SIZE, DLG_FONT_NAME
 BEGIN
     CONTROL "#8255", -1, BUTTON, BS_GROUPBOX | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 5, MDLG_CX-10, MDLG_CY-MDLG_BY-MDLG_TY-10
-    CONTROL IDI_APPLICATION_LARGE, -1, STATIC, SS_ICON, 15, 20, 0, 0
+    CONTROL IDI_MAINICON, -1, STATIC, SS_ICON, 15, 20, 0, 0
     CONTROL "", IDC_ABOUT_TITLE, "STATIC", SS_LEFT | SS_NOPREFIX | WS_TABSTOP, 45, 22, MDLG_CX-60, 16
     CONTROL "", IDC_ABOUT_CORPSE, "EDIT", WS_VSCROLL | WS_BORDER | WS_TABSTOP | ES_CENTER | ES_READONLY | ES_MULTILINE | ES_AUTOVSCROLL, 15, 50, MDLG_CX-30, MDLG_CY-MDLG_BY-MDLG_TY-85
     CONTROL "WWW", IDHOMEPAGE, BUTTON, BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 15, MDLG_CY-MDLG_BY-MDLG_TY-30, 50, 14
@@ -214,7 +213,7 @@ BEGIN
             VALUE "FileDescription", "RagnarokOnline OpenSetup"
             VALUE "FileVersion", APP_VERSION
             VALUE "InternalName", "OpenSetup"
-            VALUE "LegalCopyright", "Copyright © 2010-2014 Ai4rei/AN"
+            VALUE "LegalCopyright", "Copyright © 2010-2017 Ai4rei/AN"
             VALUE "LegalTrademarks", "RagnarokOnline is a trademark of Gravity Co., Ltd."
             VALUE "OriginalFilename", "OPENSETUP.EXE"
             VALUE "ProductName", "RagnarokOnline OpenSetup"

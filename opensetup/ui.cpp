@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -62,7 +62,7 @@ BOOL CALLBACK UI::LoadMUIForEach(HWND hWnd, LPARAM lParam)
 
     if(GetWindowTextA(hWnd, szText, __ARRAYSIZE(szText)) && szText[0]=='#')
     {
-        if(LoadStringA((HINSTANCE)lParam, strtoul(szText+1, NULL, 10), szText, __ARRAYSIZE(szText)))
+        if(LoadStringA(GetModuleHandle(NULL), strtoul(szText+1, NULL, 10), szText, __ARRAYSIZE(szText)))
         {
             SetWindowTextA(hWnd, szText);
         }
@@ -73,7 +73,7 @@ BOOL CALLBACK UI::LoadMUIForEach(HWND hWnd, LPARAM lParam)
 
 void __stdcall UI::LoadMUI(HWND hWnd)
 {
-    EnumChildWindows(hWnd, &UI::LoadMUIForEach, (LPARAM)GetModuleHandle(NULL));
+    EnumChildWindows(hWnd, &UI::LoadMUIForEach, 0);
 }
 
 int __stdcall UI::MessageBoxEx(HWND hWnd, const char* lpszText, const char* lpszCaption, unsigned long luStyle)
@@ -86,7 +86,7 @@ int __stdcall UI::MessageBoxEx(HWND hWnd, const char* lpszText, const char* lpsz
     Mbp.lpszText           = lpszText;
     Mbp.lpszCaption        = lpszCaption;
     Mbp.dwStyle            = luStyle|MB_USERICON;
-    Mbp.lpszIcon           = MAKEINTRESOURCE(IDI_APPLICATION_LARGE);
+    Mbp.lpszIcon           = MAKEINTRESOURCE(IDI_MAINICON);
     Mbp.dwContextHelpId    = 0;
     Mbp.lpfnMsgBoxCallback = NULL;
     Mbp.dwLanguageId       = 0;
@@ -299,7 +299,7 @@ void __stdcall UI::HandleToolTips(LPNMHDR lpHdr)
             uID = lpHdr->idFrom;
         }
 
-        if(!LoadStringA(GetWindowInstance(GetParent(lpHdr->hwndFrom), uID, szLastMsg, __ARRAYSIZE(szLastMsg)))
+        if(!LoadStringA(GetWindowInstance(GetParent(lpHdr->hwndFrom)), uID, szLastMsg, __ARRAYSIZE(szLastMsg)))
         {// no such string, should not happen
             DebugBreakHere();
             return;
@@ -314,7 +314,7 @@ HFONT __stdcall UI::GetShellFont()
 {
     NONCLIENTMETRICS Ncm = { sizeof(Ncm) };
 
-    if(SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, &Ncm, 0))
+    if(SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(Ncm), &Ncm, 0))
     {
         HFONT hFont = CreateFontIndirect(&Ncm.lfMessageFont);
 

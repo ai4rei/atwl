@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -221,11 +221,10 @@ void __stdcall CLog::P_EntryDeleteFirst(void)
 }
 
 CLog::CLog(unsigned long luLimit)
+    : m_luLimit(luLimit)
+    , m_luOptions(0UL)
+    , m_uLevel(1U)
 {
-    m_luLimit   = luLimit;
-    m_luOptions = 0;
-    m_uLevel    = 1;
-
     LogInfo("Logging started.");
     P_EntryInsertBasicInfo();
 }

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010-2017 Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -28,7 +28,7 @@ BEGIN
     IDCHECKBOX_VOODOO,              "Turns VooDoo3 graphics card hacks on and off.\nThis option is only for troubleshooting graphics card issues."
     IDTRACKBAR_SPRITEQ,             "Controls quality of sprite graphics.\nSprite graphics are player characters, monsters, items and similar objects. More means better quality, but also a higher memory usage.\n\nIngame: Alt+D"
     IDTRACKBAR_TEXTUREQ,            "Controls quality of texture graphics.\nTexture graphics are map grounds, 3D-object surfaces (houses) and loading screens. More means better quality, but also a higher memory usage.\n\nIngame: Alt+D"
-    IDCHECKBOX_AURA,                "Turns aura effect on and off.\nThis effect is displayed when you attain maximum base level for your job.\n\nIngame: /aura"
+    IDCHECKBOX_AURA,                "Turns aura effect simplification on and off.\nThis effect is displayed when you attain maximum base level for your job.\n\nIngame: /aura"
     IDCHECKBOX_ISFIXEDCAMERA,       "Turns camera zooming on and off.\nNote: This effect might be a burden for low system specification users.\n\nIngame: /camera"
     IDCHECKBOX_ISEFFECTON,          "Turns various visual special effects on and off.\nNote: Enabled effects might be a burden for low system specification users.\n\nIngame: /effect"
     IDCHECKBOX_ONHOUSERAI,          "Turns user-customized homunculus AI on and off.\nMakes the current homunculus act according AI\\USER_AI\\AI.lua instead of AI\\AI.lua script.\n\nIngame: /hoai"

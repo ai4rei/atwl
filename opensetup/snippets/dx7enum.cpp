@@ -1,13 +1,15 @@
-// -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
 // (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
-// -----------------------------------------------------------------
+// ---------------------------------------------------------------*/
 
-// ddraw.dll
-// > DirectDrawCreateEx
-// > DirectDrawEnumerateExA
+/*
+    ddraw.dll
+    > DirectDrawCreateEx
+    > DirectDrawEnumerateExA
+*/
 
 #define DIRECT3D_VERSION 0x0700
 #define DIRECTDRAW_VERSION 0x0700
@@ -32,24 +34,47 @@
     #endif  /* _ARRAYSIZE */
 #endif  /* __ARRAYSIZE */
 
+/* Allow file to be compiled as either C/C++ */
+#ifdef __cplusplus
+#define DX7E_DirectDrawCreateEx(S,lpGUID,lplpDD,iid,pUnkOuter)                            (S)->DirectDrawCreateEx((lpGUID),(lplpDD),(iid),(pUnkOuter))
+#define DX7E_DirectDrawEnumerateEx(S,lpCallback,lpContext,dwFlags)                        (S)->DirectDrawEnumerateEx((lpCallback),(lpContext),(dwFlags))
+#define DX7E_P_GetCaps(lpPtr,DDDriverCaps,DDHELCaps)                                      (lpPtr)->GetCaps((DDDriverCaps),(DDHELCaps))
+#define DX7E_P_EnumDisplayModes(lpPtr,dwFlags,lpDDSurfaceDesc,lpContext,lpEnumCallback)   (lpPtr)->EnumDisplayModes((dwFlags),(lpDDSurfaceDesc),(lpContext),(lpEnumCallback))
+#define DX7E_P_EnumDevices(lpPtr,lpEnumDevicesCallback,lpUserArg)                         (lpPtr)->EnumDevices((lpEnumDevicesCallback),(lpUserArg))
+#define DX7E_P_QueryInterface(lpPtr,riid,ppvObj)                                          (lpPtr)->QueryInterface((riid),(ppvObj))
+#define DX7E_P_Release(lpPtr)                                                             (lpPtr)->Release()
+#define DX7E_P_IsEqualIID(riid1,riid2)                                                    IsEqualIID((riid1),(riid2))
+#else  /* __cplusplus */
+#define DX7E_DirectDrawCreateEx(S,lpGUID,lplpDD,iid,pUnkOuter)                            (S)->DirectDrawCreateEx((lpGUID),(lplpDD),&(iid),(pUnkOuter))
+#define DX7E_DirectDrawEnumerateEx(S,lpCallback,lpContext,dwFlags)                        (S)->DirectDrawEnumerateEx((lpCallback),(lpContext),(dwFlags))
+#define DX7E_P_GetCaps(lpPtr,DDDriverCaps,DDHELCaps)                                      (lpPtr)->lpVtbl->GetCaps((lpPtr),(DDDriverCaps),(DDHELCaps))
+#define DX7E_P_EnumDisplayModes(lpPtr,dwFlags,lpDDSurfaceDesc,lpContext,lpEnumCallback)   (lpPtr)->lpVtbl->EnumDisplayModes((lpPtr),(dwFlags),(lpDDSurfaceDesc),(lpContext),(lpEnumCallback))
+#define DX7E_P_EnumDevices(lpPtr,lpEnumDevicesCallback,lpUserArg)                         (lpPtr)->lpVtbl->EnumDevices((lpPtr),(lpEnumDevicesCallback),(lpUserArg))
+#define DX7E_P_QueryInterface(lpPtr,riid,ppvObj)                                          (lpPtr)->lpVtbl->QueryInterface((lpPtr),&(riid),(ppvObj))
+#define DX7E_P_Release(lpPtr)                                                             (lpPtr)->lpVtbl->Release(lpPtr)
+#define DX7E_P_IsEqualIID(riid1,riid2)                                                    IsEqualIID(&(riid1),&(riid2))
+#endif  /* __cplusplus */
+
 /**
- * @brief   Prototypes for ddraw.dll functions.
- ******************************************************************/
-typedef HRESULT (WINAPI* LPFNDIRECTDRAWCREATEEX)(
+    @brief  Prototypes for ddraw.dll functions.
+*/
+typedef HRESULT (WINAPI* LPFNDIRECTDRAWCREATEEX)
+(
     GUID FAR* lpGUID,
     LPVOID* lplpDD,
     REFIID iid,
     IUnknown FAR* pUnkOuter
 );
-typedef HRESULT (WINAPI* LPFNDIRECTDRAWENUMERATEEX)(
+typedef HRESULT (WINAPI* LPFNDIRECTDRAWENUMERATEEX)
+(
     LPDDENUMCALLBACKEX lpCallback,
     LPVOID lpContext,
     DWORD dwFlags
 );
 
 /**
- * @brief   Structure for internal data passing.
- ******************************************************************/
+    @brief  Structure for internal data passing.
+*/
 typedef struct DX7ESTATE
 {
     LPDX7EDISPLAYDRIVERINFO lpDDI;
@@ -70,7 +95,7 @@ static HRESULT CALLBACK DX7E_P_EnumDevicesForEach(LPSTR lpDeviceDescription, LPS
     if(lpD3DDeviceDesc->dwDevCaps&D3DDEVCAPS_HWRASTERIZATION)
     {
         if(lpDriver->luDevicesHW>=__ARRAYSIZE(lpDriver->DeviceHW))
-        {// try next
+        {/* try next */
             return DDENUMRET_OK;
         }
 
@@ -79,7 +104,7 @@ static HRESULT CALLBACK DX7E_P_EnumDevicesForEach(LPSTR lpDeviceDescription, LPS
     else
     {
         if(lpDriver->luDevicesSW>=__ARRAYSIZE(lpDriver->DeviceSW))
-        {// try next
+        {/* try next */
             return DDENUMRET_OK;
         }
 
@@ -145,10 +170,10 @@ static BOOL CALLBACK DX7E_P_DirectDrawEnumerateForEach(GUID FAR* lpGUID, LPSTR l
     {
         LPDX7EDISPLAYDRIVER lpDriver = &S->lpDDI->Driver[S->lpDDI->luDrivers];
 
-        // initialize
+        /* initialize */
         lpDriver->luModes = 0;
 
-        // enumerate
+        /* enumerate */
         hr = DX7E_P_EnumDisplayModes(lpDD, 0, NULL, (LPVOID)lpDriver, &DX7E_P_EnumDisplayModesForEach);
 
         if(FAILED(hr))
@@ -167,10 +192,10 @@ static BOOL CALLBACK DX7E_P_DirectDrawEnumerateForEach(GUID FAR* lpGUID, LPSTR l
             }
             else
             {
-                // initialize
+                /* initialize */
                 lpDriver->luDevicesHW = lpDriver->luDevicesSW = 0;
 
-                // enumerate
+                /* enumerate */
                 hr = DX7E_P_EnumDevices(lpD3D, &DX7E_P_EnumDevicesForEach, (LPVOID)lpDriver);
 
                 if(FAILED(hr))
@@ -227,10 +252,10 @@ bool __stdcall DX7E_EnumDriverDevices(LPDX7EDISPLAYDRIVERINFO lpDDI)
     S.DirectDrawEnumerateEx = &DirectDrawEnumerateExA;
 #endif  /* DX7E_DYNAMIC */
 
-    // initialize
+    /* initialize */
     lpDDI->luDrivers = 0;
 
-    // enumerate
+    /* enumerate */
     hr = DX7E_DirectDrawEnumerateEx(&S, &DX7E_P_DirectDrawEnumerateForEach, (LPVOID)&S, DDENUM_ATTACHEDSECONDARYDEVICES|DDENUM_DETACHEDSECONDARYDEVICES|DDENUM_NONDISPLAYDEVICES);
 
 #ifdef DX7E_DYNAMIC

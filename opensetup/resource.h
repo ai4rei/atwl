@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------
 // RagnarokOnline OpenSetup
-// (c) 2010-2014 Ai4rei/AN
+// (c) 2010+ Ai4rei/AN
 // See doc/license.txt for details.
 //
 // -----------------------------------------------------------------
@@ -9,8 +9,7 @@
 #define _RESOURCE_H_
 
 // Icons
-#define IDI_APPLICATION_LARGE           1
-#define IDI_APPLICATION_SMALL           2
+#define IDI_MAINICON                    1
 #define IDI_ENGINE_REG                  3
 #define IDI_ENGINE_LUA                  4
 #define IDI_PROBLEM                     5
@@ -246,12 +245,12 @@
 #define WITHOUT_BANNER
 
 // About
-#define APP_TITLE "RagnarokOnline OpenSetup, Version "APP_VERSION"\r\n(C) 2010-2014 Ai4rei/AN"
+#define APP_TITLE "RagnarokOnline OpenSetup, Version "APP_VERSION"\r\n(C) 2010-2017 Ai4rei/AN"
 #define APP_CORPSE \
     "-=- Disclaimer -=-\r\n\r\n"\
     "This software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.\r\n\r\n"\
     "-=- Credits -=-\r\n\r\n"\
-    "RagnarokOnline, Ragnarok-related graphics and materials are Copyright (C) 2002-2014 Gravity Co., Ltd. & Lee Myoungjin.\r\n\r\n"\
+    "RagnarokOnline, Ragnarok-related graphics and materials are Copyright (C) 2002-2017 Gravity Co., Ltd. & Lee Myoungjin.\r\n\r\n"\
     "Tab icons are taken from the \"LED Icon Set\" v1.0\r\nhttp:/\x2fled24.de/iconset/\r\n\r\n"\
     "Uses scripting language Lua 5.1.4\r\nCopyright (C) 1994-2008 Lua.org, PUC-Rio.\r\n\r\n"\
     "Some texts are based on the msgstringtable.txt and tipOfTheDay.txt from the official European Ragnarok Online (euRO) Client.\r\n\r\n"\
