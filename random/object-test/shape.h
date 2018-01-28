@@ -4,8 +4,8 @@
 class CShape : public CObject
 {
 public:
+    virtual ~CShape();
     CShape();
-    ~CShape();
 };
 
 #endif  /* _SHAPE_H_ */

@@ -3,10 +3,9 @@
 #include "object.h"
 
 CObject::CObject()
+    : m_ulReferences(1UL)
 {
     printf("CObject::CObject\n");
-
-    this->m_ulReferences = 1UL;
 }
 
 CObject::~CObject()
@@ -18,16 +17,16 @@ void CObject::Acquire()
 {
     printf("CObject::Acquire\n");
 
-    this->m_ulReferences++;
+    m_ulReferences++;
 }
 
 void CObject::Release()
 {
     printf("CObject::Release\n");
 
-    this->m_ulReferences--;
-    
-    if(!this->m_ulReferences)
+    m_ulReferences--;
+
+    if(!m_ulReferences)
     {
         delete this;
     }

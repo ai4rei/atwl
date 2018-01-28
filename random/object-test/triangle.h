@@ -4,8 +4,8 @@
 class CTriangle : public CShape
 {
 public:
+    virtual ~CTriangle();
     CTriangle();
-    ~CTriangle();
 };
 
 #endif  /* _TRIANGLE_H_ */

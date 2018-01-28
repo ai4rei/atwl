@@ -6,8 +6,8 @@ class CObject
     unsigned long m_ulReferences;
 
 protected:
-    CObject();
     virtual ~CObject();  // this has to be virtual, otherwise derived-class destructors will not be called
+    CObject();
 
 public:
     void Acquire();
