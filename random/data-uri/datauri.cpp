@@ -8,11 +8,12 @@
 #include <urlcode.h>
 
 // {9AFB53E0-EBAD-11E5-A77F-0011096B4C08}
-DEFINE_GUID(CLSID_DataUri, 
+DEFINE_GUID(CLSID_DataUri,
 0x9afb53e0, 0xebad, 0x11e5, 0xa7, 0x7f, 0x0, 0x11, 0x9, 0x6b, 0x4c, 0x8);
 
 class CDataUri : public IInternetProtocol
 {
+private:
 	LPBYTE m_lpucData;
 	LPWSTR m_lpszMimeType;
 	ULONG m_ulDataRead;
@@ -21,6 +22,9 @@ class CDataUri : public IInternetProtocol
 	bool m_bIsBase64;
 
 protected:
+	CDataUri();
+	~CDataUri();
+
 	STDMETHODIMP_(bool) P_ParseUrlProtocol(LPCWSTR lpszData, LPCWSTR* lppszNext);
 	STDMETHODIMP_(bool) P_ParseUrlMediaType(LPCWSTR lpszData, LPCWSTR* lppszNext);
 	STDMETHODIMP_(bool) P_ParseUrlExtension(LPCWSTR lpszData, LPCWSTR* lppszNext);
@@ -29,9 +33,6 @@ protected:
 	STDMETHODIMP P_ExtractData(LPCWSTR lpszData);
 
 public:
-	CDataUri();
-	~CDataUri();
-
 	// IUnknown
 	STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
 	STDMETHODIMP_(ULONG) AddRef();
@@ -50,6 +51,8 @@ public:
 	STDMETHODIMP Read(LPVOID lpBuffer, ULONG ulBufferSize, ULONG* lpulRead);
 	STDMETHODIMP Seek(LARGE_INTEGER ullMove, DWORD dwOrigin, ULARGE_INTEGER* lpullNewPosition);
 	STDMETHODIMP UnlockRequest();
+
+	friend class CDataUriClassFactory;
 };
 
 class CDataUriClassFactory : public IClassFactory
@@ -65,20 +68,20 @@ public:
 	STDMETHODIMP LockServer(BOOL fLock);
 };
 
-static CDataUriClassFactory g_ClassFactory;  // keep a single global instance
-static ULONG l_ulLocks = 0;
+static CDataUriClassFactory l_ClassFactory;  // keep a single global instance
+static ULONG l_ulLocks = 0UL;
 
 // CDataUri
 //
 
 CDataUri::CDataUri()
+	: m_lpucData(NULL)
+	, m_lpszMimeType(NULL)
+	, m_ulDataRead(0UL)
+	, m_ulDataSize(0UL)
+	, m_ulLocks(1UL)
+	, m_bIsBase64(false)
 {
-	m_lpucData = NULL;
-	m_lpszMimeType = NULL;
-	m_ulDataRead = 0;
-	m_ulDataSize = 0;
-	m_ulLocks = 0;
-	m_bIsBase64 = false;
 }
 
 CDataUri::~CDataUri()
@@ -300,7 +303,7 @@ STDMETHODIMP CDataUri::P_ExtractData(LPCWSTR lpszData)
 			lpucData = NULL;
 		}
 	}
-	
+
 	return hr;
 }
 
@@ -410,13 +413,8 @@ STDMETHODIMP CDataUri::Start(LPCWSTR szUrl, IInternetProtocolSink* lpOIProtSink,
 
 	lpOIProtSink->ReportResult(hr, 0, NULL);
 
-	// NOTE: Must not Release, as URLMON does not AddRef.
-	//lpOIProtSink->Release();
-	lpOIProtSink = NULL;
-
-	// NOTE: Must not Release, as URLMON does not AddRef.
-	//lpOIBindInfo->Release();
-	lpOIBindInfo = NULL;
+	// NOTE: Must not Release lpOIProtSink or lpOIBindInfo because
+	// we do not own them.
 
 	return hr;
 }
@@ -494,12 +492,12 @@ STDMETHODIMP CDataUriClassFactory::QueryInterface(REFIID riid, LPVOID* lppOut)
 
 STDMETHODIMP_(ULONG) CDataUriClassFactory::AddRef()
 {
-	return InterlockedIncrement((LPLONG)&l_ulLocks);
+	return LockServer(TRUE);
 }
 
 STDMETHODIMP_(ULONG) CDataUriClassFactory::Release()
 {
-	return InterlockedDecrement((LPLONG)&l_ulLocks);
+	return LockServer(FALSE);
 }
 
 STDMETHODIMP CDataUriClassFactory::CreateInstance(IUnknown* lpUnkOuter, REFIID riid, LPVOID* lppOut)
@@ -512,7 +510,6 @@ STDMETHODIMP CDataUriClassFactory::CreateInstance(IUnknown* lpUnkOuter, REFIID r
 		}
 
 		CDataUri* DataUri = NULL;
-		IUnknown* Unknown = NULL;
 
 		try
 		{
@@ -528,14 +525,9 @@ STDMETHODIMP CDataUriClassFactory::CreateInstance(IUnknown* lpUnkOuter, REFIID r
 			return E_OUTOFMEMORY;
 		}
 
-		Unknown = static_cast< IUnknown* >(DataUri);
+		HRESULT hr = DataUri->QueryInterface(riid, lppOut);
 
-		HRESULT hr = Unknown->QueryInterface(riid, lppOut);
-
-		if(FAILED(hr))
-		{
-			delete DataUri;
-		}
+		DataUri->Release();
 
 		return hr;
 	}
@@ -545,7 +537,14 @@ STDMETHODIMP CDataUriClassFactory::CreateInstance(IUnknown* lpUnkOuter, REFIID r
 
 STDMETHODIMP CDataUriClassFactory::LockServer(BOOL fLock)
 {
-	(fLock ? InterlockedIncrement : InterlockedDecrement)((LPLONG)&l_ulLocks);
+	if(fLock)
+	{
+		InterlockedIncrement((LPLONG)&l_ulLocks);
+	}
+	else
+	{
+		InterlockedDecrement((LPLONG)&l_ulLocks);
+	}
 
 	return S_OK;
 }
@@ -555,7 +554,7 @@ STDMETHODIMP CDataUriClassFactory::LockServer(BOOL fLock)
 
 STDAPI DllCanUnloadNow()
 {
-	return l_ulLocks==0 ? S_OK : S_FALSE;
+	return l_ulLocks==0UL ? S_OK : S_FALSE;
 }
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* lppOut)
@@ -564,7 +563,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* lppOut)
 	{
 		if(IsEqualCLSID(rclsid, CLSID_DataUri))
 		{
-			return g_ClassFactory.QueryInterface(riid, lppOut);
+			return l_ClassFactory.QueryInterface(riid, lppOut);
 		}
 
 		lppOut[0] = NULL;
