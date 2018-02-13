@@ -10,11 +10,14 @@ DEFINE_GUID(CLSID_ExampleShellFolder,
 
 class CExampleShellFolder : public IShellFolder, public IPersistFolder
 {
+private:
     ULONG m_ulLocks;
+
+private:
+    ~CExampleShellFolder();
 
 public:
     CExampleShellFolder();
-    ~CExampleShellFolder();
 
     // IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
@@ -60,8 +63,8 @@ static ULONG l_ulLocks = 0;
 //
 
 CExampleShellFolder::CExampleShellFolder()
+    : m_ulLocks(1UL)
 {
-    m_ulLocks = 0UL;
 }
 
 CExampleShellFolder::~CExampleShellFolder()
@@ -255,10 +258,8 @@ STDMETHODIMP CExampleShellFolderClassFactory::CreateInstance(IUnknown* lpUnkOute
 
         HRESULT hr = ExampleShellFolder->QueryInterface(riid, lppOut);
 
-        if(FAILED(hr))
-        {
-            delete ExampleShellFolder;
-        }
+        ExampleShellFolder->Release();
+        ExampleShellFolder = NULL;
 
         return hr;
     }

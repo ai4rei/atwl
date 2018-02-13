@@ -32,13 +32,13 @@ public:
 };
 
 CEnumIDList::CEnumIDList(LPITEMIDLIST* alpidl, ULONG ulpidlCount)
+    : m_ulLocks(1U)
+    , m_alpidl(alpidl)
+    , m_ulpidlCount(ulpidlCount)
+    , m_ulpidlIdx(0UL)
 {
-    m_ulLocks = 1U;
-
-    m_alpidl      = alpidl;
-    m_ulpidlCount = ulpidlCount;
-    m_ulpidlIdx   = 0UL;
 }
+
 CEnumIDList::~CEnumIDList()
 {
     ULONG ulIdx;

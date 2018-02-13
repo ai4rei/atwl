@@ -14,9 +14,8 @@ private:
 
 protected:
     CFileSystemBindData()
+        : m_ulLocks(1UL)
     {
-        m_ulLocks = 1U;
-
         ZeroMemory(&m_Wfd, sizeof(m_Wfd));
     }
     ~CFileSystemBindData()

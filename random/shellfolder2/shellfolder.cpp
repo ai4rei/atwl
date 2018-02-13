@@ -18,16 +18,19 @@ DEFINE_GUID(CLSID_ExampleShellFolder2,
 
 class CExampleShellFolder2 : public IShellFolder2, public IPersistFolder2  // No IShellDetails, because systems that need it do not have system-provided IShellView
 {
+private:
     ULONG m_ulLocks;
 
     PIDLIST_ABSOLUTE m_lpidl;
+
+private:
+    ~CExampleShellFolder2();
 
 protected:
     STDMETHODIMP P_GetColumnCaption(PCUITEMID_CHILD lpidl, const SHCOLUMNID* lpScid, VARIANT* lpVarOut, LPWSTR lpszBuffer, UINT uBufferSize);
 
 public:
     CExampleShellFolder2();
-    ~CExampleShellFolder2();
 
     // IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID* lppOut);
@@ -123,10 +126,9 @@ STDMETHODIMP CExampleShellFolder2::P_GetColumnCaption(PCUITEMID_CHILD lpidl, con
 }
 
 CExampleShellFolder2::CExampleShellFolder2()
+    : m_ulLocks(1UL)
+    , m_lpidl(NULL)
 {
-    m_ulLocks = 0UL;
-
-    m_lpidl = NULL;
 }
 
 CExampleShellFolder2::~CExampleShellFolder2()
@@ -632,10 +634,8 @@ STDMETHODIMP CExampleShellFolderClassFactory::CreateInstance(IUnknown* lpUnkOute
 
         HRESULT hr = ExampleShellFolder->QueryInterface(riid, lppOut);
 
-        if(FAILED(hr))
-        {
-            delete ExampleShellFolder;
-        }
+        ExampleShellFolder->Release();
+        ExampleShellFolder = NULL;
 
         return hr;
     }
