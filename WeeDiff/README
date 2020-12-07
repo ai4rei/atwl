@@ -1,5 +1,4 @@
-This is a continuation/mod of Shin's Diff Patcher aka. WeeDiff and
-associated WeeDiffGen, both made by Shinryo.
+This is a fork of Shin's Diff Patcher aka. WeeDiff and associated WeeDiffGen, both made by Shinryo.
 
 The original source has been obtained from:
     https://subversion.assembla.com/svn/weetools/src/WeeDiff
@@ -10,6 +9,4 @@ Original:
     http://rathena.org/board/topic/53421-weediffgen/
 
 ____________________________________________________________________
-This file applies software/code redistribution restrictions made by
-the license in effect. It must not be removed, unless the original
-author decides otherwise.
+This file applies software/code redistribution restrictions made by the license in effect. It must not be removed, unless the original author decides otherwise.
