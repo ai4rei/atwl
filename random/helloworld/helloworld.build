@@ -19,6 +19,11 @@ helloworld.res
 
 /link /DLL /DEF:helloworld.def
 /link /OPT:REF /OPT:ICF,99
+/link /NODEFAULTLIB
 
+unicows.lib
+msvcrt.lib
+kernel32.lib
 user32.lib
 oleaut32.lib
+uuid.lib

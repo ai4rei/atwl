@@ -3,6 +3,10 @@
 
 #include <windows.h>
 
+#ifndef _ARRAYSIZE
+    #define _ARRAYSIZE(X) (sizeof(X)/sizeof((X)[0]))
+#endif  /* _ARRAYSIZE */
+
 // {3834A400-E26F-11E6-A781-0011096B4C08}
 DEFINE_GUID(CLSID_HelloWorld,
 0x3834A400, 0xE26F, 0x11E6, 0xA7, 0x81, 0x00, 0x11, 0x09, 0x6B, 0x4C, 0x08);
