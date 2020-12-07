@@ -129,7 +129,7 @@ bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
 
 bool __stdcall BgSkinOnLButtonDown(HWND hWnd)
 {
-    if(BgSkin_P_IsActive())
+    if(BgSkin_P_IsActive() && !ConfigGetInt("ShowWindowCaption"))
     {
         // enable moving everywhere, since we no longer have a caption
         SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
@@ -217,7 +217,7 @@ static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const cha
     if(hbmLook)
     {
         LPBUTTONSKININFO lpBsi = NULL;
-        
+
         if(MemTAlloc(&lpBsi))
         {
             BvLListNodeInit(&lpBsi->Node);
@@ -239,7 +239,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
     BITMAP bmBG;
     HRGN hRGN;
     HWND hChildWnd = NULL;
-    RECT rcWnd, rcWA;
+    RECT rcWnd;
 
     l_hbmBackground = BgSkin_P_LoadBitmap("bgskin.bmp", "BGSKIN");
 
@@ -247,34 +247,40 @@ bool __stdcall BgSkinInit(HWND hWnd)
     {
         if(GetObject(l_hbmBackground, sizeof(bmBG), &bmBG))
         {
-            // set window size to bitmap size and get rid of
-            // non-client elements while being at it
-            SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX);
-            SetWindowPos(hWnd, NULL, 0, 0, bmBG.bmWidth, bmBG.bmHeight, SWP_NOZORDER|SWP_NOMOVE);
+            // set window size to bitmap size
+            SetRect(&rcWnd, 0, 0, bmBG.bmWidth, bmBG.bmHeight);
 
-            // center window
-            GetWindowRect(hWnd, &rcWnd);
-            SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWA, 0);
-            OffsetRect(&rcWA, ((rcWA.right-rcWA.left)-(rcWnd.right-rcWnd.left))/2, ((rcWA.bottom-rcWA.top)-(rcWnd.bottom-rcWnd.top))/2);
-            SetWindowPos(hWnd, NULL, rcWA.left, rcWA.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+            if(ConfigGetInt("ShowWindowCaption"))
+            {// adjust rectangle to account for non-client elements
+                AdjustWindowRectEx(&rcWnd, GetWindowStyle(hWnd), GetMenu(hWnd)!=NULL, GetWindowExStyle(hWnd));
+            }
+            else
+            {// get rid of non-client elements
+                SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP|WS_SYSMENU|WS_MINIMIZEBOX);
+                SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED|SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOOWNERZORDER);
+            }
 
-            // window size for base window region (origin transform)
-            GetWindowRect(hWnd, &rcWnd);
-            rcWnd.right-= rcWnd.left;
-            rcWnd.bottom-= rcWnd.top;
-            rcWnd.left = rcWnd.top = 0;
+            // center window and apply size
+            CenterWindowInWorkAreaWithRect(hWnd, &rcWnd);
 
-            // set up region
-            if((hRGN = CreateRectRgnIndirect(&rcWnd))!=NULL)
+            // only chrome-less windows can use irregular shapes
+            if(!ConfigGetInt("ShowWindowCaption"))
             {
-                if(MaskRegionFromBitmap(hRGN, l_hbmBackground, RGB(255, 0, 255)))
+                // window size for base window region (origin transform)
+                GetClientRect(hWnd, &rcWnd);
+
+                // set up region
+                if((hRGN = CreateRectRgnIndirect(&rcWnd))!=NULL)
                 {
-                    SetWindowRgn(hWnd, hRGN, TRUE);
-                    hRGN = NULL;  // system took ownership
-                }
-                else
-                {
-                    DeleteObject(hRGN);
+                    if(MaskRegionFromBitmap(hRGN, l_hbmBackground, RGB(255, 0, 255)))
+                    {
+                        SetWindowRgn(hWnd, hRGN, TRUE);
+                        hRGN = NULL;  // system took ownership
+                    }
+                    else
+                    {
+                        DeleteObject(hRGN);
+                    }
                 }
             }
         }
