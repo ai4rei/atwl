@@ -17,6 +17,7 @@ IDI_MAINICON ICON DISCARDABLE "app-1002.ico"
 #define APP_COPYYEAR "2012-2018"
 #define APP_INTERNALNAME "ROCred"
 #define APP_ORIGINALNAME "rocred.exe"
+#define APP_PACKAGENAME "Ai4rei.E.ROCred"
 
 #include <rc_vinfo.rc>
 #include <rc_mfsta.rc>
