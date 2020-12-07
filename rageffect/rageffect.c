@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------
 // CRagEffect::Init Database
-// (c) 2014 Ai4rei/AN
+// (c) 2014-2018 Ai4rei/AN
 //
 // ---------------------------------------------------------------*/
 
@@ -11,11 +11,12 @@
 
 #define DBG
 #include <btypes.h>
+#include <bvcstr.h>
 #include <bvdebug.h>
 #include <bvpe.h>
-#include <cstr.h>
 #include <hashdb.h>
 #include <memory.h>
+#include <memtaf.h>
 #include <ragtok.h>
 #include <ioapix.h>
 
@@ -38,7 +39,7 @@ static void __WDECL MeConstructName(char* lpszBuffer, int nIsMinEffect, SIZE_T u
         if(sscanf(lpszRand+1, "%d,%d", &nMin, &nMax)==2)
         {
             int nRand = nMin+rand()%(nMax-nMin+1);
-            
+
             sprintf(lpszBuffer, lpszName, nRand);
             strcpy(strchr(lpszBuffer, ':'), ".str");
         }
@@ -75,17 +76,14 @@ static void __CDECL DllCallback(char* lpszBuffer, int nIsMinEffect, int nSkillEf
         else for(uIdx = 0; uIdx<l_uRows; uIdx++)
         {
             const char* lpszItem = l_lppszCells[uIdx*3+0];
-            const char* lpszNext;
-            long lID;
+            long lID = 0L;
 
-            lID = lstrtolA(lpszItem, &lpszNext, 10);
-            
-            if(!lID && lpszItem==lpszNext)
+            if(!BvStrToLongExA(lpszItem, NULL, 10, &lID) || !lID)
             {
                 DBGPRINT(("RagEffect::DllCallback: - Invalid ID '%s', skipping.\n", lpszItem));
                 continue;
             }
-            
+
             if(!idb_put(l_EffectDB, lID, (void*)uIdx))
             {
                 DBGPRINT(("RagEffect::DllCallback: - Cache out of memory, remaining entries will not be cached.\n"));
@@ -113,12 +111,9 @@ static void __CDECL DllCallback(char* lpszBuffer, int nIsMinEffect, int nSkillEf
     for(uIdx = 0; uIdx<l_uRows; uIdx++)
     {
         const char* lpszItem = l_lppszCells[uIdx*3+0];
-        const char* lpszNext;
-        long lID;
+        long lID = 0L;
 
-        lID = lstrtolA(lpszItem, &lpszNext, 10);
-
-        if(!lID && lpszItem==lpszNext)
+        if(!BvStrToLongExA(lpszItem, NULL, 10, &lID) || !lID)
         {
             DBGPRINT(("RagEffect::DllCallback: - Invalid ID '%s', skipping.\n", lpszItem));
             continue;
@@ -177,12 +172,12 @@ static void __WDECL DllInstall(void)
             if(lpSwitchHead)
             {
 
-                if(((LPBYTE)MAKEOFFSET(lpSwitchHead, 81))[0]==0xE9)
+                if(((BYTE const*)OFFSETPTR(lpSwitchHead, 81))[0]==0xE9)
                 {/* VC9 */
                     l_uEndOffset = 81;
                 }
                 else
-                if(((LPBYTE)MAKEOFFSET(lpSwitchHead, 80))[0]==0xE9)
+                if(((BYTE const*)OFFSETPTR(lpSwitchHead, 80))[0]==0xE9)
                 {/* VC10 */
                     l_uEndOffset = 80;
                 }
@@ -196,9 +191,9 @@ static void __WDECL DllInstall(void)
                     */
                     if(IOFileSizeExists("data\\id2rageffect.txt", &luSize))
                     {
-                        char* lpszTable = Memory_Alloc(luSize+1);
+                        char* lpszTable = NULL;
 
-                        if(lpszTable)
+                        if(MemTAllocEx(&lpszTable, luSize+1UL))
                         {
                             if(IOFileGetContents("data\\id2rageffect.txt", lpszTable, luSize))
                             {
@@ -218,22 +213,22 @@ static void __WDECL DllInstall(void)
                                     if(VirtualProtect(lpSwitchHead, l_uEndOffset, PAGE_READWRITE, &dwOldProtect))
                                     {
                                         /* jump over switch head */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,3))[0] = 0xEB;   /* CMP -> */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,4))[0] = 0x36;   /*    JMP */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,5))[0] = 0x90;   /* cosmetic patch */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,3))[0] = 0xEB;   /* CMP -> */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,4))[0] = 0x36;   /*    JMP */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,5))[0] = 0x90;   /* cosmetic patch */
 
                                         /* pass skill effect id */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,58))[0] = 0x90;  /* cosmetic patch */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,59))[0] = 0x50;  /* PUSH EAX */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,58))[0] = 0x90;  /* cosmetic patch */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,59))[0] = 0x50;  /* PUSH EAX */
 
                                         /* pass mineffect value */
-                                        Memory_Copy(MAKEOFFSET(lpSwitchHead,60), MAKEOFFSET(lpSwitchHead,l_uEndOffset+5), 2+4);
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,60))[0] = 0xFF;  /* CMP -> */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,61))[0] = 0x35;  /*   PUSH */
+                                        memcpy(OFFSETBUF(lpSwitchHead,60), OFFSETPTR(lpSwitchHead,l_uEndOffset+5), 2+4);
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,60))[0] = 0xFF;  /* CMP -> */
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,61))[0] = 0x35;  /*   PUSH */
 
                                         /* inject callback into call */
-                                        ((LPBYTE)MAKEOFFSET(lpSwitchHead,l_uEndOffset-11))[0] = 0xBE;  /* PUSH -> MOV */
-                                        ((LPDWORD)MAKEOFFSET(lpSwitchHead,l_uEndOffset-10))[0] = (DWORD)&DllCallback;
+                                        ((LPBYTE)OFFSETBUF(lpSwitchHead,l_uEndOffset-11))[0] = 0xBE;  /* PUSH -> MOV */
+                                        ((LPDWORD)OFFSETBUF(lpSwitchHead,l_uEndOffset-10))[0] = (DWORD)&DllCallback;
 
                                         VirtualProtect(lpSwitchHead, l_uEndOffset, dwOldProtect, &dwOldProtect);
 
@@ -254,7 +249,7 @@ static void __WDECL DllInstall(void)
                                 MessageBox(NULL, "Error: Cannot read table.", "RagEffect::DllInstall", MB_OK|MB_ICONINFORMATION);
                             }
 
-                            Memory_FreeEx(&lpszTable);
+                            MemTFree(&lpszTable);
                         }
                         else
                         {
@@ -303,7 +298,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             }
             if(l_lppszCells)
             {
-                Memory_FreeEx(&l_lppszCells);
+                MemTFree(&l_lppszCells);
             }
             break;
     }
