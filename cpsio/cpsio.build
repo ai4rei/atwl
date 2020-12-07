@@ -1,0 +1,17 @@
+/nologo
+/W3
+/O2x
+/GF
+/Gy
+/I..\snippets
+/I..\zlibstatic
+
+cpsio.c
+
+..\snippets\mem.c
+..\snippets\_mem\mem.win32.heap.c
+
+..\snippets\bvdata.cpp
+..\snippets\bvcpsio.cpp
+
+..\zlibstatic\zlib.lib
