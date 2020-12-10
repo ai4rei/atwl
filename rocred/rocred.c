@@ -149,13 +149,14 @@ static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
     return false;
 }
 
-static void __stdcall CombineExePathName(char* lpszExePath, unsigned long luExePathSize, const char* lpszExeName)
+static void __stdcall CombineExePathName(char* const lpszExePath, size_t const uExePathSize, char const* const lpszExeName)
 {
-    char* lpszSlash = lpszExePath+GetModuleFileNameA(NULL, lpszExePath, luExePathSize);
+    char szFileName[MAX_PATH];
 
-    for(; lpszSlash[-1]!='\\'; lpszSlash--);
+    GetModuleFileNameA(NULL, szFileName, __ARRAYSIZE(szFileName));
+    BvStrSplitWindowsSpecificPathComponentsA(szFileName, NULL, NULL);
 
-    strcpy(lpszSlash, lpszExeName);
+    snprintf(lpszExePath, uExePathSize, "%s\\%s", szFileName, lpszExeName);
 }
 
 // Waits for an process to exit, while keeping the application idle,
