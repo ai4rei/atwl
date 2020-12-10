@@ -12,5 +12,6 @@ IF "%1"=="clean" GOTO END
 :BUILD
 RC /Foobj\rocred.res /I..\snippets rocred.rc
 CL @rocred.build
+IF ERRORLEVEL 1 GOTO END
 MODPE /NOLOGO /RELEASE /DLLFLAGS +DYNAMICBASE+NXCOMPAT+TSAWARE rocred.exe
 :END
