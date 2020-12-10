@@ -73,7 +73,7 @@ int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
 {
     char szTitle[64];
     char szMessage[4096];
-    HINSTANCE hInstance = hWnd ? GetWindowInstance(hWnd) : GetModuleHandle(NULL);
+    HINSTANCE const hInstance = (hWnd!=NULL) ? GetWindowInstance(hWnd) : GetModuleHandle(NULL);
 
     LoadStringA(hInstance, IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
 
@@ -247,7 +247,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     }
     else if(GetLastError()==ERROR_CANCELLED)
     {
-        // Purpose: The user explicitely canceled a shell UI, such
+        // Purpose: The user explicitly canceled a shell UI, such
         // as "Find application to run this file" or UAC prompt,
         // preceding the actual process invocation. As per UX
         // guidelines, such action should not result in a follow up
