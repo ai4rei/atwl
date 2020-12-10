@@ -164,8 +164,8 @@ static void __stdcall CombineExePathName(char* const lpszExePath, size_t const u
 static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 {
     bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
-    HINSTANCE hInstance = GetWindowInstance(hWnd);
-    NOTIFYICONDATA_V1A Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
+    HINSTANCE const hInstance = GetWindowInstance(hWnd);
+    NOTIFYICONDATA_V1A Nid = { sizeof(Nid) };
 
     ShowWindow(hWnd, SW_MINIMIZE);
     Sleep(200);  // animation
@@ -174,6 +174,9 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     if(bTrayIcon)
     {
         // set up notification icon (no 'auto restore' or 'load later')
+        Nid.hWnd   = hWnd;
+        Nid.uID    = 1;
+        Nid.uFlags = NIF_ICON|NIF_TIP;
         Nid.hIcon = LoadSmallIconA(hInstance, MAKEINTRESOURCEA(IDI_MAINICON));
         LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
         Shell_NotifyIconA(NIM_ADD, (NOTIFYICONDATAA*)&Nid);
@@ -278,6 +281,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
 
 static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
 {
+    char szFileName[MAX_PATH];
     char szMutexName[MAX_PATH];
 
     // care about secondary instances?
@@ -287,18 +291,10 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
     }
 
     // fetch our name (block double execution of this very same exe only)
-    GetModuleFileNameA(NULL, szMutexName, __ARRAYSIZE(szMutexName));
+    GetModuleFileNameA(NULL, szFileName, __ARRAYSIZE(szFileName));
 
-    // replace backslashes with a valid character
-    BvChrReplaceA(szMutexName, '\\', '!');
-
-    if((lphMutex[0] = CreateMutexA(NULL, FALSE, szMutexName))==NULL)
+    if(!CreateSingleInstanceA(CreateMsEscapedObjectNameA(szFileName, false, szMutexName, __ARRAYSIZE(szMutexName)), NULL, lphMutex))
     {
-        return false;
-    }
-    else if(GetLastError()==ERROR_ALREADY_EXISTS || WaitForSingleObject(lphMutex[0], 0)!=WAIT_OBJECT_0)
-    {
-        CloseHandle(lphMutex[0]);
         return false;
     }
 
@@ -307,10 +303,9 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
 
 static void __stdcall AppMutexRelease(HANDLE* lphMutex)
 {
-    if(lphMutex[0])
+    if(lphMutex[0]!=NULL)
     {
-        CloseHandle(lphMutex[0]);
-        lphMutex[0] = NULL;
+        DeleteSingleInstance(lphMutex);
     }
 }
 
