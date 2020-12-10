@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <tchar.h>
 #include <wincred.h>
 
 #include <btypes.h>
@@ -21,6 +22,7 @@
 #include <w32dll.h>  /* needed for w32cred */
 #include <w32cred.h>
 #include <w32ex.h>
+#include <w32shell.h>
 #include <w32ui.h>
 #include <xf_binhex.h>
 
@@ -129,12 +131,12 @@ static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
     {
         if(nMiscInfo&(1<<luIdx))
         {
-            lstrcatA(szInfo, "\r\n\t- ");
-            LoadStringA(hInstance, l_uMiscInfoOptName[luIdx], szInfo+lstrlenA(szInfo), __ARRAYSIZE(szInfo)-lstrlenA(szInfo));
+            strcat(szInfo, "\r\n\t- ");
+            LoadStringA(hInstance, l_uMiscInfoOptName[luIdx], szInfo+strlen(szInfo), __ARRAYSIZE(szInfo)-strlen(szInfo));
         }
     }
 
-    wsprintfA(szBuffer, "%s%s\r\n\r\n%s", szPrefix, szInfo, szSuffix);
+    snprintf(szBuffer, __ARRAYSIZE(szBuffer), "%s%s\r\n\r\n%s", szPrefix, szInfo, szSuffix);
 
     if(MsgBox(hWnd, szBuffer, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)==IDYES)
     {
@@ -151,7 +153,7 @@ static void __stdcall CombineExePathName(char* lpszExePath, unsigned long luExeP
 
     for(; lpszSlash[-1]!='\\'; lpszSlash--);
 
-    lstrcpyA(lpszSlash, lpszExeName);
+    strcpy(lpszSlash, lpszExeName);
 }
 
 // Waits for an process to exit, while keeping the application idle,
@@ -160,7 +162,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 {
     bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
     HINSTANCE hInstance = GetWindowInstance(hWnd);
-    NOTIFYICONDATA Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
+    NOTIFYICONDATA_V1A Nid = { sizeof(Nid), hWnd, 1, NIF_ICON|NIF_TIP };
 
     ShowWindow(hWnd, SW_MINIMIZE);
     Sleep(200);  // animation
@@ -169,9 +171,9 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
     if(bTrayIcon)
     {
         // set up notification icon (no 'auto restore' or 'load later')
-        Nid.hIcon = LoadSmallIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON));
+        Nid.hIcon = LoadSmallIconA(hInstance, MAKEINTRESOURCEA(IDI_MAINICON));
         LoadStringA(hInstance, IDS_TITLE, Nid.szTip, __ARRAYSIZE(Nid.szTip));
-        Shell_NotifyIcon(NIM_ADD, &Nid);
+        Shell_NotifyIconA(NIM_ADD, (NOTIFYICONDATAA*)&Nid);
     }
 
     // go idle
@@ -197,7 +199,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 
     if(bTrayIcon)
     {
-        Shell_NotifyIcon(NIM_DELETE, &Nid);
+        Shell_NotifyIconA(NIM_DELETE, (NOTIFYICONDATAA*)&Nid);
     }
 
     ShowWindow(hWnd, SW_SHOWMINIMIZED);
@@ -210,7 +212,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     bool bSuccess = false;
     char szBuffer[1024], szFileClass[MAX_REGISTRY_KEY_SIZE+1];
     va_list lpVl;
-    SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+    SHELLEXECUTEINFOA Sei = { sizeof(Sei) };
 
     va_start(lpVl, lpszParamFmt);
     wvsprintfA(szBuffer, lpszParamFmt, lpVl);
@@ -233,7 +235,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
         Sei.lpClass = "exefile";
     }
 
-    if(ShellExecuteEx(&Sei))
+    if(ShellExecuteExA(&Sei))
     {
         if(Sei.hProcess)
         {
@@ -260,7 +262,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
 
         FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), szError, __ARRAYSIZE(szError), NULL);
         LoadStringA(GetWindowInstance(hWnd), IDS_EXE_ERROR, szFormat, __ARRAYSIZE(szFormat));
-        wsprintfA(szMessage, szFormat, lpszApplication, szBuffer, szError);
+        snprintf(szMessage, __ARRAYSIZE(szMessage), szFormat, lpszApplication, szBuffer, szError);
         MsgBox(hWnd, szMessage, MB_ICONSTOP|MB_OK);
 
         ZeroMemory((void*)(volatile void*)szMessage, sizeof(szMessage));
@@ -287,7 +289,7 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
     // replace backslashes with a valid character
     BvChrReplaceA(szMutexName, '\\', '!');
 
-    if((lphMutex[0] = CreateMutex(NULL, FALSE, szMutexName))==NULL)
+    if((lphMutex[0] = CreateMutexA(NULL, FALSE, szMutexName))==NULL)
     {
         return false;
     }
@@ -378,17 +380,17 @@ bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
 
     GetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName, __ARRAYSIZE(szUserName));
 
-    if(lstrlenA(szUserName)<4)
+    if(strlen(szUserName)<4)
     {
-        MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCE(IDS_USER_SHRT) : MAKEINTRESOURCE(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
+        MsgBox(hWnd, szUserName[0] ? MAKEINTRESOURCEA(IDS_USER_SHRT) : MAKEINTRESOURCEA(IDS_USER_NONE), MB_OK|MB_ICONINFORMATION);
         return false;
     }
 
     GetWindowTextA(GetDlgItem(hWnd, IDC_PASSWORD), szPassWord, __ARRAYSIZE(szPassWord));
 
-    if(lstrlenA(szPassWord)<4)
+    if(strlen(szPassWord)<4)
     {
-        MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCE(IDS_PASS_SHRT) : MAKEINTRESOURCE(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
+        MsgBox(hWnd, szPassWord[0] ? MAKEINTRESOURCEA(IDS_PASS_SHRT) : MAKEINTRESOURCEA(IDS_PASS_NONE), MB_OK|MB_ICONINFORMATION);
         return false;
     }
 
@@ -446,10 +448,10 @@ bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
                 MACADDRESS Mac;
                 MacAddressGet(&Mac, MACADDR_OPT_DEFAULT_ZERO);
 
-                wsprintfA(szMiscInfo+lstrlenA(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
+                snprintf(szMiscInfo+strlen(szMiscInfo), __ARRAYSIZE(szMiscInfo)-strlen(szMiscInfo), "mac=%02x%02x%02x%02x%02x%02x&", Mac.Address[0], Mac.Address[1], Mac.Address[2], Mac.Address[3], Mac.Address[4], Mac.Address[5]);
             }
 
-            lstrcatA(szMiscInfo, "key=");
+            strcat(szMiscInfo, "key=");
         }
         else
         {// did not agree
@@ -463,7 +465,7 @@ bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const ch
         char szHexHash[sizeof(Hash)*2+1];
 
         MD5_String(szPassWord, &Hash);
-        XF_BinHex(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
+        XF_BinHexA(szHexHash, __ARRAYSIZE(szHexHash), Hash.ucData, sizeof(Hash.ucData));
 
         bSuccess = InvokeProcess(hWnd, szExePath, "-t:%s%s %s %s", szMiscInfo, szHexHash, szUserName, lpszExeType);
     }
@@ -484,8 +486,8 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
     BOOL bCheckSave, bSetFocus = TRUE;
     HINSTANCE hInstance = GetWindowInstance(hWnd);
 
-    SetWindowLargeIcon(hWnd, LoadLargeIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON)));
-    SetWindowSmallIcon(hWnd, LoadSmallIcon(hInstance, MAKEINTRESOURCE(IDI_MAINICON)));
+    SetWindowLargeIcon(hWnd, LoadLargeIconA(hInstance, MAKEINTRESOURCEA(IDI_MAINICON)));
+    SetWindowSmallIcon(hWnd, LoadSmallIconA(hInstance, MAKEINTRESOURCEA(IDI_MAINICON)));
 
     LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
     SetWindowTextA(hWnd, szBuffer);
@@ -640,12 +642,12 @@ static void CALLBACK WndProcOnHelp(HWND hWnd, LPHELPINFO lphi)
     {
         hWnd,
         MAKELONG(2012,2018),
-        "About ROCred...",
-        "ROCred",
-        APP_VERSION,
-        "Ai4rei/AN",
-        "\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK.",
-        "http://ai4rei.net/p/rocredweb",
+        _T("About ROCred..."),
+        _T("ROCred"),
+        _T(APP_VERSION),
+        _T("Ai4rei/AN"),
+        _T("\r\nThis software is FREEWARE and is provided AS IS, without warranty of ANY KIND, either expressed or implied, including but not limited to the implied warranties of merchantability and/or fitness for a particular purpose. If your country's law does not allow complete exclusion of liability, you may not use this software. The author SHALL NOT be held liable for ANY damage to you, your hardware, your software, your pets, your dear other, or to anyone or anything else, that may or may not result from the use or misuse of this software. Basically, you use it at YOUR OWN RISK."),
+        _T("http://ai4rei.net/p/rocredweb"),
     };
 
     DlgAbout(&Dai);
@@ -719,7 +721,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #ifdef WITH_RESOURCE_EMBEDDING
                 if(lpszCmdLine[0]=='/')
                 {
-                    if(!lstrcmpiA(&lpszCmdLine[1], "embed"))
+                    if(!strcmpi(&lpszCmdLine[1], "embed"))
                     {
                         if(ConfigSave())
                         {
@@ -749,14 +751,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         }
         else
         {
-            MsgBox(NULL, MAKEINTRESOURCE(IDS_CONFIG_ERROR), MB_OK|MB_ICONSTOP);
+            MsgBox(NULL, MAKEINTRESOURCEA(IDS_CONFIG_ERROR), MB_OK|MB_ICONSTOP);
         }
 
         CoUninitialize();
     }
     else
     {
-        MsgBox(NULL, MAKEINTRESOURCE(IDS_COINIT_ERROR), MB_OK|MB_ICONSTOP);
+        MsgBox(NULL, MAKEINTRESOURCEA(IDS_COINIT_ERROR), MB_OK|MB_ICONSTOP);
     }
 
     // memory again

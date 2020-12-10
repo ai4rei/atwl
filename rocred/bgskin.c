@@ -4,6 +4,8 @@
 //
 // -----------------------------------------------------------------
 
+#include <stdio.h>
+
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -88,10 +90,10 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const cha
     HBITMAP hBitmap;
 
     // try local file
-    if((hBitmap = LoadImage(NULL, lpszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))==NULL)
+    if((hBitmap = LoadImageA(NULL, lpszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))==NULL)
     {
         // fall back to embedded, but do not actually care about the result
-        hBitmap = LoadImage(GetModuleHandle(NULL), lpszImageName, IMAGE_BITMAP, 0, 0, 0);
+        hBitmap = LoadImageA(GetModuleHandle(NULL), lpszImageName, IMAGE_BITMAP, 0, 0, 0);
     }
 
     return hBitmap;
@@ -209,7 +211,7 @@ static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const cha
     char szFileName[MAX_PATH];
     HBITMAP hbmLook;
 
-    wsprintfA(szFileName, "%s.bmp", lpszName);
+    snprintf(szFileName, __ARRAYSIZE(szFileName), "%s.bmp", lpszName);
     BvStrToLowerA(szFileName);
 
     hbmLook = BgSkin_P_LoadBitmap(szFileName, lpszName);
@@ -309,10 +311,10 @@ bool __stdcall BgSkinInit(HWND hWnd)
                     case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
                 }
 
-                wsprintfA(szKeyName, "%s.X", lpszName); nX = ConfigGetInt(szKeyName);
-                wsprintfA(szKeyName, "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
-                wsprintfA(szKeyName, "%s.W", lpszName); nW = ConfigGetInt(szKeyName);
-                wsprintfA(szKeyName, "%s.H", lpszName); nH = ConfigGetInt(szKeyName);
+                snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.X", lpszName); nX = ConfigGetInt(szKeyName);
+                snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
+                snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.W", lpszName); nW = ConfigGetInt(szKeyName);
+                snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.H", lpszName); nH = ConfigGetInt(szKeyName);
 
                 if((hbmLook = BgSkin_P_GetSkin(uBtnId))!=NULL && GetObject(hbmLook, sizeof(bmBG), &bmBG))
                 {// take W/H from skin in pixels
@@ -345,7 +347,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                 {// custom buttons change if they are skinned
                     char szSectionName[MAX_PATH];
 
-                    wsprintfA(szSectionName, "ROCred.Buttons.%s", lpszName);  // FIXME: only button.c should (have to) know this!
+                    snprintf(szSectionName, __ARRAYSIZE(szSectionName), "ROCred.Buttons.%s", lpszName);  // FIXME: only button.c should (have to) know this!
 
                     nX = ConfigGetIntFromSection(szSectionName, "X");
                     nY = ConfigGetIntFromSection(szSectionName, "Y");

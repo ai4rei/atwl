@@ -82,7 +82,7 @@ bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const i
 
     if(MemTAllocEx(&lpucDataBuffer, uDataBufferSize))
     {
-        HWND hWnd = CreateWindowEx(0, WC_BUTTON, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtom(lpszName), GetWindowInstance(hWndParent), NULL);
+        HWND hWnd = CreateWindowExA(0, WC_BUTTONA, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtomA(lpszName), GetWindowInstance(hWndParent), NULL);
 
         if(hWnd)
         {
@@ -116,7 +116,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
     while(hWndButton)
     {
         BUTTON_DATA* lpBd = (BUTTON_DATA*)GetWindowLongPtr(hWndButton, GWLP_USERDATA);
-        SHELLEXECUTEINFO Sei = { sizeof(Sei) };
+        SHELLEXECUTEINFOA Sei = { sizeof(Sei) };
 
         if(!lpBd)
         {
@@ -159,7 +159,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
                     Sei.fMask|= SEE_MASK_CLASSNAME;
                 }
 
-                bSuccess = ShellExecuteEx(&Sei)!=FALSE;
+                bSuccess = ShellExecuteExA(&Sei)!=FALSE;
             }
 
             MemTFree(&lpszBuf);
