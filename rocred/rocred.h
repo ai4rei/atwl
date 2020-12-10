@@ -36,7 +36,7 @@
 
 #define ROCRED_TARGET_NAME "Ai4rei/AN_ROCred_"
 
-int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags);
+int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags);
 bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
 bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters);
 

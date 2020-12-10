@@ -69,7 +69,7 @@ static const UINT l_uMiscInfoOptName[] =
 static BOOL l_bDefDlgEx = FALSE;
 static LRESULT CALLBACK DefWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
+int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
 {
     char szTitle[64];
     char szMessage[4096];
@@ -77,9 +77,9 @@ int __stdcall MsgBox(HWND hWnd, LPSTR lpszText, DWORD dwFlags)
 
     LoadStringA(hInstance, IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
 
-    if((size_t)lpszText<=(WORD)-1)
+    if(IS_INTRESOURCE(lpszText))
     {// resource string, see MAKEINTRESOURCE on how this works
-        LoadStringA(hInstance, (size_t)lpszText, szMessage, __ARRAYSIZE(szMessage));
+        LoadStringA(hInstance, (WORD)lpszText, szMessage, __ARRAYSIZE(szMessage));
         lpszText = szMessage;
     }
 
