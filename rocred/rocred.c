@@ -96,7 +96,9 @@ bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBu
 
         if(ERROR_SUCCESS==RegOpenKeyExA(HKEY_CLASSES_ROOT, lpszExtension, 0, KEY_QUERY_VALUE, &hKey))
         {
-            if(ERROR_SUCCESS==RegQueryValueExA(hKey, NULL, NULL, NULL, lpszBuffer, &uBufferSize))
+            DWORD dwBufferBytes = sizeof(lpszBuffer[0])*uBufferSize;
+
+            if(ERROR_SUCCESS==RegQueryValueExA(hKey, NULL, NULL, NULL, lpszBuffer, &dwBufferBytes))
             {
                 bSuccess = true;
             }
