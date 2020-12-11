@@ -16,6 +16,7 @@
 #include <bvpars.h>
 #include <memtaf.h>
 #include <regionui.h>
+#include <w32ex.h>
 #include <w32ui.h>
 #include <w32uxt.h>
 
@@ -85,6 +86,15 @@ static HBITMAP __stdcall BgSkin_P_GetSkin(UINT uID)
     return NULL;
 }
 
+static void __stdcall BgSkin_P_MakeLocalFileName(char const* const lpszName, char* const lpszBuffer, size_t const uBufferSize)
+{
+    char szBaseName[MAX_PATH];
+
+    BvStrNCpyA(szBaseName, lpszName, __ARRAYSIZE(szBaseName));
+    BvStrToLowerA(szBaseName);
+    GetModuleFileNameSpecificPathA(NULL, lpszBuffer, uBufferSize, szBaseName, "bmp");
+}
+
 static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
 {
     HBITMAP hBitmap;
@@ -97,6 +107,15 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const cha
     }
 
     return hBitmap;
+}
+
+static HBITMAP __stdcall BgSkin_P_LoadBitmap2(char const* const lpszImageName)
+{
+    char szLocalFile[MAX_PATH];
+
+    BgSkin_P_MakeLocalFileName(lpszImageName, szLocalFile, __ARRAYSIZE(szLocalFile));
+
+    return BgSkin_P_LoadBitmap(szLocalFile, lpszImageName);
 }
 
 static bool __stdcall BgSkin_P_IsActive(void)
@@ -208,13 +227,9 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
 
 static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
 {
-    char szFileName[MAX_PATH];
     HBITMAP hbmLook;
 
-    snprintf(szFileName, __ARRAYSIZE(szFileName), "%s.bmp", lpszName);
-    BvStrToLowerA(szFileName);
-
-    hbmLook = BgSkin_P_LoadBitmap(szFileName, lpszName);
+    hbmLook = BgSkin_P_LoadBitmap2(lpszName);
 
     if(hbmLook)
     {
@@ -243,7 +258,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
     HWND hChildWnd = NULL;
     RECT rcWnd;
 
-    l_hbmBackground = BgSkin_P_LoadBitmap("bgskin.bmp", "BGSKIN");
+    l_hbmBackground = BgSkin_P_LoadBitmap2("BGSKIN");
 
     if(l_hbmBackground)
     {
