@@ -99,11 +99,11 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const cha
 {
     HBITMAP hBitmap;
 
-    // try local file
-    if((hBitmap = LoadImageA(NULL, lpszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))==NULL)
+    // try embedded
+    if((hBitmap = LoadImageA(GetModuleHandle(NULL), lpszImageName, IMAGE_BITMAP, 0, 0, 0))==NULL)
     {
-        // fall back to embedded, but do not actually care about the result
-        hBitmap = LoadImageA(GetModuleHandle(NULL), lpszImageName, IMAGE_BITMAP, 0, 0, 0);
+        // fall back to local file, but do not actually care about the result
+        hBitmap = LoadImageA(NULL, lpszFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     }
 
     return hBitmap;
