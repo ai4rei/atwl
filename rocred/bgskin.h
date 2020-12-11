@@ -4,10 +4,13 @@
 //
 // -----------------------------------------------------------------
 
-#ifndef _BGSKIN_H_
-#define _BGSKIN_H_
+#ifndef BGSKIN_H
+#define BGSKIN_H
 
-#include <windows.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif  /* __cplusplus */
 
 bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC);
 bool __stdcall BgSkinOnLButtonDown(HWND hWnd);
@@ -17,4 +20,8 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis);
 bool __stdcall BgSkinInit(HWND hWnd);
 void __stdcall BgSkinFree(void);
 
-#endif  /* _BGSKIN_H_ */
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
+#endif  /* BGSKIN_H */

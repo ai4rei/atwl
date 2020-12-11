@@ -4,8 +4,13 @@
 //
 // -----------------------------------------------------------------
 
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif  /* __cplusplus */
 
 typedef bool (__stdcall* LPFNFOREACHSECTION)(const char* lpszSection, void* lpContext);
 
@@ -23,4 +28,8 @@ bool __stdcall ConfigSave(void);
 bool __stdcall ConfigInit(void);
 void __stdcall ConfigQuit(void);
 
-#endif  /* _CONFIG_H_ */
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
+#endif  /* CONFIG_H */

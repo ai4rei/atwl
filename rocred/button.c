@@ -13,9 +13,10 @@
 #include <memtaf.h>
 #include <xf_slash.h>
 
-#include "button.h"
 #include "config.h"
 #include "rocred.h"
+
+#include "button.h"
 
 BEGINENUM(BUTTON_ACTION)
 {

@@ -4,7 +4,7 @@
 //
 // -----------------------------------------------------------------
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <windows.h>
 #include <windowsx.h>
@@ -29,6 +29,7 @@
 #include "bgskin.h"
 #include "button.h"
 #include "config.h"
+
 #include "rocred.h"
 
 static const DLGTEMPLATEITEMINFO l_DlgItems[] =
@@ -98,7 +99,7 @@ bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBu
         {
             DWORD dwBufferBytes = sizeof(lpszBuffer[0])*uBufferSize;
 
-            if(ERROR_SUCCESS==RegQueryValueExA(hKey, NULL, NULL, NULL, lpszBuffer, &dwBufferBytes))
+            if(ERROR_SUCCESS==RegQueryValueExA(hKey, NULL, NULL, NULL, (LPBYTE)lpszBuffer, &dwBufferBytes))
             {
                 bSuccess = true;
             }

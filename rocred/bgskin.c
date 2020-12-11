@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -20,10 +21,11 @@
 #include <w32ui.h>
 #include <w32uxt.h>
 
-#include "bgskin.h"
 #include "button.h"
 #include "config.h"
 #include "rocred.h"
+
+#include "bgskin.h"
 
 BEGINSTRUCT(BUTTONSKININFO)
 {

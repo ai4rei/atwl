@@ -10,7 +10,7 @@
 /Zi
 /link /opt:ref /opt:icf /release /debug /largeaddressaware /fixed:no /subsystem:windows /version:1.9 /out:rocred.exe
 
-rocred.c
+rocred.cpp
 bgskin.c
 button.c
 config.c

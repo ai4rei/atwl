@@ -4,11 +4,19 @@
 //
 // -----------------------------------------------------------------
 
-#ifndef _ROCRED_H_
-#define _ROCRED_H_
+#ifndef ROCRED_H
+#define ROCRED_H
 
 #define APP_VERSION "1.10.0.110"
 #define APP_VERSIONINFO_VERSION 1,10,0,110
+
+#define APP_PRODUCTNAME "RO Credentials"
+#define APP_DESCRIPTION "Minimalist Client Launcher"
+//#define APP_HAS_UI
+#define APP_COPYYEAR "2012-2018"
+#define APP_INTERNALNAME "ROCred"
+#define APP_ORIGINALNAME "rocred.exe"
+#define APP_PACKAGENAME "Ai4rei.E.ROCred"
 
 #define IDI_MAINICON                    1
 #define IDC_USERNAME                    101
@@ -36,8 +44,17 @@
 
 #define ROCRED_TARGET_NAME "Ai4rei/AN_ROCred_"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif  /* __cplusplus */
+
 int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags);
 bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
 bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters);
 
-#endif  /* _ROCRED_H_ */
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
+#endif  /* ROCRED_H */

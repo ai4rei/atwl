@@ -5,7 +5,9 @@
 // -----------------------------------------------------------------
 
 #include <stdio.h>
+#include <stdlib.h>
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <btypes.h>
@@ -14,8 +16,9 @@
 #include <rsrcio.h>
 #include <w32ex.h>
 
-#include "config.h"
 #include "rocred.h"
+
+#include "config.h"
 
 struct LPFOREACHSECTIONCONTEXT
 {
