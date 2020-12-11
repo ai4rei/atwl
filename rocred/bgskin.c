@@ -181,6 +181,19 @@ HBRUSH __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
             case 1:
                 SetBkMode(hDC, TRANSPARENT);
 
+                // BUG: Transparency does not work on Windows XP+
+                //
+                // COMCTL32 V6 introduced in Windows XP employs
+                // unconditional double buffering (in this case
+                // CCBeginDoubleBuffer/CCEndDoubleBuffer in
+                // EditSL_Paint), but since transparency with
+                // WS_EX_TRANSPARENT and the NULL_BRUSH rely on
+                // nothing being drawn, the double-buffering bitmap
+                // remains blank (black), which is then pasted over
+                // the to-be transparent background.
+                // Currently the only workaround is to use the old
+                // common controls built into USER32 (basically
+                // abandon visual styles altogether).
                 return GetStockObject(NULL_BRUSH);
             case 2:
                 SetBkMode(hDC, TRANSPARENT);
@@ -340,11 +353,20 @@ bool __stdcall BgSkinInit(HWND hWnd)
                     SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)|BS_OWNERDRAW);
                 }
 
-                // remove border, if any
-                if(GetClassKind(hChildWnd)==CTL_BASE_EDIT && ConfigGetInt("EditFrame"))
+                if(GetClassKind(hChildWnd)==CTL_BASE_EDIT)
                 {
-                    SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)&~WS_BORDER);
-                    SetWindowLongPtr(hChildWnd, GWL_EXSTYLE, GetWindowLongPtr(hChildWnd, GWL_EXSTYLE)&~WS_EX_CLIENTEDGE);
+                    // enable transparency
+                    if(ConfigGetInt("EditBackground")==1)
+                    {
+                        SetWindowLongPtr(hChildWnd, GWL_EXSTYLE, GetWindowLongPtr(hChildWnd, GWL_EXSTYLE)|WS_EX_TRANSPARENT);
+                    }
+
+                    // remove border, if any
+                    if(ConfigGetInt("EditFrame"))
+                    {
+                        SetWindowLongPtr(hChildWnd, GWL_STYLE, GetWindowLongPtr(hChildWnd, GWL_STYLE)&~WS_BORDER);
+                        SetWindowLongPtr(hChildWnd, GWL_EXSTYLE, GetWindowLongPtr(hChildWnd, GWL_EXSTYLE)&~WS_EX_CLIENTEDGE);
+                    }
                 }
 
                 // set size
