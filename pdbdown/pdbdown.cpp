@@ -3,6 +3,10 @@
 #include <windows.h>
 #include <tchar.h>
 
+// CodeView
+#define CV_HEADER_NB10 '01BN'  // Visual C++ 6.0
+#define CV_HEADER_RSDS 'SDSR'  // Visual C++ 7.0 (aka. .NET 2002)
+
 typedef struct tagCV_HEADER
 {
     DWORD dwHeader;                 // CV_HEADER_*
@@ -22,9 +26,9 @@ CV_NB10, *PCV_NB10;
 typedef struct tagCV_RSDS
 {
     CV_HEADER Header;
-    GUID Signature;
-    DWORD dwAge;
-    CHAR pdb[1];
+    GUID Signature;                 // GUID
+    DWORD dwAge;                    // 1++
+    CHAR pdb[1];                    // zero-terminated
 }
 CV_RSDS, *PCV_RSDS;
 
@@ -204,7 +208,7 @@ FDI_ERROR GetImageDebugInfo(LPVOID const lpImageBase, DWORD const dwImageLength,
         if( pIDH->e_lfarlc >= sizeof(pIDH) )
         {
             PIMAGE_NT_HEADERS const pINH = (PIMAGE_NT_HEADERS)((ULONG_PTR)(pIDH) + pIDH->e_lfanew);
-    
+
             if( IMAGE_CONTAINS_FIELD(pINH, Signature, lpImageBase, dwImageLength) )
             {
                 if( pINH->Signature == IMAGE_NT_SIGNATURE )
@@ -217,7 +221,7 @@ FDI_ERROR GetImageDebugInfo(LPVOID const lpImageBase, DWORD const dwImageLength,
                             {
                                 DWORD dwIDDCount = 0;
                                 PIMAGE_DATA_DIRECTORY pIDD = NULL;
-    
+
                                 switch(pINH->OptionalHeader.Magic)
                                 {
                                 case IMAGE_NT_OPTIONAL_HDR32_MAGIC:  // 0x10-Bits (0x10B) - PE32
@@ -230,24 +234,24 @@ FDI_ERROR GetImageDebugInfo(LPVOID const lpImageBase, DWORD const dwImageLength,
                                     nError = FDI_ERROR_OPTHDR_MAGIC_UNKNOWN;
                                     break;
                                 }
-    
+
                                 if( pIDD != NULL )
                                 {
                                     if( dwIDDCount > IMAGE_DIRECTORY_ENTRY_DEBUG )
                                     {
                                         PIMAGE_DATA_DIRECTORY const pIDED = &pIDD[IMAGE_DIRECTORY_ENTRY_DEBUG];
-    
+
                                         if( pIDED->Size != 0 )
                                         {
                                             if( pINH->FileHeader.NumberOfSections )
                                             {
                                                 PIMAGE_SECTION_HEADER pISH = IMAGE_FIRST_SECTION(pINH);
-    
+
                                                 if( IMAGE_CONTAINS_FIELD(&pISH[pINH->FileHeader.NumberOfSections-1U], Characteristics, lpImageBase, dwImageLength) )
                                                 {
                                                     lpFdi->dwISHCount = pINH->FileHeader.NumberOfSections;
                                                     lpFdi->pISH = pISH;
-    
+
                                                     nError = GetDataDirectoryDebugInfo(lpImageBase, dwImageLength, pIDED, lpFdi);
                                                 }
                                                 else
