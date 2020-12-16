@@ -1,12 +1,16 @@
 #include <cstdio>
 
 #include <windows.h>
+#include <wininet.h>
 #include <tchar.h>
+
+#define HTTP_ACCEPT_HEADER _T("Accept: */") _T("*\r\n")
 
 // CodeView
 #define CV_HEADER_NB10 '01BN'  // Visual C++ 6.0
 #define CV_HEADER_RSDS 'SDSR'  // Visual C++ 7.0 (aka. .NET 2002)
 
+#pragma pack(push,1)
 typedef struct tagCV_HEADER
 {
     DWORD dwHeader;                 // CV_HEADER_*
@@ -31,6 +35,7 @@ typedef struct tagCV_RSDS
     CHAR pdb[1];                    // zero-terminated
 }
 CV_RSDS, *PCV_RSDS;
+#pragma pack(pop)
 
 enum FDI_ERROR
 {
@@ -395,26 +400,281 @@ VOID FreeFileDebugInfo(FILEDEBUGINFO* const lpFdi)
     }
 }
 
-void __cdecl _tmain(int nArgc, TCHAR** lppszArgv)
+bool GetPdbNameAndSignature(PCV_HEADER const pCV, DWORD const dwCVLength, LPTSTR const lpszName, DWORD const dwNameSize, LPTSTR const lpszSignature, DWORD const dwSignatureSize)
 {
-    for( int nIdx = 1; nIdx<nArgc; nIdx++ )
+    bool bSuccess = false;
+
+    switch(pCV->dwHeader)
     {
-        FDI_ERROR nError;
-        FILEDEBUGINFO Fdi = { 0 };
-        TCHAR const* const lpszArg = lppszArgv[nIdx];
-
-        _tprintf(_T("%s: "), lpszArg);
-
-        if( ( nError = GetFileDebugInfo(lpszArg, &Fdi) ) == FDI_ERROR_SUCCESS )
+    case CV_HEADER_NB10:
         {
-            _tprintf(_T("'%.4s'"), &Fdi.pCV->dwHeader);
-            FreeFileDebugInfo(&Fdi);
+            PCV_NB10 const pNB10 = (PCV_NB10)pCV;
+
+            // minimum length
+            if( IMAGE_CONTAINS_LENGTH(pNB10, sizeof(pNB10[0]), pCV, dwCVLength) )
+            {
+                DWORD const dwNameLength = dwCVLength-sizeof(pNB10[0]);
+
+                // offset is always zero and name must be zero-terminated
+                if( pNB10->dwOffset == 0 && pNB10->pdb[dwNameLength] == '\0' )
+                {
+                    LPCSTR lpszPdbName = strrchr(pNB10->pdb, '\\');
+
+                    if( lpszPdbName != NULL )
+                    {
+                        lpszPdbName++;
+                    }
+                    else
+                    {
+                        lpszPdbName = pNB10->pdb;
+                    }
+
+                    _sntprintf(lpszSignature, dwSignatureSize, _T("%08X%X"), pNB10->dwSignature, pNB10->dwAge);
+
+#ifdef _UNICODE
+                    if( MultiByteToWideChar(CP_ACP, 0, lpszPdbName, -1, lpszName, dwNameSize) > 0 )
+                    {
+                        bSuccess = true;
+                    }
+#else  /* _UNICODE */
+                    if( dwNameSize > strlen(lpszPdbName) )
+                    {
+                        strcpy(lpszName, lpszPdbName);
+                        bSuccess = true;
+                    }
+#endif  /* _UNICODE */
+                }
+            }
+        }
+        break;
+    case CV_HEADER_RSDS:
+        {
+            PCV_RSDS const pRSDS = (PCV_RSDS)pCV;
+
+            // minimum length
+            if( IMAGE_CONTAINS_LENGTH(pRSDS, sizeof(pRSDS[0]), pCV, dwCVLength) )
+            {
+                DWORD const dwNameLength = dwCVLength-sizeof(pRSDS[0]);
+
+                // name must be zero-terminated
+                if( pRSDS->pdb[dwNameLength] == '\0' )
+                {
+                    LPCSTR lpszPdbName = strrchr(pRSDS->pdb, '\\');
+
+                    if( lpszPdbName != NULL )
+                    {
+                        lpszPdbName++;
+                    }
+                    else
+                    {
+                        lpszPdbName = pRSDS->pdb;
+                    }
+
+                    _sntprintf(lpszSignature, dwSignatureSize, _T("%08X%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X%X"), pRSDS->Signature.Data1, pRSDS->Signature.Data2, pRSDS->Signature.Data3, pRSDS->Signature.Data4[0], pRSDS->Signature.Data4[1], pRSDS->Signature.Data4[2], pRSDS->Signature.Data4[3], pRSDS->Signature.Data4[4], pRSDS->Signature.Data4[5], pRSDS->Signature.Data4[6], pRSDS->Signature.Data4[7], pRSDS->dwAge);
+
+#ifdef _UNICODE
+                    if( MultiByteToWideChar(CP_ACP, 0, lpszPdbName, -1, lpszName, dwNameSize) > 0 )
+                    {
+                        bSuccess = true;
+                    }
+#else  /* _UNICODE */
+                    if( dwNameSize > strlen(lpszPdbName) )
+                    {
+                        strcpy(lpszName, lpszPdbName);
+                        bSuccess = true;
+                    }
+#endif  /* _UNICODE */
+                }
+            }
+        }
+        break;
+    }
+
+    return bSuccess;
+}
+
+bool DownloadPDB(HINTERNET hInternet, LPCTSTR lpszSymServer, LPCTSTR lpszPdbName, LPCTSTR lpszSignature)
+{
+    bool bSuccess = false;
+    TCHAR szUrl[2048];
+
+    _sntprintf(szUrl, RTL_NUMBER_OF(szUrl), _T("%s/%s/%s/%s"), lpszSymServer, lpszPdbName, lpszSignature, lpszPdbName);
+
+    HINTERNET hSrcFile = InternetOpenUrl(hInternet, szUrl, HTTP_ACCEPT_HEADER, _tcslen(HTTP_ACCEPT_HEADER), INTERNET_FLAG_EXISTING_CONNECT|INTERNET_FLAG_HYPERLINK|INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP|INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS|INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NEED_FILE|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI|INTERNET_FLAG_PASSIVE|INTERNET_FLAG_RAW_DATA, 0);
+
+    if( hSrcFile != NULL )
+    {
+        DWORD dwStatusCode = 0;
+        DWORD dwSizeLength;
+
+        dwSizeLength = sizeof(dwStatusCode);
+
+        if( HttpQueryInfo(hSrcFile, HTTP_QUERY_STATUS_CODE|HTTP_QUERY_FLAG_NUMBER, &dwStatusCode, &dwSizeLength, NULL) )
+        {
+            if( dwSizeLength == sizeof(dwStatusCode) && dwStatusCode == HTTP_STATUS_OK )
+            {
+                DWORD dwFileLength = 0;
+
+                dwSizeLength = sizeof(dwFileLength);
+
+                if( HttpQueryInfo(hSrcFile, HTTP_QUERY_CONTENT_LENGTH|HTTP_QUERY_FLAG_NUMBER, &dwFileLength, &dwSizeLength, NULL) )
+                {
+                    if( dwSizeLength == sizeof(dwFileLength) )
+                    {
+                        HANDLE hDstFile = CreateFile(lpszPdbName, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+                        if( hDstFile != INVALID_HANDLE_VALUE )
+                        {
+                            if( dwFileLength )
+                            {
+                                DWORD dwReadTotal = 0;
+
+                                for( ;; )
+                                {
+                                    DWORD dwReadAvail = 0;
+
+                                    if( !InternetQueryDataAvailable(hSrcFile, &dwReadAvail, 0, 0) )
+                                    {
+                                        _tprintf(_T("Query data available failed (code=0x%X)"), GetLastError());
+                                        break;
+                                    }
+
+                                    do
+                                    {
+                                        BYTE ucBuffer[8192];
+                                        DWORD dwRead = dwReadAvail;
+
+                                        if( dwRead > sizeof(ucBuffer) )
+                                        {
+                                            dwRead = sizeof(ucBuffer);
+                                        }
+
+                                        if( InternetReadFile(hSrcFile, ucBuffer, dwRead, &dwRead) )
+                                        {
+                                            DWORD dwWritten = 0;
+
+                                            if( !WriteFile(hDstFile, ucBuffer, dwRead, &dwWritten, NULL) || dwRead!=dwWritten )
+                                            {
+                                                _tprintf(_T("Write data failed (code=0x%X)"), GetLastError());
+                                                break;
+                                            }
+
+                                            dwReadAvail-= dwRead;
+                                            dwReadTotal+= dwRead;
+                                        }
+                                        else
+                                        {
+                                            _tprintf(_T("Read data failed (code=0x%X)"), GetLastError());
+                                            break;
+                                        }
+                                    }
+                                    while( dwReadAvail );
+
+                                    if( dwReadAvail )
+                                    {
+                                        break;
+                                    }
+
+                                    if( dwReadTotal == dwFileLength )
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                bSuccess = (dwReadTotal == dwFileLength);
+                            }
+                            else
+                            {
+                                bSuccess = true;
+                            }
+
+                            CloseHandle(hDstFile);
+                            hDstFile = INVALID_HANDLE_VALUE;
+                        }
+                        else
+                        {
+                            _tprintf(_T("Create PDB failed (code=0x%X)"), GetLastError());
+                        }
+                    }
+                    else
+                    {
+                        _tprintf(_T("Length failed"));
+                    }
+                }
+                else
+                {
+                    _tprintf(_T("Query length failed (code=0x%X)"), GetLastError());
+                }
+            }
+            else
+            {
+                _tprintf(_T("Status code failed (code=%u)"), dwStatusCode);
+            }
         }
         else
         {
-            _tprintf(_T("%s"), FdiErrorToString(nError));
+            _tprintf(_T("Query status code failed (code=0x%X)"), GetLastError());
         }
 
-        _putts(_T(""));
+        InternetCloseHandle(hSrcFile);
+    }
+    else
+    {
+        _tprintf(_T("InternetOpenUrl failed (code=0x%X)"), GetLastError());
+    }
+
+    return bSuccess;
+}
+
+void __cdecl _tmain(int nArgc, TCHAR** lppszArgv)
+{
+    HINTERNET hInternet = InternetOpen(_T("PdbDown/1.0"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+
+    if( hInternet != NULL )
+    {
+        for( int nIdx = 1; nIdx<nArgc; nIdx++ )
+        {
+            FDI_ERROR nError;
+            FILEDEBUGINFO Fdi = { 0 };
+            TCHAR const* const lpszArg = lppszArgv[nIdx];
+
+            _tprintf(_T("%s: "), lpszArg);
+
+            if( ( nError = GetFileDebugInfo(lpszArg, &Fdi) ) == FDI_ERROR_SUCCESS )
+            {
+                TCHAR szPdbName[MAX_PATH], szSignature[256];
+
+                _tprintf(_T("'%.4s': "), &Fdi.pCV->dwHeader);
+
+                if( GetPdbNameAndSignature(Fdi.pCV, Fdi.dwCVLength, szPdbName, RTL_NUMBER_OF(szPdbName), szSignature, RTL_NUMBER_OF(szSignature)) )
+                {
+                    _tprintf(_T("`%s' = `%s' "), szPdbName, szSignature);
+
+                    if( DownloadPDB(hInternet, _T("http://msdl.microsoft.com/download/symbols"), szPdbName, szSignature) )
+                    {
+                        _tprintf(_T("OK"), szPdbName, szSignature);
+                    }
+                }
+                else
+                {
+                    _tprintf(_T("???"));
+                }
+
+                FreeFileDebugInfo(&Fdi);
+            }
+            else
+            {
+                _tprintf(_T("%s"), FdiErrorToString(nError));
+            }
+
+            _putts(_T(""));
+        }
+
+        InternetCloseHandle(hInternet);
+        hInternet = NULL;
+    }
+    else
+    {
+        _putts(_T("InternetOpen failed."));
     }
 }
