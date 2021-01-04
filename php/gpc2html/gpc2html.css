@@ -1,0 +1,79 @@
+body
+{
+    font-family:"Segoe UI",sans-serif;
+    font-size:8pt;
+}
+
+table
+{
+    background-color:#fff;
+    width:22cm;
+}
+
+td
+{
+    empty-cells:show;
+    padding:1px 3px;
+}
+
+td.error
+{
+    background-color:#fcc;
+    color:#c00;
+}
+
+tr.altbg-0
+{
+    background-color:rgb(240,240,240);
+}
+
+tr.altbg-1
+{
+    background-color:rgb(220,220,220);
+}
+
+tr.row-074 td.label
+{
+    background-color:rgb(221,175,157);
+    width:15%;
+}
+
+tr.row-074 td.value
+{
+    background-color:rgb(250,199,178);
+    width:35%;
+}
+
+tr.row-075-1 td.label,tr.row-075-2 td.label
+{
+    background-color:rgb(221,175,157);
+}
+
+tr.row-075-1.acctcode-1 td.value-balance
+{
+    color:#c00;
+}
+
+td.value-fromtill,
+td.value-accnumber,
+td.value-accnumber2,
+td.value-stmtid,
+td.value-balancefrom,
+td.value-balancetill,
+td.value-sumdebit,
+td.value-sumcredit,
+td.value-dateacct,
+td.value-dateconv,
+td.value-vs,
+td.value-ks,
+td.value-ss,
+td.value-xactid,
+td.value-balance
+{
+    text-align:right;
+}
+
+td.value-accholder2,td.value-balance
+{
+    font-weight:bold;
+}
