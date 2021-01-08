@@ -1,0 +1,1 @@
+@CL -nologo -W3 -LD -O2x hotfix32.c -link -def:hotfix32.def
