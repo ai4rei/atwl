@@ -1,1 +1,1 @@
-@CL -nologo -W3 -LD -O2x hotfix32.c -link -def:hotfix32.def
+@CL -nologo -W3 -LD -O2x -D_CRT_SECURE_NO_WARNINGS hotfix32.c -link -def:hotfix32.def
