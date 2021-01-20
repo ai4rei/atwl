@@ -1,0 +1,36 @@
+#include <windows.h>
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEFLAGSMASK VS_FF_DEBUG | VS_FF_PATCHED | VS_FF_PRERELEASE | VS_FF_PRIVATEBUILD | VS_FF_SPECIALBUILD
+#ifdef _DEBUG
+FILEFLAGS VS_FF_DEBUG
+#else  /* _DEBUG */
+FILEFLAGS 0
+#endif  /* _DEBUG */
+FILEOS VOS__WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE 0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "00000000"
+        BEGIN
+            VALUE "CompanyName",        "Ai4rei/AN"
+            VALUE "FileDescription",    "Hotfix32 DLL"
+            VALUE "FileVersion",        "1.0.0.0"
+            VALUE "InternalName",       "HOTFIX32"
+            VALUE "LegalCopyright",     "Copyright © 2021 Ai4rei/AN"
+            VALUE "OriginalFilename",   "hotfix32.dll"
+            VALUE "ProductName",        "ROStrViewer 4GiB+FolderedItems Hotfix"
+            VALUE "ProductVersion",     "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0000 0x0000
+    END
+END
