@@ -70,25 +70,17 @@ static LRESULT CALLBACK Button_P_SubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wP
 
 bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const int nWidth, const int nHeight, const char* const lpszDisplayName, const char* const lpszName, const int nActionType, const char* const lpszActionData, const char* const lpszActionHandler)
 {
-    ubyte_t* lpucDataBuffer = NULL;
     BUTTON_DATA* lpBd = NULL;
     const size_t uNameLength          = strlen(lpszName);
     const size_t uActionDataLength    = strlen(lpszActionData);
     const size_t uActionHandlerLength = strlen(lpszActionHandler);
-    const size_t uDataBufferSize      = sizeof(lpBd[0])
-                                      + __STRINGSIZEEX(lpszName,uNameLength+1U)
-                                      + __STRINGSIZEEX(lpszActionData,uActionDataLength+1U)
-                                      + __STRINGSIZEEX(lpszActionHandler,uActionHandlerLength+1U)
-                                      ;
 
-    if(MemTAllocEx(&lpucDataBuffer, uDataBufferSize))
+    if(MemT2Alloc(&lpBd, lpszName, uNameLength+1U+uActionDataLength+1U+uActionHandlerLength+1U))
     {
         HWND hWnd = CreateWindowExA(0, WC_BUTTONA, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtomA(lpszName), GetWindowInstance(hWndParent), NULL);
 
         if(hWnd)
         {
-            lpBd = (BUTTON_DATA*)lpucDataBuffer;
-
             lpBd->lpszName          = (char*)&lpBd[1];
             lpBd->lpszActionData    = &lpBd->lpszName[uNameLength+1U];
             lpBd->lpszActionHandler = &lpBd->lpszActionData[uActionDataLength+1U];
@@ -104,7 +96,7 @@ bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const i
             return true;
         }
 
-        MemTFree(&lpucDataBuffer);
+        MemTFree(&lpBd);
     }
 
     return false;
