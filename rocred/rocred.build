@@ -15,7 +15,6 @@ config.c
 ..\snippets\mem.c
 ..\snippets\_mem\mem.win32.heap.c
 ..\snippets\regionui.c
-..\snippets\rsrcio.c
 ..\snippets\w32uxt.c
 ..\snippets\wnttools.c
 ..\snippets\xf_slash.c

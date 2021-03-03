@@ -13,7 +13,6 @@
 #include <btypes.h>
 #include <kvdb.h>
 #include <memtaf.h>
-#include <rsrcio.h>
 #include <w32ex.h>
 
 #include "rocred.h"
@@ -108,12 +107,10 @@ unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
 bool __stdcall ConfigSave(void)
 {
     bool bSuccess = false;
-    HANDLE hFile;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
 
     // load configuration
-    hFile = CreateFileA(l_szIniFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-    if(hFile!=INVALID_HANDLE_VALUE)
+    if(OpenFileForReadingDesperatelyA(l_szIniFile, FILE_FLAG_SEQUENTIAL_SCAN, &hFile))
     {
         ubyte_t* lpucBuffer = NULL;
         DWORD dwFileSize = GetFileSize(hFile, NULL);  // if your config is over 4GB, you are doing something wrong
@@ -135,7 +132,7 @@ bool __stdcall ConfigSave(void)
                         if(CopyFileA(szSrcName, szDstName, FALSE))
                         {
                             // persist as resource
-                            if(ResourceStoreA(szDstName, MAKEINTRESOURCEA(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
+                            if(ResourceStore(szDstName, MAKEINTRESOURCEA(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
                             {
                                 bSuccess = true;
                             }
@@ -176,8 +173,8 @@ static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section,
 bool __stdcall ConfigInit(void)
 {
     bool bSuccess = false;
-    const void* lpData;
-    unsigned long luLen, luWritten;
+    DWORD dwLength = 0;
+    LPVOID lpData = NULL;
 
     // set defaults
     KvInit(&l_ConfigDB, &g_Win32PrivateProfileAdapter);
@@ -186,7 +183,7 @@ bool __stdcall ConfigInit(void)
     KvDirty(&l_ConfigDB, false);
 
     // load embedded/admin configuration
-    if(ResourceFetchA(NULL, MAKEINTRESOURCEA(RT_RCDATA), "CONFIG", &lpData, &luLen))
+    if(ResourceFetch(NULL, MAKEINTRESOURCEA(RT_RCDATA), "CONFIG", &dwLength, &lpData))
     {
         for(;;)
         {
@@ -208,7 +205,9 @@ bool __stdcall ConfigInit(void)
 
             if(hFile!=INVALID_HANDLE_VALUE)
             {
-                if(WriteFile(hFile, lpData, luLen, &luWritten, NULL))
+                DWORD dwWritten = 0;
+
+                if(WriteFile(hFile, lpData, dwLength, &dwWritten, NULL))
                 {
                     CloseFile(&hFile);
 
