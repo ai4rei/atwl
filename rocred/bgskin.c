@@ -39,23 +39,23 @@ static HBITMAP l_hbmBackground = NULL;
 static HBRUSH l_hbrEditBack = NULL;
 static BVLLIST l_SkinList = { 0 };  // id -> LPBGSKININFO
 
-static const char* __stdcall BgSkin_P_ButtonId2Name(UINT uId)
+static const char* __WDECL BgSkin_P_ButtonId2Name(UINT uId)
 {
     switch(uId)
     {
-        C2N(IDOK);
-        C2N(IDCANCEL);
-        C2N(IDS_USERNAME);
-        C2N(IDC_USERNAME);
-        C2N(IDS_PASSWORD);
-        C2N(IDC_PASSWORD);
-        C2N(IDC_CHECKSAVE);
+    C2N(IDOK);
+    C2N(IDCANCEL);
+    C2N(IDS_USERNAME);
+    C2N(IDC_USERNAME);
+    C2N(IDS_PASSWORD);
+    C2N(IDC_PASSWORD);
+    C2N(IDC_CHECKSAVE);
     }
 
     return NULL;
 }
 
-static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
+static unsigned char __WDECL BgSkin_P_ButtonState2Index(UINT uState)
 {
     unsigned char ucIndex = 0;
 
@@ -71,13 +71,13 @@ static unsigned char __stdcall BgSkin_P_ButtonState2Index(UINT uState)
     return ucIndex;
 }
 
-static HBITMAP __stdcall BgSkin_P_GetSkin(UINT uID)
+static HBITMAP __WDECL BgSkin_P_GetSkin(UINT uID)
 {
     LPBVLLISTNODE Item;
 
     for(Item = l_SkinList.Head; Item!=NULL; Item = Item->Next)
     {
-        CONTEXTCAST(LPCBUTTONSKININFO,lpBsi,Item);
+        LPCBUTTONSKININFO const lpBsi = BvLListNodeParent(Item, BUTTONSKININFO, Node);
 
         if(lpBsi->uID==uID)
         {
@@ -88,7 +88,7 @@ static HBITMAP __stdcall BgSkin_P_GetSkin(UINT uID)
     return NULL;
 }
 
-static void __stdcall BgSkin_P_MakeLocalFileName(char const* const lpszName, char* const lpszBuffer, size_t const uBufferSize)
+static void __WDECL BgSkin_P_MakeLocalFileName(char const* const lpszName, char* const lpszBuffer, size_t const uBufferSize)
 {
     char szBaseName[MAX_PATH];
 
@@ -97,7 +97,7 @@ static void __stdcall BgSkin_P_MakeLocalFileName(char const* const lpszName, cha
     GetModuleFileNameSpecificPathA(NULL, lpszBuffer, uBufferSize, szBaseName, "bmp");
 }
 
-static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
+static HBITMAP __WDECL BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
 {
     HBITMAP hBitmap;
 
@@ -111,7 +111,7 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap(const char* lpszFileName, const cha
     return hBitmap;
 }
 
-static HBITMAP __stdcall BgSkin_P_LoadBitmap2(char const* const lpszImageName)
+static HBITMAP __WDECL BgSkin_P_LoadBitmap2(char const* const lpszImageName)
 {
     char szLocalFile[MAX_PATH];
 
@@ -120,12 +120,12 @@ static HBITMAP __stdcall BgSkin_P_LoadBitmap2(char const* const lpszImageName)
     return BgSkin_P_LoadBitmap(szLocalFile, lpszImageName);
 }
 
-static bool __stdcall BgSkin_P_IsActive(void)
+static bool __WDECL BgSkin_P_IsActive(void)
 {
-    return (bool)(l_hbmBackground!=NULL);
+    return l_hbmBackground!=NULL;
 }
 
-bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
+bool __WDECL BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
 {
     RECT rcWnd;
     HDC hdcBitmap;
@@ -150,7 +150,7 @@ bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
     return false;
 }
 
-bool __stdcall BgSkinOnLButtonDown(HWND hWnd)
+bool __WDECL BgSkinOnLButtonDown(HWND hWnd)
 {
     if(BgSkin_P_IsActive() && !ConfigGetInt("ShowWindowCaption"))
     {
@@ -162,7 +162,7 @@ bool __stdcall BgSkinOnLButtonDown(HWND hWnd)
     return false;
 }
 
-HBRUSH __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
+HBRUSH __WDECL BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
 {
     if(BgSkin_P_IsActive())
     {
@@ -174,59 +174,60 @@ HBRUSH __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
     return NULL;
 }
 
-HBRUSH __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
+HBRUSH __WDECL BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
 {
     if(BgSkin_P_IsActive())
     {
         switch(ConfigGetInt("EditBackground"))
         {
-            case 1:
-                SetBkMode(hDC, TRANSPARENT);
+        case 1:
+            SetBkMode(hDC, TRANSPARENT);
 
-                // BUG: Transparency does not work on Windows XP+
-                //
-                // COMCTL32 V6 introduced in Windows XP employs
-                // unconditional double buffering (in this case
-                // CCBeginDoubleBuffer/CCEndDoubleBuffer in
-                // EditSL_Paint), but since transparency with
-                // WS_EX_TRANSPARENT and the NULL_BRUSH rely on
-                // nothing being drawn, the double-buffering bitmap
-                // remains blank (black), which is then pasted over
-                // the to-be transparent background.
-                // Currently the only workaround is to use the old
-                // common controls built into USER32 (basically
-                // abandon visual styles altogether).
-                return GetStockObject(NULL_BRUSH);
-            case 2:
-                SetBkMode(hDC, TRANSPARENT);
+            // BUG: Transparency does not work on Windows XP+
+            //
+            // COMCTL32 V6 introduced in Windows XP employs
+            // unconditional double buffering (in this case
+            // CCBeginDoubleBuffer/CCEndDoubleBuffer in
+            // EditSL_Paint), but since transparency with
+            // WS_EX_TRANSPARENT and the NULL_BRUSH rely on
+            // nothing being drawn, the double-buffering bitmap
+            // remains blank (black), which is then pasted over
+            // the to-be transparent background.
+            // Currently the only workaround is to use the old
+            // common controls built into USER32 (basically
+            // abandon visual styles altogether).
+            return GetStockObject(NULL_BRUSH);
+        case 2:
+            SetBkMode(hDC, TRANSPARENT);
 
-                SetTextColor(hDC, BvStrToRgbA(ConfigGetStr("EditForegroundColor"), NULL));
+            SetTextColor(hDC, BvStrToRgbA(ConfigGetStr("EditForegroundColor"), NULL));
 
-                if(l_hbrEditBack)
-                {
-                    DeleteObject(l_hbrEditBack);
-                }
+            if(l_hbrEditBack!=NULL)
+            {
+                DeleteBrush(l_hbrEditBack);
+            }
 
-                l_hbrEditBack = CreateSolidBrush(BvStrToRgbA(ConfigGetStr("EditBackgroundColor"), NULL));
+            l_hbrEditBack = CreateSolidBrush(BvStrToRgbA(ConfigGetStr("EditBackgroundColor"), NULL));
 
-                return l_hbrEditBack;
+            return l_hbrEditBack;
         }
     }
 
     return NULL;
 }
 
-bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
+bool __WDECL BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
 {
     HBITMAP hbmLook;
-    HDC hdcBitmap;
 
     if((hbmLook = BgSkin_P_GetSkin(uID))!=NULL)
     {
+        HDC hdcBitmap;
+
         if((hdcBitmap = CreateCompatibleDC(lpDis->hDC))!=NULL)
         {
-            int nWidth = lpDis->rcItem.right-lpDis->rcItem.left;
-            int nHeight = lpDis->rcItem.bottom-lpDis->rcItem.top;
+            int const nWidth = lpDis->rcItem.right-lpDis->rcItem.left;
+            int const nHeight = lpDis->rcItem.bottom-lpDis->rcItem.top;
             HGDIOBJ hGdiObj = SelectObject(hdcBitmap, hbmLook);
 
             BitBlt(lpDis->hDC, lpDis->rcItem.left, lpDis->rcItem.top, nWidth, nHeight, hdcBitmap, lpDis->rcItem.left+BgSkin_P_ButtonState2Index(lpDis->itemState)*nWidth, lpDis->rcItem.top, SRCCOPY);
@@ -240,13 +241,13 @@ bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
     return false;
 }
 
-static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
+static void __WDECL BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
 {
     HBITMAP hbmLook;
 
     hbmLook = BgSkin_P_LoadBitmap2(lpszName);
 
-    if(hbmLook)
+    if(hbmLook!=NULL)
     {
         LPBUTTONSKININFO lpBsi = NULL;
 
@@ -266,19 +267,19 @@ static void __stdcall BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const cha
     }
 }
 
-bool __stdcall BgSkinInit(HWND hWnd)
+bool __WDECL BgSkinInit(HWND hWnd)
 {
     BITMAP bmBG;
-    HRGN hRGN;
     HWND hChildWnd = NULL;
-    RECT rcWnd;
 
     l_hbmBackground = BgSkin_P_LoadBitmap2("BGSKIN");
 
-    if(l_hbmBackground)
+    if(l_hbmBackground!=NULL)
     {
         if(GetObject(l_hbmBackground, sizeof(bmBG), &bmBG))
         {
+            RECT rcWnd;
+
             // set window size to bitmap size
             SetRect(&rcWnd, 0, 0, bmBG.bmWidth, bmBG.bmHeight);
 
@@ -298,6 +299,8 @@ bool __stdcall BgSkinInit(HWND hWnd)
             // only chrome-less windows can use irregular shapes
             if(!ConfigGetInt("ShowWindowCaption"))
             {
+                HRGN hRGN;
+
                 // window size for base window region (origin transform)
                 GetClientRect(hWnd, &rcWnd);
 
@@ -311,7 +314,7 @@ bool __stdcall BgSkinInit(HWND hWnd)
                     }
                     else
                     {
-                        DeleteObject(hRGN);
+                        DeleteRgn(hRGN);
                     }
                 }
             }
@@ -411,9 +414,9 @@ bool __stdcall BgSkinInit(HWND hWnd)
 
 static void __WDECL BgSkin_P_ReleaseSkin(LPBVLLISTNODE Node, void* lpContext)
 {
-    CONTEXTCAST(LPBUTTONSKININFO,lpBsi,Node);
+    LPBUTTONSKININFO lpBsi = BvLListNodeParent(Node, BUTTONSKININFO, Node);
 
-    if(lpBsi->hbmLook)
+    if(lpBsi->hbmLook!=NULL)
     {
         DeleteBitmap(lpBsi->hbmLook);
     }
@@ -421,19 +424,19 @@ static void __WDECL BgSkin_P_ReleaseSkin(LPBVLLISTNODE Node, void* lpContext)
     MemTFree(&lpBsi);
 }
 
-void __stdcall BgSkinFree(void)
+void __WDECL BgSkinFree(void)
 {
-    BvLListClear(&l_SkinList, BgSkin_P_ReleaseSkin, NULL);
+    BvLListClear(&l_SkinList, &BgSkin_P_ReleaseSkin, NULL);
 
-    if(l_hbrEditBack)
+    if(l_hbrEditBack!=NULL)
     {
-        DeleteObject(l_hbrEditBack);
+        DeleteBrush(l_hbrEditBack);
         l_hbrEditBack = NULL;
     }
 
-    if(l_hbmBackground)
+    if(l_hbmBackground!=NULL)
     {
-        DeleteObject(l_hbmBackground);
+        DeleteBitmap(l_hbmBackground);
         l_hbmBackground = NULL;
     }
 }
