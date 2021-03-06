@@ -33,12 +33,12 @@ Window::Window(WNDPROC procMessageHandler, LPCTSTR lpszTitle, INT32 x, INT32 y, 
 	m_windowClass.cbClsExtra = 0;
 	m_windowClass.cbWndExtra = 0;
 	m_windowClass.hInstance = GetModuleHandle(NULL);
-	m_windowClass.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APPLICATION));
+	m_windowClass.hIcon = LoadIcon(GetModuleHandle(NULL), IDI_APPLICATION);
 	m_windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	m_windowClass.hbrBackground = GetSysColorBrush(CTLCOLOR_DLG);
+	m_windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	m_windowClass.lpszMenuName = NULL;
 	m_windowClass.lpszClassName = lpszTitle;
-	m_windowClass.hIconSm = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APPLICATION));
+	m_windowClass.hIconSm = LoadIcon(GetModuleHandle(NULL), IDI_APPLICATION);
 
 	if(!RegisterClassEx(&m_windowClass)) 
 		throw new WeeException(TEXT(__FUNCTION__) TEXT(": Failed to register class!"), WeeException::E_ERROR);
