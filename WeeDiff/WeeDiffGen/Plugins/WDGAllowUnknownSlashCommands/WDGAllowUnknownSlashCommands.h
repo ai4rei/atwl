@@ -37,7 +37,6 @@ public:
 
 private:
     void SetByte(UINT32 uOffset, UCHAR uValue);
-    void WDGPlugin::SetLong(UINT32 uOffset, ULONG uValue);
 };
 
 #endif  /* WDGALLOWUNKNOWNSLASHCOMMANDS_H */
