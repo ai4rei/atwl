@@ -407,8 +407,7 @@ INT32 WeeDiffPlain::PatchIt()
 
 	if(bInterrupt)
 	{
-		_stprintf_s(szMsg, TEXT("Patching aborted!"), iCountPatched, iCountFailed);
-		m_gui->DisplayMessageBox(GetPluginInfo()->lpszPluginName, szMsg, NULL, MBI_WARNING, MB_OK);
+		m_gui->DisplayMessageBox(GetPluginInfo()->lpszPluginName, TEXT("Patching aborted!"), NULL, MBI_WARNING, MB_OK);
 	}
 	else
 	{
