@@ -158,7 +158,7 @@ DiffData* WDGPlugin::GeneratePatch()
         // Find unconditional trampoline +/-80h for UJmp (JMP SHORT)
         Fd.uMask = WFD_PATTERN|WFD_WILDCARD;
         Fd.uStart = uOffset+18-0x80;
-        Fd.uFinish = uOffset+18+0x80;
+        Fd.uFinish = uOffset+18+0x80+4;
         Fd.chWildCard = '?';
         Fd.lpData = "E9 '??' 0000";  // JMP <+>
         uPart = 5;
@@ -189,7 +189,7 @@ DiffData* WDGPlugin::GeneratePatch()
         // Find unconditional trampoline +/-80h for CJmp (JZ SHORT)
         Fd.uMask = WFD_PATTERN|WFD_WILDCARD;
         Fd.uStart = uOffset+16-0x80;
-        Fd.uFinish = uOffset+16+0x80;
+        Fd.uFinish = uOffset+16+0x80+4;
         Fd.chWildCard = '?';
         Fd.lpData = "E9 '??' 0000";  // JMP <+>
         uPart = 6;
@@ -211,7 +211,7 @@ DiffData* WDGPlugin::GeneratePatch()
         }
 
         // JMP <+/->
-        SetByte(uOffset+13, 0x4F);  // -> DEC EDI (for TT_NORMAL this makes it 0, otherwise -1 (because there was not previous increment and by default EDI is zero in this function)
+        SetByte(uOffset+13, 0x4F);  // -> DEC EDI (for TT_NORMAL this makes it 0, otherwise -1 (because there was no previous increment and by default EDI is zero in this function)
         SetByte(uOffset+14, 0x74);  // -> JZ ...
         SetByte(uOffset+15, (UCHAR)uCJmpTrmpRel);  // -> ... <+/->
         SetByte(uOffset+16, 0xEB);  // -> JMP SHORT ...
