@@ -55,7 +55,7 @@ WeeGUI *g_wgui = NULL;
 WeePluginManager::IBasePlugin *g_activePlugin = NULL;
 
 HINSTANCE g_hInstance = NULL;
-HBRUSH g_hBrush = GetSysColorBrush(CTLCOLOR_DLG);
+HBRUSH g_hBrush = GetSysColorBrush(COLOR_WINDOW);
 NONCLIENTMETRICS g_ncm;
 HDC g_hMemDC = NULL;
 WNDPROC g_OldListViewProc;
