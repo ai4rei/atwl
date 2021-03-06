@@ -4,30 +4,33 @@ Original:
 
 Atwl:
 
-{e0b16161-19ea-e111-a77802215648a98} WDGEnableAsciiInText
-{e1b16161-19ea-e111-a77802215648a98} WDGRemoveHourlyPlaytimeMinder
-{e2b16161-19ea-e111-a77802215648a98} WDGRemoveHourlyGameGrade
-{e3b16161-19ea-e111-a77802215648a98} WDGRemoveQuakeSkillEffect
-{e4b16161-19ea-e111-a77802215648a98} WDGSharedBodyPalettes
-{e5b16161-19ea-e111-a77802215648a98} WDGSkipPacketHeaderObfuscation
-{e6b16161-19ea-e111-a77802215648a98} WDGSharedHeadPalettes
-{e7b16161-19ea-e111-a77802215648a98} WDGEnable64kHairstyles
-{e8b16161-19ea-e111-a77802215648a98} WDGUseSSOLoginPacket
-{e9b16161-19ea-e111-a77802215648a98} WDGExtendedNPCDialog
-{eab16161-19ea-e111-a77802215648a98} WDGRemoveLoginErrorCode
-{ebb16161-19ea-e111-a77802215648a98} WDGTranslateClient
-{ecb16161-19ea-e111-a77802215648a98} WDGChatColorGM
-{edb16161-19ea-e111-a77802215648a98} WDGChatColorNormal
-{eeb16161-19ea-e111-a77802215648a98} WDGChatColorSelf
-{efb16161-19ea-e111-a77802215648a98} WDGChatColorGuild
-{f0b16161-19ea-e111-a77802215648a98} WDGChatColorParty
-{f1b16161-19ea-e111-a77802215648a98} WDGUseCustomFont
-{f2b16161-19ea-e111-a77802215648a98} WDGShowExpBarsUpToXX
-{f3b16161-19ea-e111-a77802215648a98} WDGRestoreRain
-{f4b16161-19ea-e111-a77802215648a98} WDGScreenshotQuality
-{f5b16161-19ea-e111-a77802215648a98} WDGEnableProxySupport
-{f6b16161-19ea-e111-a77802215648a98} WDGEnableCustom3DBones
-{f7b16161-19ea-e111-a77802215648a98} WDGEnableGuildFlagAnimation
-{f8b16161-19ea-e111-a77802215648a98} WDGCancelToLoginWindow
-{f9b16161-19ea-e111-a77802215648a98} WDGRemoveIsCheatName
-{fab16161-19ea-e111-a77802215648a98} WDGRemoveIsGuildCheatName
+{e0b16161-19ea-e111-a778-002215648a98} WDGEnableAsciiInText
+{e1b16161-19ea-e111-a778-002215648a98} WDGRemoveHourlyPlaytimeMinder
+{e2b16161-19ea-e111-a778-002215648a98} WDGRemoveHourlyGameGrade
+{e3b16161-19ea-e111-a778-002215648a98} WDGRemoveQuakeSkillEffect
+{e4b16161-19ea-e111-a778-002215648a98} WDGSharedBodyPalettes
+{e5b16161-19ea-e111-a778-002215648a98} WDGSkipPacketHeaderObfuscation
+{e6b16161-19ea-e111-a778-002215648a98} WDGSharedHeadPalettes
+{e7b16161-19ea-e111-a778-002215648a98} WDGEnable64kHairstyles
+{e8b16161-19ea-e111-a778-002215648a98} WDGUseSSOLoginPacket
+{e9b16161-19ea-e111-a778-002215648a98} WDGExtendedNPCDialog
+{eab16161-19ea-e111-a778-002215648a98} WDGRemoveLoginErrorCode
+{ebb16161-19ea-e111-a778-002215648a98} WDGTranslateClient
+{ecb16161-19ea-e111-a778-002215648a98} WDGChatColorGM
+{edb16161-19ea-e111-a778-002215648a98} WDGChatColorNormal
+{eeb16161-19ea-e111-a778-002215648a98} WDGChatColorSelf
+{efb16161-19ea-e111-a778-002215648a98} WDGChatColorGuild
+{f0b16161-19ea-e111-a778-002215648a98} WDGChatColorParty
+{f1b16161-19ea-e111-a778-002215648a98} WDGUseCustomFont
+{f2b16161-19ea-e111-a778-002215648a98} WDGShowExpBarsUpToXX
+{f3b16161-19ea-e111-a778-002215648a98} WDGRestoreRain
+{f4b16161-19ea-e111-a778-002215648a98} WDGScreenshotQuality
+{f5b16161-19ea-e111-a778-002215648a98} WDGEnableProxySupport
+{f6b16161-19ea-e111-a778-002215648a98} WDGEnableCustom3DBones
+{f7b16161-19ea-e111-a778-002215648a98} WDGEnableGuildFlagAnimation
+{f8b16161-19ea-e111-a778-002215648a98} WDGCancelToLoginWindow
+{f9b16161-19ea-e111-a778-002215648a98} WDGRemoveIsCheatName
+{fab16161-19ea-e111-a778-002215648a98} WDGRemoveIsGuildCheatName
+^ TODO: above GUIDs may have wrong byte-order
+
+{017ff2e0-7e09-11eb-a78b-74da38c22b45} WDGAllowUnknownSlashCommands
