@@ -104,7 +104,7 @@ DiffData* WDGPlugin::GeneratePatch()
         SetByte(uOffset+14, 0x90);  // -> NOP
         SetByte(uOffset+15, 0x90);  // -> NOP
 
-        // Find (trace backwards) epilogue of the current function
+        // Find (trace backwards) prologue of the current function
         // to obtain its offset (PUSH EBP; MOVE EBP,ESP).
         for(uBegin = uOffset; uBegin>0 && !(m_dgc->GetBYTE(uBegin)==0x55 && m_dgc->GetWORD(uBegin+1)==0xEC8B); uBegin--);
         if(uBegin==0)
