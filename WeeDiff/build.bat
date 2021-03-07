@@ -6,6 +6,7 @@ REM Creative Commons BY-NC-SA 4.0 International License
 REM https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 :SETUP
+IF "%INCLUDE%"=="" GOTO NOENV
 ECHO Setting up builder...
 REM Obtain current directory
 ECHO SET BUILDERDIR=^^>~~~build.bat
@@ -73,7 +74,12 @@ SET BUILDERDIR=
 SET OUT=
 GOTO EXIT
 
+:NOENV
+ECHO Compiler not found. Use the Visual C++ Command Line.
+GOTO EXIT
+
 :ERROR
 ECHO Error occured.
+GOTO EXIT
 
 :EXIT
