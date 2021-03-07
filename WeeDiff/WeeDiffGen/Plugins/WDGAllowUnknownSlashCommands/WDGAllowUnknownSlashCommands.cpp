@@ -64,10 +64,7 @@ LPCTSTR WDGPlugin::GetInputValue()
 DiffData* WDGPlugin::GeneratePatch()
 {
     FINDDATA Fd;
-    UINT32 uOffset, uBegin, uPart;
-    UINT32 uBeginRva, uCallerRva, uRelativeCall;
-    UINT32 uUJmpRva, uUJmpTrmp, uUJmpTrmpRel, uUJmp;
-    UINT32 uCJmpRva, uCJmpTrmp, uCJmpTrmpRel;
+    UINT32 uPart;
 
     m_DiffData.clear();
 
@@ -78,8 +75,8 @@ DiffData* WDGPlugin::GeneratePatch()
         // (CSession::GetTalkType) set chatStartOffset to 0 instead
         // of -1 in case the return value was indeed TT_NORMAL.
 
-        // 20150916aRagexe ~ 20190107aRagexe for now. This generic
-        // code sequence is actually unique in the client, so use a
+        // 20150916aRagexe ~ 20190107aRagexe. This generic code
+        // sequence is actually unique in the client, so use a
         // simple FR.
         Fd.uMask = WFD_PATTERN;
         Fd.uStart = 0;
@@ -96,7 +93,28 @@ DiffData* WDGPlugin::GeneratePatch()
                     ;
 
         uPart = 1;
-        uOffset = m_dgc->Match(&Fd);
+        return GeneratePatchV1(m_dgc->Match(&Fd));
+    }
+    catch(LPCSTR lpszThrown)
+    {
+        char szErrMsg[1024];
+        wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
+        m_dgc->LogMsg(szErrMsg);
+    }
+
+    return NULL;
+}
+
+DiffData* WDGPlugin::GeneratePatchV1(UINT32 uOffset)
+{
+    FINDDATA Fd;
+    UINT32 uBegin, uPart;
+    UINT32 uBeginRva, uCallerRva, uRelativeCall;
+    UINT32 uUJmpRva, uUJmpTrmp, uUJmpTrmpRel, uUJmp;
+    UINT32 uCJmpRva, uCJmpTrmp, uCJmpTrmpRel;
+
+    try
+    {
         // MOV EAX,3
         SetByte(uOffset+11, 0x33);  // -> XOR EAX,EAX (TT_NORMAL = 0)
         SetByte(uOffset+12, 0xC0);
