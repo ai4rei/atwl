@@ -37,6 +37,7 @@ public:
 
 private:
     DiffData* GeneratePatchV1(UINT32 uOffset);
+    DiffData* GeneratePatchV2(UINT32 uOffset);
     void SetByte(UINT32 uOffset, UCHAR uValue);
 };
 

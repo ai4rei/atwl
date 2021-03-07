@@ -95,11 +95,34 @@ DiffData* WDGPlugin::GeneratePatch()
         uPart = 1;
         return GeneratePatchV1(m_dgc->Match(&Fd));
     }
-    catch(LPCSTR lpszThrown)
+    catch(LPCSTR)
     {
-        char szErrMsg[1024];
-        wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
-        m_dgc->LogMsg(szErrMsg);
+        try
+        {
+            // 20120702aRagexeRE
+            Fd.uMask = WFD_PATTERN;
+            Fd.uStart = 0;
+            Fd.uFinish = (UINT32)-1;
+            Fd.lpData = "5F"            // POP      EDI
+                        "5E"            // POP      ESI
+                        "59"            // POP      ECX
+                        "C2 0400"       // RETN     4
+                        "5F"            // POP      EDI
+                        "B8 03000000"   // MOV      EAX,3
+                        "5E"            // POP      ESI
+                        "59"            // POP      ECX
+                        "C2 0400"       // RETN     4
+                        ;
+
+            uPart = 7;
+            return GeneratePatchV2(m_dgc->Match(&Fd));
+        }
+        catch(LPCSTR lpszThrown)
+        {
+            char szErrMsg[1024];
+            wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
+            m_dgc->LogMsg(szErrMsg);
+        }
     }
 
     return NULL;
@@ -118,9 +141,9 @@ DiffData* WDGPlugin::GeneratePatchV1(UINT32 uOffset)
         // MOV EAX,3
         SetByte(uOffset+11, 0x33);  // -> XOR EAX,EAX (TT_NORMAL = 0)
         SetByte(uOffset+12, 0xC0);
-        SetByte(uOffset+13, 0x47);  // -> INC EDI (EDI is 0 at this point in the caller)
-        SetByte(uOffset+14, 0x90);  // -> NOP
-        SetByte(uOffset+15, 0x90);  // -> NOP
+        SetByte(uOffset+13, 0x83);  // -> ADD EDI,1 (EDI is 0 at this point in the caller)
+        SetByte(uOffset+14, 0xC7);
+        SetByte(uOffset+15, 0x01);
 
         // Find (trace backwards) prologue of the current function
         // to obtain its offset (PUSH EBP; MOVE EBP,ESP).
@@ -234,6 +257,82 @@ DiffData* WDGPlugin::GeneratePatchV1(UINT32 uOffset)
         SetByte(uOffset+15, (UCHAR)uCJmpTrmpRel);  // -> ... <+/->
         SetByte(uOffset+16, 0xEB);  // -> JMP SHORT ...
         SetByte(uOffset+17, (UCHAR)uUJmpTrmpRel);  // -> ... <+/->
+    }
+    catch(const char* lpszThrown)
+    {
+        char szErrMsg[1024];
+
+        wsprintfA(szErrMsg, __FILE__" :: Part %u :: %s", uPart, lpszThrown);
+        m_dgc->LogMsg(szErrMsg);
+
+        // clean up diffdata (half diff)
+        m_DiffData.clear();
+    }
+
+    return m_DiffData.empty() ? NULL : &m_DiffData;
+}
+
+DiffData* WDGPlugin::GeneratePatchV2(UINT32 uOffset)
+{
+    FINDDATA Fd;
+    UINT32 uBegin, uPart, uMatches = 0;
+    UINT32 uBeginRva, uCallerRva, uRelativeCall;
+
+    try
+    {
+        // MOV EAX,3
+        SetByte(uOffset+7, 0x33);  // -> XOR EAX,EAX (TT_NORMAL = 0)
+        SetByte(uOffset+8, 0xC0);
+        SetByte(uOffset+9, 0x83);  // -> ADD EBP,1 (EBP is 0 at this point in the caller)
+        SetByte(uOffset+10, 0xC5);
+        SetByte(uOffset+11, 0x01);
+
+        // Find begin of the function (INT3, PUSH ECX, PUSH ESI).
+        for(uBegin = uOffset; uBegin>0 && !(m_dgc->GetBYTE(uBegin)==0xCC && m_dgc->GetWORD(uBegin+1)==0x5651); uBegin--);
+        if(uBegin==0)
+        {
+            uPart = 8;
+            throw "Begin of function not found, function signature has probably changed.";
+        }
+
+        // Get the actual address.
+        uBeginRva = m_dgc->Raw2Rva(uBegin+1);
+
+        // Find the two references to this function (CALL).
+        Fd.uMask = WFD_PATTERN|WFD_WILDCARD;
+        Fd.uStart = 0;
+        Fd.uFinish = (UINT32)-1;
+        Fd.chWildCard = '?';
+        Fd.lpData = "E8 '????'"     // CALL     <+/->
+                    "8907"          // MOV      [EDI],EAX
+                    "83CD FF"       // OR       EBP,-1
+                    ;
+        uPart = 9;
+
+        for(;;)
+        {
+            uOffset = m_dgc->Match(&Fd);
+
+            // Calculate the CALL argument
+            uCallerRva = m_dgc->Raw2Rva(uOffset+5);   // EIP after the call
+            uRelativeCall = uBeginRva-uCallerRva;     // CALL offset
+
+            if(m_dgc->GetDWORD32(uOffset+1)==uRelativeCall)
+            {// found
+                uMatches++;
+                uPart++;
+
+                SetByte(uOffset+8, 0xED);   // OR EBP,-1 -> SUB EBP,1 (for TT_NORMAL, EBP becomes 0, otherwise -1)
+                SetByte(uOffset+9, 0x01);
+
+                if(uMatches==2)
+                {// done
+                    break;
+                }
+            }
+
+            Fd.uStart = uOffset+1;  // try next
+        }
     }
     catch(const char* lpszThrown)
     {
