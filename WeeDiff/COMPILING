@@ -1,7 +1,6 @@
-build.bat (primary)
-    Requires Visual C++ 2010 Command Line (any edition). Run it from
-    the directory it resides in. Any Express Edition short-commings
-    are fixed ad-hoc.
+Makefile (primary)
+    Requires Visual C++ 2010 or newer Command Line. Use `nmake' to
+    run it.
 
 WeeToolsExpress.sln (updated occasionally)
     Requires Visual C++ 2010 (any edition).
