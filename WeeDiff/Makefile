@@ -5,7 +5,7 @@ BASE_DIR = $(MAKEDIR)\.
 BASE_DIR = $(BASE_DIR:^\^\=^\)
 
 CPPFLAGS = -nologo -W3 -O2x -GF -EHsc -DWIN32 -DNDEBUG -D_WINDOWS -D_UNICODE -DUNICODE -DSTRICT -I$(BASE_DIR)
-LFLAGS = -nologo -opt:ref -opt:icf -release kernel32.lib user32.lib gdi32.lib comdlg32.lib
+LFLAGS = -nologo -opt:ref -opt:icf -release kernel32.lib user32.lib gdi32.lib comdlg32.lib comctl32.lib
 LDFLAGS = $(LFLAGS) -dll
 
 # Detect whether -nologo is supported and necessary (does not work with MSVC7)
@@ -53,7 +53,8 @@ WEEDIFF_RESOURCES = \
     $(SNIPPETS_DIR)\WeeTools.bmp \
     $(WEEDIFF_DIR)\checkboxes.bmp \
     $(WEEDIFF_DIR)\icons.ico \
-    $(WEEDIFF_DIR)\imagelist.bmp
+    $(WEEDIFF_DIR)\imagelist.bmp \
+    $(WEEDIFF_DIR)\WeeDiff.manifest
 
 WEEDIFF_RC = \
     $(WEEDIFF_DIR)\WeeDiff.rc
@@ -110,7 +111,6 @@ $(WEEDIFF_RC) : $(WEEDIFF_RESOURCES)
 CleanWeeDiff :
     for %i in ($(WEEDIFF_OBJ)) do if exist %i del %i
     for %i in ($(WEEDIFF_BIN)) do if exist %i del %i
-    if exist $(BIN_DIR)\WeeDiff.exe.manifest del $(BIN_DIR)\WeeDiff.exe.manifest
 
 WeeDiffGen : $(WEEDIFFGEN_BIN) WeeDiffGenPlugins
 
