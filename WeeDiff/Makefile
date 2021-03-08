@@ -116,6 +116,8 @@ WeeDiffGen : $(WEEDIFFGEN_BIN) WeeDiffGenPlugins
 
 $(WEEDIFFGEN_BIN) : $(WEEDIFFGEN_OBJ)
     $(LINK) $(LDFLAGS) -out:$@ $**
+    for %i in ($(WEEDIFFGEN_BIN:.dll=.exp)) do if exist %i del %i
+    for %i in ($(WEEDIFFGEN_BIN:.dll=.lib)) do if exist %i del %i
 
 $(WEEDIFFGEN_CPP) : $(WEEDIFFGEN_H)
 
@@ -133,11 +135,15 @@ WeeDiffGenPlugins :
     cd $(WEEDIFFGENPLUGIN_DIR)
     $(MAKE) -nologo -$(MAKEFLAGS) "BASE_DIR=$(BASE_DIR)" "BIN_DIR=$(BASE_DIR)\$(BIN_DIR)\Plugins\WeeDiffGen" "OBJ_DIR=$(BASE_DIR)\$(OBJ_DIR)" "CPPFLAGS=$(CPPFLAGS)" "LDFLAGS=$(LDFLAGS)"
     cd $(BASE_DIR)
+    if exist $(BIN_DIR)\Plugins\WeeDiffGen\WDG*.exp del $(BIN_DIR)\Plugins\WeeDiffGen\WDG*.exp
+    if exist $(BIN_DIR)\Plugins\WeeDiffGen\WDG*.lib del $(BIN_DIR)\Plugins\WeeDiffGen\WDG*.lib
 
 WeeDiffPlain : $(WEEDIFFPLAIN_BIN)
 
 $(WEEDIFFPLAIN_BIN) : $(WEEDIFFPLAIN_OBJ)
     $(LINK) $(LDFLAGS) -out:$@ $**
+    for %i in ($(WEEDIFFPLAIN_BIN:.dll=.exp)) do if exist %i del %i
+    for %i in ($(WEEDIFFPLAIN_BIN:.dll=.lib)) do if exist %i del %i
 
 $(WEEDIFFPLAIN_CPP) : $(WEEDIFFPLAIN_H)
 
