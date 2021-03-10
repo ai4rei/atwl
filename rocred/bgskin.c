@@ -39,7 +39,7 @@ static HBITMAP l_hbmBackground = NULL;
 static HBRUSH l_hbrEditBack = NULL;
 static BVLLIST l_SkinList = { 0 };  // id -> LPBGSKININFO
 
-static const char* __WDECL BgSkin_P_ButtonId2Name(UINT uId)
+static char const* __WDECL BgSkin_P_ButtonId2Name(UINT const uId)
 {
     switch(uId)
     {
@@ -53,7 +53,7 @@ static const char* __WDECL BgSkin_P_ButtonId2Name(UINT uId)
     return NULL;
 }
 
-static unsigned char __WDECL BgSkin_P_ButtonState2Index(UINT uState)
+static unsigned char __WDECL BgSkin_P_ButtonState2Index(UINT const uState)
 {
     unsigned char ucIndex = 0;
 
@@ -69,7 +69,7 @@ static unsigned char __WDECL BgSkin_P_ButtonState2Index(UINT uState)
     return ucIndex;
 }
 
-static HBITMAP __WDECL BgSkin_P_GetSkin(UINT uID)
+static HBITMAP __WDECL BgSkin_P_GetSkin(UINT const uID)
 {
     LPBVLLISTNODE Item;
 
@@ -95,7 +95,7 @@ static void __WDECL BgSkin_P_MakeLocalFileName(char const* const lpszName, char*
     GetModuleFileNameSpecificPathA(NULL, lpszBuffer, uBufferSize, szBaseName, "bmp");
 }
 
-static HBITMAP __WDECL BgSkin_P_LoadBitmap(const char* lpszFileName, const char* lpszImageName)
+static HBITMAP __WDECL BgSkin_P_LoadBitmap(char const* const lpszFileName, char const* const lpszImageName)
 {
     HBITMAP hBitmap;
 
@@ -123,7 +123,7 @@ static bool __WDECL BgSkin_P_IsActive(void)
     return l_hbmBackground!=NULL;
 }
 
-bool __WDECL BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
+bool __WDECL BgSkinOnEraseBkGnd(HWND const hWnd, HDC const hDC)
 {
     RECT rcWnd;
     HDC hdcBitmap;
@@ -148,7 +148,7 @@ bool __WDECL BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC)
     return false;
 }
 
-bool __WDECL BgSkinOnLButtonDown(HWND hWnd)
+bool __WDECL BgSkinOnLButtonDown(HWND const hWnd)
 {
     if(BgSkin_P_IsActive() && !ConfigGetInt("ShowWindowCaption"))
     {
@@ -160,7 +160,7 @@ bool __WDECL BgSkinOnLButtonDown(HWND hWnd)
     return false;
 }
 
-HBRUSH __WDECL BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
+HBRUSH __WDECL BgSkinOnCtlColorStatic(HDC const hDC, HWND const hWnd)
 {
     if(BgSkin_P_IsActive())
     {
@@ -172,7 +172,7 @@ HBRUSH __WDECL BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd)
     return NULL;
 }
 
-HBRUSH __WDECL BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
+HBRUSH __WDECL BgSkinOnCtlColorEdit(HDC const hDC, HWND const hWnd)
 {
     if(BgSkin_P_IsActive())
     {
@@ -214,7 +214,7 @@ HBRUSH __WDECL BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd)
     return NULL;
 }
 
-bool __WDECL BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
+bool __WDECL BgSkinOnDrawItem(UINT const uID, DRAWITEMSTRUCT const* const lpDis)
 {
     HBITMAP hbmLook;
 
@@ -239,7 +239,7 @@ bool __WDECL BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis)
     return false;
 }
 
-static void __WDECL BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char* lpszName)
+static void __WDECL BgSkin_P_RegisterButtonSkin(UINT const uBtnId, char const* const lpszName)
 {
     HBITMAP hbmLook;
 
@@ -265,7 +265,7 @@ static void __WDECL BgSkin_P_RegisterButtonSkin(unsigned int uBtnId, const char*
     }
 }
 
-bool __WDECL BgSkinInit(HWND hWnd)
+bool __WDECL BgSkinInit(HWND const hWnd)
 {
     BITMAP bmBG;
     HWND hChildWnd = NULL;
@@ -322,8 +322,8 @@ bool __WDECL BgSkinInit(HWND hWnd)
         while((hChildWnd = FindWindowExA(hWnd, hChildWnd, NULL, NULL))!=NULL)
         {
             char szBuffer[128];
-            const char* lpszName;
-            unsigned int uBtnId = GetDlgCtrlID(hChildWnd);
+            char const* lpszName;
+            UINT uBtnId = GetDlgCtrlID(hChildWnd);
             int nX, nY, nW, nH;
             HBITMAP hbmLook;
 

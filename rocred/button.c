@@ -70,12 +70,12 @@ static LRESULT CALLBACK Button_P_SubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wP
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-bool __WDECL ButtonCreate(HWND hWndParent, const int nX, const int nY, const int nWidth, const int nHeight, const char* const lpszDisplayName, const char* const lpszName, const int nActionType, const char* const lpszActionData, const char* const lpszActionHandler)
+bool __WDECL ButtonCreate(HWND const hWndParent, int const nX, int const nY, int const nWidth, int const nHeight, char const* const lpszDisplayName, char const* const lpszName, int const nActionType, char const* const lpszActionData, char const* const lpszActionHandler)
 {
     BUTTON_DATA* lpBd = NULL;
-    const size_t uNameLength          = strlen(lpszName);
-    const size_t uActionDataLength    = strlen(lpszActionData);
-    const size_t uActionHandlerLength = strlen(lpszActionHandler);
+    size_t const uNameLength          = strlen(lpszName);
+    size_t const uActionDataLength    = strlen(lpszActionData);
+    size_t const uActionHandlerLength = strlen(lpszActionHandler);
 
     if(MemT2Alloc(&lpBd, lpszName, uNameLength+1U+uActionDataLength+1U+uActionHandlerLength+1U))
     {
@@ -109,7 +109,7 @@ bool __WDECL ButtonCreate(HWND hWndParent, const int nX, const int nY, const int
     return false;
 }
 
-bool __WDECL ButtonAction(HWND hWnd, const unsigned int uBtnId)
+bool __WDECL ButtonAction(HWND const hWnd, UINT const uBtnId)
 {
     HWND hWndButton = GetDlgItem(hWnd, uBtnId);
 
@@ -127,8 +127,8 @@ bool __WDECL ButtonAction(HWND hWnd, const unsigned int uBtnId)
         {
             bool bSuccess = false;
             char* lpszBuf;
-            const char* lpszFile;
-            const char* lpszParam = "";
+            char const* lpszFile;
+            char const* lpszParam = "";
             char szFileClass[MAX_REGISTRY_KEY_SIZE+1];
 
             lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
@@ -174,8 +174,8 @@ bool __WDECL ButtonAction(HWND hWnd, const unsigned int uBtnId)
         {
             bool bSuccess = false;
             char* lpszBuf;
-            const char* lpszFile;
-            const char* lpszParam = "";
+            char const* lpszFile;
+            char const* lpszParam = "";
 
             lpszBuf = MemCrtStrDupA(lpBd->lpszActionData);
 
@@ -225,9 +225,9 @@ bool __WDECL ButtonAction(HWND hWnd, const unsigned int uBtnId)
     return false;
 }
 
-bool __WDECL ButtonCheckName(const char* const lpszName)
+bool __WDECL ButtonCheckName(char const* const lpszName)
 {
-    const char* lpszIdx;
+    char const* lpszIdx;
 
     // validate button name /^[A-Z0-9_]+$/
     for(lpszIdx = lpszName; (lpszIdx[0]>='A' && lpszIdx[0]<='Z') || (lpszIdx[0]>='0' && lpszIdx[0]<='9') || lpszIdx[0]=='_'; lpszIdx++);
@@ -235,7 +235,7 @@ bool __WDECL ButtonCheckName(const char* const lpszName)
     return (bool)(0==lpszIdx[0]);
 }
 
-const char* __WDECL ButtonGetName(const unsigned int uBtnId, char* const lpszBuffer, const size_t uBufferSize)
+char const* __WDECL ButtonGetName(UINT const uBtnId, char* const lpszBuffer, size_t const uBufferSize)
 {
     lpszBuffer[0] = 0;
 
@@ -247,7 +247,7 @@ const char* __WDECL ButtonGetName(const unsigned int uBtnId, char* const lpszBuf
     return NULL;
 }
 
-unsigned int __WDECL ButtonGetId(const char* const lpszName)
+UINT __WDECL ButtonGetId(char const* const lpszName)
 {
     return FindAtomA(lpszName);
 }

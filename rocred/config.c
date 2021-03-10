@@ -19,32 +19,33 @@
 
 #include "config.h"
 
-struct LPFOREACHSECTIONCONTEXT
+BEGINSTRUCT(FOREACHSECTIONCONTEXT)
 {
     LPFNFOREACHSECTION Func;
     void* lpContext;
-};
+}
+CLOSESTRUCT(FOREACHSECTIONCONTEXT);
 
 static char l_szIniFile[MAX_PATH] = { 0 };
 static KVDB l_ConfigDB = { 0 };
 
 #define CONFIG_MAIN_SECTION "ROCred"
 
-static bool __WDECL Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
+static bool __WDECL Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, char const* const lpszSection, void* lpContext)
 {
-    struct LPFOREACHSECTIONCONTEXT* lpCtx = (struct LPFOREACHSECTIONCONTEXT*)lpContext;
+    LPFOREACHSECTIONCONTEXT lpCtx = (LPFOREACHSECTIONCONTEXT)lpContext;
 
     return lpCtx->Func(lpszSection, lpCtx->lpContext);
 }
 
-void __WDECL ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext)
+void __WDECL ConfigForEachSectionMatch(char const* const lpszMatch, LPFNFOREACHSECTION const Func, void* lpContext)
 {
-    struct LPFOREACHSECTIONCONTEXT Ctx = { Func, lpContext };
+    FOREACHSECTIONCONTEXT Ctx = { Func, lpContext };
 
     KvForEachSectionMatch(&l_ConfigDB, lpszMatch, &Config_P_ForEachSection, &Ctx);
 }
 
-void __WDECL ConfigSetStr(const char* lpszKey, const char* lpszValue)
+void __WDECL ConfigSetStr(char const* const lpszKey, char const* const lpszValue)
 {
     if(lpszValue)
     {
@@ -58,7 +59,7 @@ void __WDECL ConfigSetStr(const char* lpszKey, const char* lpszValue)
     KvSave(&l_ConfigDB, l_szIniFile);
 }
 
-void __WDECL ConfigSetInt(const char* lpszKey, int nValue)
+void __WDECL ConfigSetInt(char const* const lpszKey, int const nValue)
 {
     char szBuffer[16];
 
@@ -66,7 +67,7 @@ void __WDECL ConfigSetInt(const char* lpszKey, int nValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
-void __WDECL ConfigSetIntU(const char* lpszKey, unsigned int uValue)
+void __WDECL ConfigSetIntU(char const* const lpszKey, unsigned int const uValue)
 {
     char szBuffer[16];
 
@@ -74,37 +75,37 @@ void __WDECL ConfigSetIntU(const char* lpszKey, unsigned int uValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
-const char* __WDECL ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey)
+char const* __WDECL ConfigGetStrFromSection(char const* const lpszSection, char const* const lpszKey)
 {
     return KvKeyGetStrValue(&l_ConfigDB, NULL, lpszSection, NULL, lpszKey);
 }
 
-int __WDECL ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey)
+int __WDECL ConfigGetIntFromSection(char const* const lpszSection, char const* const lpszKey)
 {
     return atoi(ConfigGetStrFromSection(lpszSection, lpszKey));
 }
 
-unsigned int __WDECL ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey)
+unsigned int __WDECL ConfigGetIntUFromSection(char const* const lpszSection, char const* const lpszKey)
 {
     return ConfigGetIntFromSection(lpszSection, lpszKey);
 }
 
-const char* __WDECL ConfigGetStr(const char* lpszKey)
+char const* __WDECL ConfigGetStr(char const* const lpszKey)
 {
     return ConfigGetStrFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-int __WDECL ConfigGetInt(const char* lpszKey)
+int __WDECL ConfigGetInt(char const* const lpszKey)
 {
     return ConfigGetIntFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-unsigned int __WDECL ConfigGetIntU(const char* lpszKey)
+unsigned int __WDECL ConfigGetIntU(char const* const lpszKey)
 {
     return ConfigGetIntUFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-static bool __WDECL Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSection, LPKVDBKEY Key, const char* const lpszKey, void* lpContext)
+static bool __WDECL Config_P_FoilEachKey(LPKVDB DB, char const* const lpszSection, LPKVDBKEY Key, char const* const lpszKey, void* lpContext)
 {
     if(lpszKey[0]=='_')
     {
@@ -114,7 +115,7 @@ static bool __WDECL Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSectio
     return true;
 }
 
-static bool __WDECL Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
+static bool __WDECL Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, char const* const lpszSection, void* lpContext)
 {
     KvForEachKey(NULL, Section, NULL, &Config_P_FoilEachKey, NULL);
     return true;

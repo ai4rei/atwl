@@ -33,7 +33,7 @@
 
 #include "rocred.h"
 
-static const DLGTEMPLATEITEMINFO l_DlgItems[] =
+static DLGTEMPLATEITEMINFO const l_DlgItems[] =
 {
     { DLGTEMPLATEITEM_CLASS_STATIC, 0,                                                  0, IDS_USERNAME,    7,      10, 60,     8,  },
     { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP,                0, IDC_USERNAME,    73,     7,  110,    14, },
@@ -41,7 +41,7 @@ static const DLGTEMPLATEITEMINFO l_DlgItems[] =
     { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|ES_PASSWORD|WS_BORDER|WS_TABSTOP,    0, IDC_PASSWORD,    73,     25, 110,    14, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   73,     43, 110,    10, },
 };
-static const DLGTEMPLATEINFO l_DlgTempl =
+static DLGTEMPLATEINFO const l_DlgTempl =
 {
     L"Tahoma",
     DS_CENTER|DS_SETFONT|WS_POPUPWINDOW|WS_CAPTION,
@@ -55,12 +55,12 @@ static const DLGTEMPLATEINFO l_DlgTempl =
     l_DlgItems,
 };
 
-typedef enum MISCINFOOPTION
+BEGINENUM(MISCINFOOPTION)
 {
     MISCINFO_OPT_MACADDRESS = 0x1,
 }
-MISCINFOOPTION;
-static const UINT l_uMiscInfoOptName[] =
+CLOSEENUM(MISCINFOOPTION);
+static UINT const l_uMiscInfoOptName[] =
 {
     IDS_MISCINFO_OPT_MACADDRESS,
 };
@@ -69,24 +69,31 @@ static const UINT l_uMiscInfoOptName[] =
 static BOOL l_bDefDlgEx = FALSE;
 static LRESULT CALLBACK DefWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int __WDECL MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
+int __WDECL MsgBox(HWND const hWnd, LPCSTR const lpszTextOrResource, DWORD const dwFlags)
 {
     char szTitle[64];
     char szMessage[4096];
+    LPCSTR lpszText;
     HINSTANCE const hInstance = (hWnd!=NULL) ? GetWindowInstance(hWnd) : GetModuleHandle(NULL);
 
+    szTitle[0] = '\0';
     LoadStringA(hInstance, IDS_TITLE, szTitle, __ARRAYSIZE(szTitle));
 
-    if(IS_INTRESOURCE(lpszText))
+    if(IS_INTRESOURCE(lpszTextOrResource))
     {// resource string, see MAKEINTRESOURCE on how this works
-        LoadStringA(hInstance, (WORD)lpszText, szMessage, __ARRAYSIZE(szMessage));
+        szMessage[0] = '\0';
+        LoadStringA(hInstance, (UINT)DEGRADE_POINTER(lpszTextOrResource), szMessage, __ARRAYSIZE(szMessage));
         lpszText = szMessage;
+    }
+    else
+    {
+        lpszText = lpszTextOrResource;
     }
 
     return MessageBoxA(hWnd, lpszText, szTitle, dwFlags);
 }
 
-bool __WDECL GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize)
+bool __WDECL GetFileClassFromExtension(char const* const lpszExtension, char* const lpszBuffer, size_t const uBufferSize)
 {
     bool bSuccess = false;
 
@@ -110,7 +117,7 @@ bool __WDECL GetFileClassFromExtension(const char* lpszExtension, char* lpszBuff
     return bSuccess;
 }
 
-static bool __WDECL MiscInfoAgreePrompt(HWND hWnd)
+static bool __WDECL MiscInfoAgreePrompt(HWND const hWnd)
 {
     char szBuffer[256*3+128];
     char szPrefix[256], szSuffix[256], szInfo[256] = { 0 };
@@ -161,7 +168,7 @@ static void __WDECL CombineExePathName(char* const lpszExePath, size_t const uEx
 
 // Waits for an process to exit, while keeping the application idle,
 // responsive and hidden.
-static void __WDECL IdleWaitProcess(HWND hWnd, HANDLE hProcess)
+static void __WDECL IdleWaitProcess(HWND const hWnd, HANDLE const hProcess)
 {
     bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
     HINSTANCE const hInstance = GetWindowInstance(hWnd);
@@ -213,7 +220,7 @@ static void __WDECL IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 }
 
 // Run and execute process.
-static bool __CDECL InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
+static bool __CDECL InvokeProcess(HWND const hWnd, char const* const lpszApplication, char const* const lpszParamFmt, ...)
 {
     bool bSuccess = false;
     char szBuffer[1024], szFileClass[MAX_REGISTRY_KEY_SIZE+1];
@@ -279,7 +286,7 @@ static bool __CDECL InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     return bSuccess;
 }
 
-static bool __WDECL AppMutexAcquire(HANDLE* lphMutex)
+static bool __WDECL AppMutexAcquire(HANDLE* const lphMutex)
 {
     char szFileName[MAX_PATH];
     char szMutexName[MAX_PATH];
@@ -301,7 +308,7 @@ static bool __WDECL AppMutexAcquire(HANDLE* lphMutex)
     return true;
 }
 
-static void __WDECL AppMutexRelease(HANDLE* lphMutex)
+static void __WDECL AppMutexRelease(HANDLE* const lphMutex)
 {
     if(lphMutex[0]!=NULL)
     {
@@ -309,17 +316,17 @@ static void __WDECL AppMutexRelease(HANDLE* lphMutex)
     }
 }
 
-static bool __WDECL CreateCustomButton(const char* lpszSection, void* lpContext)
+static bool __WDECL CreateCustomButton(char const* const lpszSection, void* lpContext)
 {
-    const char* const lpszName = lpszSection+15;  // skip "ROCred.Buttons."
+    char const* const lpszName = lpszSection+15;  // skip "ROCred.Buttons."
     HWND hWnd = (HWND)lpContext;
 
     if(ButtonCheckName(lpszName))
     {
         char szBufferDisplayName[4096], szBufferActionData[4096];  // STRINGTABLE limit, which is probably more than you will ever need
-        const char* lpszDisplayName;
-        const char* lpszActionData;
-        const char* lpszActionHandler;
+        char const* lpszDisplayName;
+        char const* lpszActionData;
+        char const* lpszActionHandler;
         int nActionType;
         RECT rcBtn;
 
@@ -363,7 +370,7 @@ static bool __WDECL CreateCustomButton(const char* lpszSection, void* lpContext)
     return true;  // next
 }
 
-bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
+bool __WDECL StartClient(HWND const hWnd, char const* const lpszExecutable, char const* const lpszParameters)
 {
     bool bSuccess = false;
     char szUserName[24];
@@ -371,8 +378,8 @@ bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char
     char szExePath[MAX_PATH];
     char szMiscInfo[128] = { 0 };
     char szTargetName[128];
-    const char* lpszExeName;
-    const char* lpszExeType;
+    char const* lpszExeName;
+    char const* lpszExeType;
     BOOL bCheckSave;
     HINSTANCE hInstance = GetWindowInstance(hWnd);
 
@@ -403,7 +410,7 @@ bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char
     szTargetName[0] = 0;
     if(ConfigGetInt("CheckSavePassword"))
     {
-        const char* lpszConfigID = ConfigGetStr("ConfigID");
+        char const* lpszConfigID = ConfigGetStr("ConfigID");
 
         if(lpszConfigID[0])
         {
@@ -478,7 +485,7 @@ bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char
     return bSuccess;
 }
 
-static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
+static BOOL CALLBACK WndProcOnInitDialog(HWND const hWnd, HWND const hWndFocus, LPARAM const lParam)
 {
     char szBuffer[4096];
     BOOL bCheckSave, bSetFocus = TRUE;
@@ -510,7 +517,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
 
         if(bCheckSave)
         {
-            const char* lpszUserName = ConfigGetStr("UserName");
+            char const* lpszUserName = ConfigGetStr("UserName");
 
             if(lpszUserName[0])
             {
@@ -521,7 +528,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
 
             if(ConfigGetInt("CheckSavePassword"))
             {// check credential manager
-                const char* lpszConfigID = ConfigGetStr("ConfigID");
+                char const* lpszConfigID = ConfigGetStr("ConfigID");
 
                 if(lpszConfigID[0])
                 {
@@ -554,7 +561,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
     return bSetFocus;
 }
 
-static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCodeNotify)
+static void CALLBACK WndProcOnCommand(HWND const hWnd, int const nId, HWND const hWndCtl, UINT const uCodeNotify)
 {
     if(uCodeNotify==0U || uCodeNotify==1U)
     {
@@ -562,7 +569,7 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
     }
 }
 
-static BOOL CALLBACK WndProcOnEraseBkgnd(HWND hWnd, HDC hDC)
+static BOOL CALLBACK WndProcOnEraseBkgnd(HWND const hWnd, HDC const hDC)
 {
     if(!BgSkinOnEraseBkGnd(hWnd, hDC))
     {
@@ -572,7 +579,7 @@ static BOOL CALLBACK WndProcOnEraseBkgnd(HWND hWnd, HDC hDC)
     return TRUE;
 }
 
-static void CALLBACK WndProcOnLButtonDown(HWND hWnd, BOOL bDoubleClick, int nX, int nY, UINT uKeyFlags)
+static void CALLBACK WndProcOnLButtonDown(HWND const hWnd, BOOL const bDoubleClick, int const nX, int const nY, UINT const uKeyFlags)
 {
     if(!BgSkinOnLButtonDown(hWnd))
     {
@@ -580,7 +587,7 @@ static void CALLBACK WndProcOnLButtonDown(HWND hWnd, BOOL bDoubleClick, int nX, 
     }
 }
 
-static HBRUSH CALLBACK WndProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
+static HBRUSH CALLBACK WndProcOnCtlColorStatic(HWND const hWnd, HDC const hDC, HWND const hWndChild, int const nType)
 {
     HBRUSH hbrBackground = BgSkinOnCtlColorStatic(hDC, hWndChild);
 
@@ -592,7 +599,7 @@ static HBRUSH CALLBACK WndProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChil
     return hbrBackground;
 }
 
-static HBRUSH CALLBACK WndProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
+static HBRUSH CALLBACK WndProcOnCtlColorEdit(HWND const hWnd, HDC const hDC, HWND const hWndChild, int const nType)
 {
     HBRUSH hbrBackground = BgSkinOnCtlColorEdit(hDC, hWndChild);
 
@@ -604,7 +611,7 @@ static HBRUSH CALLBACK WndProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild,
     return hbrBackground;
 }
 
-static void CALLBACK WndProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawItem)
+static void CALLBACK WndProcOnDrawItem(HWND const hWnd, DRAWITEMSTRUCT const* const lpDrawItem)
 {
     if(!BgSkinOnDrawItem(lpDrawItem->CtlID, lpDrawItem))
     {
@@ -612,7 +619,7 @@ static void CALLBACK WndProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawIt
     }
 }
 
-static void CALLBACK WndProcOnHelp(HWND hWnd, LPHELPINFO lphi)
+static void CALLBACK WndProcOnHelp(HWND const hWnd, LPHELPINFO const lphi)
 {
     DLGABOUTINFO Dai =
     {
@@ -629,7 +636,7 @@ static void CALLBACK WndProcOnHelp(HWND hWnd, LPHELPINFO lphi)
     DlgAbout(&Dai);
 }
 
-static void CALLBACK WndProcOnDestroy(HWND hWnd)
+static void CALLBACK WndProcOnDestroy(HWND const hWnd)
 {
     BgSkinFree();
 }
