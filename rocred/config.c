@@ -104,56 +104,6 @@ unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
     return ConfigGetIntUFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-bool __stdcall ConfigSave(void)
-{
-    bool bSuccess = false;
-    HANDLE hFile = INVALID_HANDLE_VALUE;
-
-    // load configuration
-    if(OpenFileForReadingDesperatelyA(l_szIniFile, FILE_FLAG_SEQUENTIAL_SCAN, &hFile))
-    {
-        ubyte_t* lpucBuffer = NULL;
-        DWORD dwFileSize = GetFileSize(hFile, NULL);  // if your config is over 4GB, you are doing something wrong
-
-        if(dwFileSize && MemTAllocEx(&lpucBuffer, dwFileSize))
-        {
-            DWORD dwRead;
-
-            if(ReadFile(hFile, lpucBuffer, dwFileSize, &dwRead, NULL))
-            {
-                char szSrcName[MAX_PATH];
-
-                if(GetModuleFileNameSpecificPathA(NULL, szSrcName, __ARRAYSIZE(szSrcName), NULL, NULL))
-                {
-                    char szDstName[MAX_PATH];
-
-                    if(GetModuleFileNameSpecificPathA(NULL, szDstName, __ARRAYSIZE(szDstName), NULL, "embed.exe"))
-                    {
-                        if(CopyFileA(szSrcName, szDstName, FALSE))
-                        {
-                            // persist as resource
-                            if(ResourceStore(szDstName, MAKEINTRESOURCEA(RT_RCDATA), "CONFIG", lpucBuffer, dwFileSize))
-                            {
-                                bSuccess = true;
-                            }
-                            else
-                            {
-                                DeleteFileA(szDstName);
-                            }
-                        }
-                    }
-                }
-            }
-
-            MemTFree(&lpucBuffer);
-        }
-
-        CloseFile(&hFile);
-    }
-
-    return bSuccess;
-}
-
 static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSection, LPKVDBKEY Key, const char* const lpszKey, void* lpContext)
 {
     if(lpszKey[0]=='_')

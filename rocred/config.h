@@ -24,7 +24,6 @@ unsigned int __stdcall ConfigGetIntUFromSection(const char* lpszSection, const c
 const char* __stdcall ConfigGetStr(const char* lpszKey);
 int __stdcall ConfigGetInt(const char* lpszKey);
 unsigned int __stdcall ConfigGetIntU(const char* lpszKey);
-bool __stdcall ConfigSave(void);
 bool __stdcall ConfigInit(void);
 void __stdcall ConfigQuit(void);
 

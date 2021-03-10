@@ -717,23 +717,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         {
             if(AppMutexAcquire(&hMutex))
             {
-#ifdef WITH_RESOURCE_EMBEDDING
-                if(lpszCmdLine[0]=='/')
-                {
-                    if(!strcmpi(&lpszCmdLine[1], "embed"))
-                    {
-                        if(ConfigSave())
-                        {
-                            MsgBox(NULL, "Configuration was successfully embedded.", MB_OK|MB_ICONINFORMATION);
-                        }
-                        else
-                        {
-                            MsgBox(NULL, "Embedding configuration failed. Make sure you have a configuration set up and do this on Windows NT or later.", MB_OK|MB_ICONSTOP);
-                        }
-                    }
-                }
-                else
-#endif  /* WITH_RESOURCE_EMBEDDING */
                 {
                     CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
                     DlgTi.wFontSize = ConfigGetInt("FontSize");
