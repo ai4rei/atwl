@@ -599,30 +599,25 @@ static void CALLBACK WndProcOnLButtonDown(HWND hWnd, BOOL bDoubleClick, int nX, 
     }
 }
 
-static HBRUSH CALLBACK WndProcOnCtlColor(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
+static HBRUSH CALLBACK WndProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
 {
-    HBRUSH hbrBackground = NULL;
+    HBRUSH hbrBackground = BgSkinOnCtlColorStatic(hDC, hWndChild);
 
-    switch(nType)
+    if(hbrBackground==NULL)
     {
-        case CTLCOLOR_STATIC:
-            hbrBackground = BgSkinOnCtlColorStatic(hDC, hWndChild);
+        hbrBackground = FORWARD_WM_CTLCOLORSTATIC(hWnd, hDC, hWndChild, &DefWndProc);
+    }
 
-            if(hbrBackground==NULL)
-            {
-                hbrBackground = FORWARD_WM_CTLCOLORSTATIC(hWnd, hDC, hWndChild, &DefWndProc);
-            }
+    return hbrBackground;
+}
 
-            break;
-        case CTLCOLOR_EDIT:
-            hbrBackground = BgSkinOnCtlColorEdit(hDC, hWndChild);
+static HBRUSH CALLBACK WndProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild, int nType)
+{
+    HBRUSH hbrBackground = BgSkinOnCtlColorEdit(hDC, hWndChild);
 
-            if(hbrBackground==NULL)
-            {
-                hbrBackground = FORWARD_WM_CTLCOLOREDIT(hWnd, hDC, hWndChild, &DefWndProc);
-            }
-
-            break;
+    if(hbrBackground==NULL)
+    {
+        hbrBackground = FORWARD_WM_CTLCOLOREDIT(hWnd, hDC, hWndChild, &DefWndProc);
     }
 
     return hbrBackground;
@@ -671,8 +666,8 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HANDLE_MSG(hWnd, WM_COMMAND,        &WndProcOnCommand);
         HANDLE_MSG(hWnd, WM_ERASEBKGND,     &WndProcOnEraseBkgnd);
         HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    &WndProcOnLButtonDown);
-        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, &WndProcOnCtlColor);
-        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   &WndProcOnCtlColor);
+        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, &WndProcOnCtlColorStatic);
+        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   &WndProcOnCtlColorEdit);
         HANDLE_MSG(hWnd, WM_DRAWITEM,       &WndProcOnDrawItem);
         HANDLE_MSG(hWnd, WM_HELP,           &WndProcOnHelp);
         HANDLE_MSG(hWnd, WM_DESTROY,        &WndProcOnDestroy);
