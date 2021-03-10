@@ -43,8 +43,6 @@ static const char* __WDECL BgSkin_P_ButtonId2Name(UINT uId)
 {
     switch(uId)
     {
-    C2N(IDOK);
-    C2N(IDCANCEL);
     C2N(IDS_USERNAME);
     C2N(IDC_USERNAME);
     C2N(IDS_PASSWORD);
@@ -337,12 +335,6 @@ bool __WDECL BgSkinInit(HWND hWnd)
             if(lpszName)
             {// fixed control
                 char szKeyName[64];
-
-                switch(uBtnId)
-                {// button
-                case IDOK:       BgSkin_P_RegisterButtonSkin(uBtnId, "BTNSTART"); break;
-                case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
-                }
 
                 snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.X", lpszName); nX = ConfigGetInt(szKeyName);
                 snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.Y", lpszName); nY = ConfigGetInt(szKeyName);
