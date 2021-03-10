@@ -14,6 +14,7 @@ config.c
 ..\snippets\md5.c
 ..\snippets\mem.c
 ..\snippets\_mem\mem.win32.heap.c
+..\snippets\_mem\memdbg.win32.msgbox.c
 ..\snippets\regionui.c
 ..\snippets\w32uxt.c
 ..\snippets\wnttools.c

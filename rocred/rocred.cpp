@@ -18,6 +18,7 @@
 #include <dlgtempl.h>
 #include <macaddr.h>
 #include <md5.h>
+#include <memdbg.h>
 #include <memtaf.h>
 #include <w32dll.h>  /* needed for w32cred */
 #include <w32cred.h>
@@ -703,11 +704,8 @@ static MEM_OUTOFMEMORY_ACTION __WDECL OnOOM(LPCMEMOUTOFMEMORYINFO const lpInfo, 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nShowCmd)
 {
-    DLGTEMPLATEINFO DlgTi;
-    HANDLE hMutex = NULL;
-
     // memory
-    MemSetOptions(MEM_OPT_EXCEPTIO|MEM_OPT_STOPBAAD|MEM_OPT_STOPNULL|MEM_OPT_STOPZERO);
+    MemSetOptions(MEM_OPT_EXCEPTIO|MEM_OPT_STOPBUGS);
     MemSetHandler(&OnOOM, NULL);
 
     // start up
@@ -715,17 +713,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     {
         if(ConfigInit())
         {
+            HANDLE hMutex = NULL;
+
             if(AppMutexAcquire(&hMutex))
             {
-                {
-                    CopyMemory(&DlgTi, &l_DlgTempl, sizeof(DlgTi));
-                    DlgTi.wFontSize = ConfigGetInt("FontSize");
+                DLGTEMPLATEINFO DlgTi = l_DlgTempl;
 
-                    InitCommonControls();
+                DlgTi.wFontSize = ConfigGetInt("FontSize");
 
-                    DlgTemplateExBoxParam(hInstance, &DlgTi, NULL, &DlgProc, 0);
-                }
-
+                InitCommonControls();
+                DlgTemplateExBoxParam(hInstance, &DlgTi, NULL, &DlgProc, 0);
                 AppMutexRelease(&hMutex);
             }
 
@@ -744,7 +741,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     }
 
     // memory again
-    AssertHere(!MemIsLeaked());
+    if(MemIsLeaked() || MemDbgIsBadStats())
+    {
+        MemDbgPrintStats();
+    }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
