@@ -585,7 +585,7 @@ static BOOL CALLBACK WndProcOnEraseBkgnd(HWND hWnd, HDC hDC)
 {
     if(!BgSkinOnEraseBkGnd(hWnd, hDC))
     {
-        return FORWARD_WM_ERASEBKGND(hWnd, hDC, &DefWndProc);  // default background
+        return FORWARD_WM_ERASEBKGND(hWnd, hDC, DefWndProc);  // default background
     }
 
     return TRUE;
@@ -595,7 +595,7 @@ static void CALLBACK WndProcOnLButtonDown(HWND hWnd, BOOL bDoubleClick, int nX, 
 {
     if(!BgSkinOnLButtonDown(hWnd))
     {
-        FORWARD_WM_LBUTTONDOWN(hWnd, bDoubleClick, nX, nY, uKeyFlags, &DefWndProc);
+        FORWARD_WM_LBUTTONDOWN(hWnd, bDoubleClick, nX, nY, uKeyFlags, DefWndProc);
     }
 }
 
@@ -605,7 +605,7 @@ static HBRUSH CALLBACK WndProcOnCtlColorStatic(HWND hWnd, HDC hDC, HWND hWndChil
 
     if(hbrBackground==NULL)
     {
-        hbrBackground = FORWARD_WM_CTLCOLORSTATIC(hWnd, hDC, hWndChild, &DefWndProc);
+        hbrBackground = FORWARD_WM_CTLCOLORSTATIC(hWnd, hDC, hWndChild, DefWndProc);
     }
 
     return hbrBackground;
@@ -617,7 +617,7 @@ static HBRUSH CALLBACK WndProcOnCtlColorEdit(HWND hWnd, HDC hDC, HWND hWndChild,
 
     if(hbrBackground==NULL)
     {
-        hbrBackground = FORWARD_WM_CTLCOLOREDIT(hWnd, hDC, hWndChild, &DefWndProc);
+        hbrBackground = FORWARD_WM_CTLCOLOREDIT(hWnd, hDC, hWndChild, DefWndProc);
     }
 
     return hbrBackground;
@@ -627,7 +627,7 @@ static void CALLBACK WndProcOnDrawItem(HWND hWnd, const DRAWITEMSTRUCT* lpDrawIt
 {
     if(!BgSkinOnDrawItem(lpDrawItem->CtlID, lpDrawItem))
     {
-        FORWARD_WM_DRAWITEM(hWnd, lpDrawItem, &DefWndProc);
+        FORWARD_WM_DRAWITEM(hWnd, lpDrawItem, DefWndProc);
     }
 }
 
@@ -662,15 +662,15 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
     switch(uMsg)
     {
-        HANDLE_MSG(hWnd, WM_INITDIALOG,     &WndProcOnInitDialog);
-        HANDLE_MSG(hWnd, WM_COMMAND,        &WndProcOnCommand);
-        HANDLE_MSG(hWnd, WM_ERASEBKGND,     &WndProcOnEraseBkgnd);
-        HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    &WndProcOnLButtonDown);
-        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, &WndProcOnCtlColorStatic);
-        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   &WndProcOnCtlColorEdit);
-        HANDLE_MSG(hWnd, WM_DRAWITEM,       &WndProcOnDrawItem);
-        HANDLE_MSG(hWnd, WM_HELP,           &WndProcOnHelp);
-        HANDLE_MSG(hWnd, WM_DESTROY,        &WndProcOnDestroy);
+        HANDLE_MSG(hWnd, WM_INITDIALOG,     WndProcOnInitDialog);
+        HANDLE_MSG(hWnd, WM_COMMAND,        WndProcOnCommand);
+        HANDLE_MSG(hWnd, WM_ERASEBKGND,     WndProcOnEraseBkgnd);
+        HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    WndProcOnLButtonDown);
+        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, WndProcOnCtlColorStatic);
+        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   WndProcOnCtlColorEdit);
+        HANDLE_MSG(hWnd, WM_DRAWITEM,       WndProcOnDrawItem);
+        HANDLE_MSG(hWnd, WM_HELP,           WndProcOnHelp);
+        HANDLE_MSG(hWnd, WM_DESTROY,        WndProcOnDestroy);
     }
 
     return DefWndProc(hWnd, uMsg, wParam, lParam);
