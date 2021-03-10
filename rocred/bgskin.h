@@ -12,13 +12,13 @@ extern "C"
 {
 #endif  /* __cplusplus */
 
-bool __stdcall BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC);
-bool __stdcall BgSkinOnLButtonDown(HWND hWnd);
-HBRUSH __stdcall BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd);
-HBRUSH __stdcall BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd);
-bool __stdcall BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis);
-bool __stdcall BgSkinInit(HWND hWnd);
-void __stdcall BgSkinFree(void);
+bool __WDECL BgSkinOnEraseBkGnd(HWND hWnd, HDC hDC);
+bool __WDECL BgSkinOnLButtonDown(HWND hWnd);
+HBRUSH __WDECL BgSkinOnCtlColorStatic(HDC hDC, HWND hWnd);
+HBRUSH __WDECL BgSkinOnCtlColorEdit(HDC hDC, HWND hWnd);
+bool __WDECL BgSkinOnDrawItem(UINT uID, const DRAWITEMSTRUCT* lpDis);
+bool __WDECL BgSkinInit(HWND hWnd);
+void __WDECL BgSkinFree(void);
 
 #ifdef __cplusplus
 }

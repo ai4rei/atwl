@@ -70,7 +70,7 @@ static LRESULT CALLBACK Button_P_SubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wP
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const int nWidth, const int nHeight, const char* const lpszDisplayName, const char* const lpszName, const int nActionType, const char* const lpszActionData, const char* const lpszActionHandler)
+bool __WDECL ButtonCreate(HWND hWndParent, const int nX, const int nY, const int nWidth, const int nHeight, const char* const lpszDisplayName, const char* const lpszName, const int nActionType, const char* const lpszActionData, const char* const lpszActionHandler)
 {
     BUTTON_DATA* lpBd = NULL;
     const size_t uNameLength          = strlen(lpszName);
@@ -109,7 +109,7 @@ bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const i
     return false;
 }
 
-bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
+bool __WDECL ButtonAction(HWND hWnd, const unsigned int uBtnId)
 {
     HWND hWndButton = GetDlgItem(hWnd, uBtnId);
 
@@ -225,7 +225,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId)
     return false;
 }
 
-bool __stdcall ButtonCheckName(const char* const lpszName)
+bool __WDECL ButtonCheckName(const char* const lpszName)
 {
     const char* lpszIdx;
 
@@ -235,7 +235,7 @@ bool __stdcall ButtonCheckName(const char* const lpszName)
     return (bool)(0==lpszIdx[0]);
 }
 
-const char* __stdcall ButtonGetName(const unsigned int uBtnId, char* const lpszBuffer, const size_t uBufferSize)
+const char* __WDECL ButtonGetName(const unsigned int uBtnId, char* const lpszBuffer, const size_t uBufferSize)
 {
     lpszBuffer[0] = 0;
 
@@ -247,12 +247,12 @@ const char* __stdcall ButtonGetName(const unsigned int uBtnId, char* const lpszB
     return NULL;
 }
 
-unsigned int __stdcall ButtonGetId(const char* const lpszName)
+unsigned int __WDECL ButtonGetId(const char* const lpszName)
 {
     return FindAtomA(lpszName);
 }
 
-HWND __stdcall ButtonGetDefault(void)
+HWND __WDECL ButtonGetDefault(void)
 {
     return l_hDefaultBtnWnd;
 }

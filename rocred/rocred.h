@@ -49,9 +49,9 @@ extern "C"
 {
 #endif  /* __cplusplus */
 
-int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags);
-bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
-bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters);
+int __WDECL MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags);
+bool __WDECL GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize);
+bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters);
 
 #ifdef __cplusplus
 }

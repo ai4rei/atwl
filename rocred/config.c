@@ -30,21 +30,21 @@ static KVDB l_ConfigDB = { 0 };
 
 #define CONFIG_MAIN_SECTION "ROCred"
 
-static bool __stdcall Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
+static bool __WDECL Config_P_ForEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
 {
     struct LPFOREACHSECTIONCONTEXT* lpCtx = (struct LPFOREACHSECTIONCONTEXT*)lpContext;
 
     return lpCtx->Func(lpszSection, lpCtx->lpContext);
 }
 
-void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext)
+void __WDECL ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext)
 {
     struct LPFOREACHSECTIONCONTEXT Ctx = { Func, lpContext };
 
     KvForEachSectionMatch(&l_ConfigDB, lpszMatch, &Config_P_ForEachSection, &Ctx);
 }
 
-void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
+void __WDECL ConfigSetStr(const char* lpszKey, const char* lpszValue)
 {
     if(lpszValue)
     {
@@ -58,7 +58,7 @@ void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue)
     KvSave(&l_ConfigDB, l_szIniFile);
 }
 
-void __stdcall ConfigSetInt(const char* lpszKey, int nValue)
+void __WDECL ConfigSetInt(const char* lpszKey, int nValue)
 {
     char szBuffer[16];
 
@@ -66,7 +66,7 @@ void __stdcall ConfigSetInt(const char* lpszKey, int nValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
-void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
+void __WDECL ConfigSetIntU(const char* lpszKey, unsigned int uValue)
 {
     char szBuffer[16];
 
@@ -74,37 +74,37 @@ void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue)
     ConfigSetStr(lpszKey, szBuffer);
 }
 
-const char* __stdcall ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey)
+const char* __WDECL ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey)
 {
     return KvKeyGetStrValue(&l_ConfigDB, NULL, lpszSection, NULL, lpszKey);
 }
 
-int __stdcall ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey)
+int __WDECL ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey)
 {
     return atoi(ConfigGetStrFromSection(lpszSection, lpszKey));
 }
 
-unsigned int __stdcall ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey)
+unsigned int __WDECL ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey)
 {
     return ConfigGetIntFromSection(lpszSection, lpszKey);
 }
 
-const char* __stdcall ConfigGetStr(const char* lpszKey)
+const char* __WDECL ConfigGetStr(const char* lpszKey)
 {
     return ConfigGetStrFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-int __stdcall ConfigGetInt(const char* lpszKey)
+int __WDECL ConfigGetInt(const char* lpszKey)
 {
     return ConfigGetIntFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-unsigned int __stdcall ConfigGetIntU(const char* lpszKey)
+unsigned int __WDECL ConfigGetIntU(const char* lpszKey)
 {
     return ConfigGetIntUFromSection(CONFIG_MAIN_SECTION, lpszKey);
 }
 
-static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSection, LPKVDBKEY Key, const char* const lpszKey, void* lpContext)
+static bool __WDECL Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSection, LPKVDBKEY Key, const char* const lpszKey, void* lpContext)
 {
     if(lpszKey[0]=='_')
     {
@@ -114,13 +114,13 @@ static bool __stdcall Config_P_FoilEachKey(LPKVDB DB, const char* const lpszSect
     return true;
 }
 
-static bool __stdcall Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
+static bool __WDECL Config_P_FoilEachSection(LPKVDB DB, LPKVDBSECTION Section, const char* const lpszSection, void* lpContext)
 {
     KvForEachKey(NULL, Section, NULL, &Config_P_FoilEachKey, NULL);
     return true;
 }
 
-bool __stdcall ConfigInit(void)
+bool __WDECL ConfigInit(void)
 {
     bool bSuccess = false;
     DWORD dwLength = 0;
@@ -196,7 +196,7 @@ bool __stdcall ConfigInit(void)
     return true;
 }
 
-void __stdcall ConfigQuit(void)
+void __WDECL ConfigQuit(void)
 {
     KvFree(&l_ConfigDB);
 }

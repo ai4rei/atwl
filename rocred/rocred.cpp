@@ -69,7 +69,7 @@ static const UINT l_uMiscInfoOptName[] =
 static BOOL l_bDefDlgEx = FALSE;
 static LRESULT CALLBACK DefWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
+int __WDECL MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
 {
     char szTitle[64];
     char szMessage[4096];
@@ -86,7 +86,7 @@ int __stdcall MsgBox(HWND hWnd, LPCSTR lpszText, DWORD dwFlags)
     return MessageBoxA(hWnd, lpszText, szTitle, dwFlags);
 }
 
-bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize)
+bool __WDECL GetFileClassFromExtension(const char* lpszExtension, char* lpszBuffer, size_t uBufferSize)
 {
     bool bSuccess = false;
 
@@ -110,7 +110,7 @@ bool __stdcall GetFileClassFromExtension(const char* lpszExtension, char* lpszBu
     return bSuccess;
 }
 
-static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
+static bool __WDECL MiscInfoAgreePrompt(HWND hWnd)
 {
     char szBuffer[256*3+128];
     char szPrefix[256], szSuffix[256], szInfo[256] = { 0 };
@@ -149,7 +149,7 @@ static bool __stdcall MiscInfoAgreePrompt(HWND hWnd)
     return false;
 }
 
-static void __stdcall CombineExePathName(char* const lpszExePath, size_t const uExePathSize, char const* const lpszExeName)
+static void __WDECL CombineExePathName(char* const lpszExePath, size_t const uExePathSize, char const* const lpszExeName)
 {
     char szFileName[MAX_PATH];
 
@@ -161,7 +161,7 @@ static void __stdcall CombineExePathName(char* const lpszExePath, size_t const u
 
 // Waits for an process to exit, while keeping the application idle,
 // responsive and hidden.
-static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
+static void __WDECL IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 {
     bool bTrayIcon = !ConfigGetInt("PolicyNoTrayIcon");
     HINSTANCE const hInstance = GetWindowInstance(hWnd);
@@ -213,7 +213,7 @@ static void __stdcall IdleWaitProcess(HWND hWnd, HANDLE hProcess)
 }
 
 // Run and execute process.
-static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
+static bool __CDECL InvokeProcess(HWND hWnd, const char* lpszApplication, const char* lpszParamFmt, ...)
 {
     bool bSuccess = false;
     char szBuffer[1024], szFileClass[MAX_REGISTRY_KEY_SIZE+1];
@@ -279,7 +279,7 @@ static bool __cdecl InvokeProcess(HWND hWnd, const char* lpszApplication, const 
     return bSuccess;
 }
 
-static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
+static bool __WDECL AppMutexAcquire(HANDLE* lphMutex)
 {
     char szFileName[MAX_PATH];
     char szMutexName[MAX_PATH];
@@ -301,7 +301,7 @@ static bool __stdcall AppMutexAcquire(HANDLE* lphMutex)
     return true;
 }
 
-static void __stdcall AppMutexRelease(HANDLE* lphMutex)
+static void __WDECL AppMutexRelease(HANDLE* lphMutex)
 {
     if(lphMutex[0]!=NULL)
     {
@@ -309,7 +309,7 @@ static void __stdcall AppMutexRelease(HANDLE* lphMutex)
     }
 }
 
-static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContext)
+static bool __WDECL CreateCustomButton(const char* lpszSection, void* lpContext)
 {
     const char* const lpszName = lpszSection+15;  // skip "ROCred.Buttons."
     HWND hWnd = (HWND)lpContext;
@@ -363,7 +363,7 @@ static bool __stdcall CreateCustomButton(const char* lpszSection, void* lpContex
     return true;  // next
 }
 
-bool __stdcall StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
+bool __WDECL StartClient(HWND hWnd, const char* const lpszExecutable, const char* const lpszParameters)
 {
     bool bSuccess = false;
     char szUserName[24];

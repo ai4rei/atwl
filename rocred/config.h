@@ -12,20 +12,20 @@ extern "C"
 {
 #endif  /* __cplusplus */
 
-typedef bool (__stdcall* LPFNFOREACHSECTION)(const char* lpszSection, void* lpContext);
+typedef bool (__WDECL* LPFNFOREACHSECTION)(const char* lpszSection, void* lpContext);
 
-void __stdcall ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext);
-void __stdcall ConfigSetStr(const char* lpszKey, const char* lpszValue);
-void __stdcall ConfigSetInt(const char* lpszKey, int nValue);
-void __stdcall ConfigSetIntU(const char* lpszKey, unsigned int uValue);
-const char* __stdcall ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey);
-int __stdcall ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey);
-unsigned int __stdcall ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey);
-const char* __stdcall ConfigGetStr(const char* lpszKey);
-int __stdcall ConfigGetInt(const char* lpszKey);
-unsigned int __stdcall ConfigGetIntU(const char* lpszKey);
-bool __stdcall ConfigInit(void);
-void __stdcall ConfigQuit(void);
+void __WDECL ConfigForEachSectionMatch(const char* lpszMatch, LPFNFOREACHSECTION Func, void* lpContext);
+void __WDECL ConfigSetStr(const char* lpszKey, const char* lpszValue);
+void __WDECL ConfigSetInt(const char* lpszKey, int nValue);
+void __WDECL ConfigSetIntU(const char* lpszKey, unsigned int uValue);
+const char* __WDECL ConfigGetStrFromSection(const char* lpszSection, const char* lpszKey);
+int __WDECL ConfigGetIntFromSection(const char* lpszSection, const char* lpszKey);
+unsigned int __WDECL ConfigGetIntUFromSection(const char* lpszSection, const char* lpszKey);
+const char* __WDECL ConfigGetStr(const char* lpszKey);
+int __WDECL ConfigGetInt(const char* lpszKey);
+unsigned int __WDECL ConfigGetIntU(const char* lpszKey);
+bool __WDECL ConfigInit(void);
+void __WDECL ConfigQuit(void);
 
 #ifdef __cplusplus
 }
