@@ -43,9 +43,7 @@ static char const* __WDECL BgSkin_P_ButtonId2Name(UINT const uId)
 {
     switch(uId)
     {
-    C2N(IDS_USERNAME);
     C2N(IDC_USERNAME);
-    C2N(IDS_PASSWORD);
     C2N(IDC_PASSWORD);
     C2N(IDC_CHECKSAVE);
     }
@@ -399,9 +397,11 @@ bool __WDECL BgSkinInit(HWND const hWnd)
 
             // anything else
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 static void __WDECL BgSkin_P_ReleaseSkin(LPBVLLISTNODE Node, void* lpContext)

@@ -23,8 +23,8 @@
 #define IDC_PASSWORD                    102
 #define IDC_CHECKSAVE                   103
 #define IDB_CUSTOM_BASE                 200
-#define IDS_USERNAME                    1001
-#define IDS_PASSWORD                    1002
+//efine IDS_USERNAME                    1001
+//efine IDS_PASSWORD                    1002
 #define IDS_CHECKSAVE                   1003
 #define IDS_TITLE                       1004
 #define IDS_OK                          1005

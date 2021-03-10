@@ -23,8 +23,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 STRINGTABLE DISCARDABLE
 BEGIN
     // length of the strings is limited to 4096 characters
-    IDS_USERNAME,                   "Username:"
-    IDS_PASSWORD,                   "Password:"
+//  IDS_USERNAME,                   "Username:"
+//  IDS_PASSWORD,                   "Password:"
     IDS_CHECKSAVE,                  "Save"
     IDS_TITLE,                      "RO Credentials - Minimalist Launcher"
     IDS_OK,                         "Start"

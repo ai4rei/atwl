@@ -35,11 +35,9 @@
 
 static DLGTEMPLATEITEMINFO const l_DlgItems[] =
 {
-    { DLGTEMPLATEITEM_CLASS_STATIC, 0,                                                  0, IDS_USERNAME,    7,      10, 60,     8,  },
-    { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP,                0, IDC_USERNAME,    73,     7,  110,    14, },
-    { DLGTEMPLATEITEM_CLASS_STATIC, 0,                                                  0, IDS_PASSWORD,    7,      28, 60,     8,  },
-    { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|ES_PASSWORD|WS_BORDER|WS_TABSTOP,    0, IDC_PASSWORD,    73,     25, 110,    14, },
-    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   73,     43, 110,    10, },
+    { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP,                0, IDC_USERNAME,    0, 0, 110, 14, },
+    { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|ES_PASSWORD|WS_BORDER|WS_TABSTOP,    0, IDC_PASSWORD,    0, 0, 110, 14, },
+    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   0, 0, 110, 10, },
 };
 static DLGTEMPLATEINFO const l_DlgTempl =
 {
@@ -351,8 +349,6 @@ static bool __WDECL CreateCustomButton(char const* const lpszSection, void* lpCo
             lpszActionData = szBufferActionData;
         }
 
-        MapDialogRect(hWnd, &rcBtn);
-
         if(ButtonCreate(hWnd, rcBtn.left, rcBtn.top, rcBtn.right /* width */, rcBtn.bottom /* height */, lpszDisplayName, lpszName, nActionType, lpszActionData, lpszActionHandler))
         {
             SetWindowFont(GetDlgItem(hWnd, ButtonGetId(lpszName)), GetWindowFont(hWnd), TRUE);
@@ -496,12 +492,6 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND const hWnd, HWND const hWndFocus, 
 
     LoadStringA(hInstance, IDS_TITLE, szBuffer, __ARRAYSIZE(szBuffer));
     SetWindowTextA(hWnd, szBuffer);
-
-    LoadStringA(hInstance, IDS_USERNAME, szBuffer, __ARRAYSIZE(szBuffer));
-    SetWindowTextA(GetDlgItem(hWnd, IDS_USERNAME), szBuffer);
-
-    LoadStringA(hInstance, IDS_PASSWORD, szBuffer, __ARRAYSIZE(szBuffer));
-    SetWindowTextA(GetDlgItem(hWnd, IDS_PASSWORD), szBuffer);
 
     if(ConfigGetInt("PolicyNoCheckSave"))
     {
