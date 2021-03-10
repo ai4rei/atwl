@@ -13,7 +13,7 @@
 #define APP_PRODUCTNAME "RO Credentials"
 #define APP_DESCRIPTION "Minimalist Client Launcher"
 //#define APP_HAS_UI
-#define APP_COPYYEAR "2012-2018"
+#define APP_COPYYEAR "2012-2021"
 #define APP_INTERNALNAME "ROCred"
 #define APP_ORIGINALNAME "rocred.exe"
 #define APP_PACKAGENAME "Ai4rei.E.ROCred"

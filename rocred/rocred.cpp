@@ -636,7 +636,7 @@ static void CALLBACK WndProcOnHelp(HWND hWnd, LPHELPINFO lphi)
     DLGABOUTINFO Dai =
     {
         hWnd,
-        MAKELONG(2012,2018),
+        MAKELONG(2012,2021),
         _T("About ROCred..."),
         _T("ROCred"),
         _T(APP_VERSION),
