@@ -340,8 +340,8 @@ bool __WDECL BgSkinInit(HWND hWnd)
 
                 switch(uBtnId)
                 {// button
-                    case IDOK:       BgSkin_P_RegisterButtonSkin(uBtnId, "BTNSTART"); break;
-                    case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
+                case IDOK:       BgSkin_P_RegisterButtonSkin(uBtnId, "BTNSTART"); break;
+                case IDCANCEL:   BgSkin_P_RegisterButtonSkin(uBtnId, "BTNCLOSE"); break;
                 }
 
                 snprintf(szKeyName, __ARRAYSIZE(szKeyName), "%s.X", lpszName); nX = ConfigGetInt(szKeyName);

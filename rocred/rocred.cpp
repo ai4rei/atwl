@@ -568,15 +568,15 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
     {
         switch(nId)
         {
-            case IDOK:
-                StartClient(hWnd, ConfigGetStr("ExeName"), ConfigGetStr("ExeType"));
-                break;
-            case IDCANCEL:
-                EndDialog(hWnd, 0);
-                break;
-            default:
-                ButtonAction(hWnd, nId);
-                break;
+        case IDOK:
+            StartClient(hWnd, ConfigGetStr("ExeName"), ConfigGetStr("ExeType"));
+            break;
+        case IDCANCEL:
+            EndDialog(hWnd, 0);
+            break;
+        default:
+            ButtonAction(hWnd, nId);
+            break;
         }
     }
 }
@@ -662,15 +662,15 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
     switch(uMsg)
     {
-        HANDLE_MSG(hWnd, WM_INITDIALOG,     WndProcOnInitDialog);
-        HANDLE_MSG(hWnd, WM_COMMAND,        WndProcOnCommand);
-        HANDLE_MSG(hWnd, WM_ERASEBKGND,     WndProcOnEraseBkgnd);
-        HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    WndProcOnLButtonDown);
-        HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, WndProcOnCtlColorStatic);
-        HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   WndProcOnCtlColorEdit);
-        HANDLE_MSG(hWnd, WM_DRAWITEM,       WndProcOnDrawItem);
-        HANDLE_MSG(hWnd, WM_HELP,           WndProcOnHelp);
-        HANDLE_MSG(hWnd, WM_DESTROY,        WndProcOnDestroy);
+    HANDLE_MSG(hWnd, WM_INITDIALOG,     WndProcOnInitDialog);
+    HANDLE_MSG(hWnd, WM_COMMAND,        WndProcOnCommand);
+    HANDLE_MSG(hWnd, WM_ERASEBKGND,     WndProcOnEraseBkgnd);
+    HANDLE_MSG(hWnd, WM_LBUTTONDOWN,    WndProcOnLButtonDown);
+    HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, WndProcOnCtlColorStatic);
+    HANDLE_MSG(hWnd, WM_CTLCOLOREDIT,   WndProcOnCtlColorEdit);
+    HANDLE_MSG(hWnd, WM_DRAWITEM,       WndProcOnDrawItem);
+    HANDLE_MSG(hWnd, WM_HELP,           WndProcOnHelp);
+    HANDLE_MSG(hWnd, WM_DESTROY,        WndProcOnDestroy);
     }
 
     return DefWndProc(hWnd, uMsg, wParam, lParam);
