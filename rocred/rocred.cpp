@@ -40,8 +40,6 @@ static const DLGTEMPLATEITEMINFO l_DlgItems[] =
     { DLGTEMPLATEITEM_CLASS_STATIC, 0,                                                  0, IDS_PASSWORD,    7,      28, 60,     8,  },
     { DLGTEMPLATEITEM_CLASS_EDIT,   ES_AUTOHSCROLL|ES_PASSWORD|WS_BORDER|WS_TABSTOP,    0, IDC_PASSWORD,    73,     25, 110,    14, },
     { DLGTEMPLATEITEM_CLASS_BUTTON, BS_AUTOCHECKBOX|WS_TABSTOP,                         0, IDC_CHECKSAVE,   73,     43, 110,    10, },
-    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_DEFPUSHBUTTON|WS_TABSTOP,                        0, IDOK,            79,     61, 50,     14, },
-    { DLGTEMPLATEITEM_CLASS_BUTTON, BS_PUSHBUTTON|WS_TABSTOP,                           0, IDCANCEL,        133,    61, 50,     14, },
 };
 static const DLGTEMPLATEINFO l_DlgTempl =
 {
@@ -539,7 +537,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
                         ZeroMemory((void*)(volatile void*)szPassWord, sizeof(szPassWord));
 
                         SetWindowTextA(GetDlgItem(hWnd, IDC_USERNAME), szUserName);
-                        SetDialogFocus(hWnd, GetDlgItem(hWnd, IDOK));
+                        SetDialogFocus(hWnd, ButtonGetDefault());
                         bSetFocus = FALSE;
                     }
                 }
@@ -547,13 +545,7 @@ static BOOL CALLBACK WndProcOnInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lPara
         }
     }
 
-    LoadStringA(hInstance, IDS_OK, szBuffer, __ARRAYSIZE(szBuffer));
-    SetWindowTextA(GetDlgItem(hWnd, IDOK), szBuffer);
-
-    LoadStringA(hInstance, IDS_CLOSE, szBuffer, __ARRAYSIZE(szBuffer));
-    SetWindowTextA(GetDlgItem(hWnd, IDCANCEL), szBuffer);
-
-    // load custom buttons if any
+    // load buttons if any
     ConfigForEachSectionMatch("ROCred.Buttons.", &CreateCustomButton, hWnd);
 
     // apply available skins
@@ -566,18 +558,7 @@ static void CALLBACK WndProcOnCommand(HWND hWnd, int nId, HWND hWndCtl, UINT uCo
 {
     if(uCodeNotify==0U || uCodeNotify==1U)
     {
-        switch(nId)
-        {
-        case IDOK:
-            StartClient(hWnd, ConfigGetStr("ExeName"), ConfigGetStr("ExeType"));
-            break;
-        case IDCANCEL:
-            EndDialog(hWnd, 0);
-            break;
-        default:
-            ButtonAction(hWnd, nId);
-            break;
-        }
+        ButtonAction(hWnd, nId);
     }
 }
 

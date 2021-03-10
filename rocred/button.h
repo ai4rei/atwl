@@ -17,6 +17,7 @@ bool __stdcall ButtonAction(HWND hWnd, const unsigned int uBtnId);
 bool __stdcall ButtonCheckName(const char* const lpszName);
 const char* __stdcall ButtonGetName(const unsigned int uBtnId, char* const lpszBuffer, const size_t uBufferSize);
 unsigned int __stdcall ButtonGetId(const char* const lpszName);
+HWND __stdcall ButtonGetDefault(void);
 
 #ifdef __cplusplus
 }

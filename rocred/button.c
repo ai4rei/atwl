@@ -40,6 +40,8 @@ BEGINSTRUCT(BUTTON_DATA)
 }
 CLOSESTRUCT(BUTTON_DATA);
 
+static HWND l_hDefaultBtnWnd = NULL;  /* handle of the default button */
+
 static LRESULT CALLBACK Button_P_SubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     CONTEXTCAST(LPBUTTON_DATA,lpBd,GetWindowLongPtr(hWnd, GWLP_USERDATA));
@@ -77,7 +79,7 @@ bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const i
 
     if(MemT2Alloc(&lpBd, lpszName, uNameLength+1U+uActionDataLength+1U+uActionHandlerLength+1U))
     {
-        HWND hWnd = CreateWindowExA(0, WC_BUTTONA, lpszDisplayName, WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtomA(lpszName), GetWindowInstance(hWndParent), NULL);
+        HWND hWnd = CreateWindowExA(0, WC_BUTTONA, lpszDisplayName, WS_CHILD|WS_VISIBLE|(l_hDefaultBtnWnd==NULL ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON), nX, nY, nWidth, nHeight, hWndParent, (HMENU)AddAtomA(lpszName), GetWindowInstance(hWndParent), NULL);
 
         if(hWnd)
         {
@@ -92,6 +94,11 @@ bool __stdcall ButtonCreate(HWND hWndParent, const int nX, const int nY, const i
 
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)lpBd);
             lpBd->lpfnPrevWndProc = SubclassWindow(hWnd, &Button_P_SubclassWndProc);
+
+            if(l_hDefaultBtnWnd==NULL)
+            {
+                l_hDefaultBtnWnd = hWnd;
+            }
 
             return true;
         }
@@ -243,4 +250,9 @@ const char* __stdcall ButtonGetName(const unsigned int uBtnId, char* const lpszB
 unsigned int __stdcall ButtonGetId(const char* const lpszName)
 {
     return FindAtomA(lpszName);
+}
+
+HWND __stdcall ButtonGetDefault(void)
+{
+    return l_hDefaultBtnWnd;
 }
