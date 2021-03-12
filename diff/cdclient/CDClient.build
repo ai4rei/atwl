@@ -1,0 +1,4 @@
+-nologo
+-link -dll -def:CDClient.def -out:CDClient.dll -noentry -opt:ref -opt:icf
+
+CDClient.c
