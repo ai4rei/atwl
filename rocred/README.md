@@ -1,5 +1,5 @@
 # RO Credentials
-![https://ai4rei.net/sites/nn/share/rocred.png](ROCred Main Window (unskinned))
+![ROCred Main Window (unskinned)](https://ai4rei.net/sites/nn/share/rocred.png)
 Simple and tiny client launcher+login. Has no prerequisites and runs on all Windows versions.
 
 ## Known issues
@@ -9,4 +9,4 @@ Simple and tiny client launcher+login. Has no prerequisites and runs on all Wind
 This tool has been merged into the *RSU+ROCred Merge* project, as such its development continues there. Its main purpose was to serve as software incubator.
 
 ## Website
-[https://ai4rei.net/p/rocredweb](Project Home)
+[Project Home](https://ai4rei.net/p/rocredweb)
