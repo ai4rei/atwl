@@ -628,6 +628,12 @@ bool DownloadPDB(HINTERNET hInternet, LPCTSTR lpszSymServer, LPCTSTR lpszPdbName
 
 void __cdecl _tmain(int nArgc, TCHAR** lppszArgv)
 {
+    if(nArgc<2)
+    {
+        _putts(_T("Usage: pdbdown <pe file> [<pe file> ...]"));
+        return;
+    }
+
     HINTERNET hInternet = InternetOpen(_T("PdbDown/1.0"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 
     if( hInternet != NULL )
