@@ -229,10 +229,10 @@ FDI_ERROR GetImageDebugInfo(LPVOID const lpImageBase, DWORD const dwImageLength,
 
                                 switch(pINH->OptionalHeader.Magic)
                                 {
-                                case IMAGE_NT_OPTIONAL_HDR32_MAGIC:  // 0x10-Bits (0x10B) - PE32
+                                case IMAGE_NT_OPTIONAL_HDR32_MAGIC:  // PE32
                                     pIDD = GetImageIDD(lpImageBase, dwImageLength, &pINH->FileHeader, (PIMAGE_NT_HEADERS32)pINH, &dwIDDCount);
                                     break;
-                                case IMAGE_NT_OPTIONAL_HDR64_MAGIC:  // 0x20-Bits (0x20B) - PE32+
+                                case IMAGE_NT_OPTIONAL_HDR64_MAGIC:  // PE32+
                                     pIDD = GetImageIDD(lpImageBase, dwImageLength, &pINH->FileHeader, (PIMAGE_NT_HEADERS64)pINH, &dwIDDCount);
                                     break;
                                 default:
