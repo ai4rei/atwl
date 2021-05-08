@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------
-// MIM LINK.EXE to allow DLL building with VB6
+// MIN LINK.EXE to allow DLL building with VB6
 //
 // Usage:
 //  Rename original to KNIL.EXE and place the compiled LINK.EXE in
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <windows.h>
 
 #define DLL_TEXT " /DEF:VBADLL.DEF"
@@ -29,7 +30,7 @@ int main(int nArgc, char** lppszArgv)
 
     for(nIdx = 1; nIdx<nArgc; nIdx++)
     {
-        if(!strcmp(lppszArgv[nIdx], "/DLL"))
+        if(strcmp(lppszArgv[nIdx], "/DLL")==0)
         {
             break;
         }
@@ -43,28 +44,31 @@ int main(int nArgc, char** lppszArgv)
     }
     else
     {
-        lpszNewCmd = malloc(strlen(lpszCmdLine)+sizeof(DLL_TEXT));
+        lpszNewCmd = malloc(lpszNewCmd[0]*(strlen(lpszCmdLine)+strlen(DLL_TEXT)+1U));
 
-        if(lpszNewCmd)
+        if(lpszNewCmd!=NULL)
         {
             sprintf(lpszNewCmd, "%s%s", lpszCmdLine, DLL_TEXT);
         }
     }
 
-    if(lpszNewCmd)
+    if(lpszNewCmd!=NULL)
     {
         char* lpszName = strstr(lpszNewCmd, "LINK");
 
-        if(lpszName)
+        if(lpszName!=NULL)
         {
             STARTUPINFO Si = { sizeof(Si) };
             PROCESS_INFORMATION Pi;
 
-            ((long*)lpszName)[0] = 'LINK';  /* reverse name of actual linker */
+            /* reverse name of actual linker */
+            lpszName[0] = 'K';
+            lpszName[1] = 'N';
+            lpszName[2] = 'I';
+            lpszName[3] = 'L';
 
-            if(CreateProcess(NULL, lpszNewCmd, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &Si, &Pi))
+            if(CreateProcess(NULL, lpszNewCmd, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
             {
-                ResumeThread(Pi.hThread);
                 WaitForSingleObject(Pi.hProcess, INFINITE);
                 GetExitCodeProcess(Pi.hProcess, &nResult);
                 CloseHandle(Pi.hThread);
