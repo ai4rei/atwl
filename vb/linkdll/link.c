@@ -19,42 +19,43 @@
 #include <string.h>
 
 #include <windows.h>
+#include <tchar.h>
 
-#define DLL_TEXT " /DEF:VBADLL.DEF"
+#define DLL_TEXT _T(" /DEF:VBADLL.DEF")
 
-int main(int nArgc, char** lppszArgv)
+INT __cdecl _tmain(INT nArgc, TCHAR** lppszArgv)
 {
     int nIdx, nResult = EXIT_FAILURE;
-    char* lpszNewCmd;
-    const char* lpszCmdLine;
+    TCHAR* lpszNewCmd;
+    const TCHAR* lpszCmdLine;
 
     for(nIdx = 1; nIdx<nArgc; nIdx++)
     {
-        if(strcmp(lppszArgv[nIdx], "/DLL")==0)
+        if(_tcscmp(lppszArgv[nIdx], _T("/DLL"))==0)
         {
             break;
         }
     }
 
-    lpszCmdLine = GetCommandLineA();
+    lpszCmdLine = GetCommandLine();
 
     if(nIdx==nArgc)
     {
-        lpszNewCmd = strdup(lpszCmdLine);
+        lpszNewCmd = _tcsdup(lpszCmdLine);
     }
     else
     {
-        lpszNewCmd = malloc(lpszNewCmd[0]*(strlen(lpszCmdLine)+strlen(DLL_TEXT)+1U));
+        lpszNewCmd = malloc(sizeof(lpszNewCmd[0])*(_tcslen(lpszCmdLine)+_tcslen(DLL_TEXT)+1U));
 
         if(lpszNewCmd!=NULL)
         {
-            sprintf(lpszNewCmd, "%s%s", lpszCmdLine, DLL_TEXT);
+            _stprintf(lpszNewCmd, _T("%s%s"), lpszCmdLine, DLL_TEXT);
         }
     }
 
     if(lpszNewCmd!=NULL)
     {
-        char* lpszName = strstr(lpszNewCmd, "LINK");
+        TCHAR* lpszName = _tcsstr(lpszNewCmd, _T("LINK"));
 
         if(lpszName!=NULL)
         {
@@ -62,10 +63,10 @@ int main(int nArgc, char** lppszArgv)
             PROCESS_INFORMATION Pi;
 
             /* reverse name of actual linker */
-            lpszName[0] = 'K';
-            lpszName[1] = 'N';
-            lpszName[2] = 'I';
-            lpszName[3] = 'L';
+            lpszName[0] = _T('K');
+            lpszName[1] = _T('N');
+            lpszName[2] = _T('I');
+            lpszName[3] = _T('L');
 
             if(CreateProcess(NULL, lpszNewCmd, NULL, NULL, FALSE, 0, NULL, NULL, &Si, &Pi))
             {
