@@ -624,7 +624,7 @@ UINT __WDECL KbdcServMain(VOID)
     return uExitCode;
 }
 
-BOOL CALLBACK ServiceOnControlEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData)
+BOOL CALLBACK ServiceOnControlEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
 {
     switch(dwControl)
     {
