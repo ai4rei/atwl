@@ -504,7 +504,7 @@ UINT __WDECL KbdcServMain(VOID)
         {
             for(;;)
             {
-                if((hFile = CreateFileA("\\\\.\\KbdCatch", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))!=INVALID_HANDLE_VALUE)
+                if((hFile = CreateFile(_T("\\\\.\\KbdCatch"), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))!=INVALID_HANDLE_VALUE)
                 {
                     ResumeThread(hThread);
 
